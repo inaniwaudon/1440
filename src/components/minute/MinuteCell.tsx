@@ -1,5 +1,5 @@
-import { useEffect, useState } from "react";
 import { useLiveQuery } from "dexie-react-hooks";
+import { useEffect, useState } from "react";
 import { db } from "../../db/db";
 import { fromMinuteOfDay } from "../../utils/time";
 import styles from "./MinuteCell.module.css";
@@ -17,7 +17,7 @@ export function MinuteCell({ minuteOfDay, nowMinuteOfDay, onSelect }: Props) {
   const slot = useLiveQuery(() => db.slots.get(minuteOfDay), [minuteOfDay]);
   const photo = useLiveQuery(
     () => (slot?.photoId ? db.photos.get(slot.photoId) : undefined),
-    [slot?.photoId]
+    [slot?.photoId],
   );
 
   const [thumbUrl, setThumbUrl] = useState<string | null>(null);
@@ -35,6 +35,7 @@ export function MinuteCell({ minuteOfDay, nowMinuteOfDay, onSelect }: Props) {
   const filled = !!slot?.photoId;
   return (
     <button
+      type="button"
       className={`${styles.cell} ${filled ? styles.filled : ""} ${isNow ? styles.now : ""}`}
       data-minute={minuteOfDay}
       onPointerDown={(e) => {
@@ -44,7 +45,9 @@ export function MinuteCell({ minuteOfDay, nowMinuteOfDay, onSelect }: Props) {
       style={thumbUrl ? { backgroundImage: `url(${thumbUrl})` } : undefined}
     >
       {isNow && <span className={styles.nowLabel}>NOW</span>}
-      <span className={styles.minuteLabel}>{String(minute).padStart(2, "0")}</span>
+      <span className={styles.minuteLabel}>
+        {String(minute).padStart(2, "0")}
+      </span>
     </button>
   );
 }

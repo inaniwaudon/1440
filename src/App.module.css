@@ -15,7 +15,9 @@
   justify-content: center;
   box-shadow: 0 4px 16px var(--accent-glow);
   z-index: 50;
-  transition: transform 0.15s, opacity 0.15s;
+  transition:
+    transform 0.15s,
+    opacity 0.15s;
 }
 
 .fab:active {

@@ -1,11 +1,21 @@
-import { MdCheckCircle, MdSwapHoriz, MdDownload, MdShare } from "react-icons/md";
-import { Modal, modalStyles } from "./Modal";
+import {
+  MdCheckCircle,
+  MdDownload,
+  MdShare,
+  MdSwapHoriz,
+} from "react-icons/md";
 import type { ImportArchiveResult } from "../../features/transfer/importArchive";
 import styles from "./ImportProgress.module.css";
+import { Modal, modalStyles } from "./Modal";
 
 export type TransferPhase =
   | { kind: "exporting"; current: number; total: number }
-  | { kind: "importing"; current: number; total: number; phase: "scan" | "write" }
+  | {
+      kind: "importing";
+      current: number;
+      total: number;
+      phase: "scan" | "write";
+    }
   | {
       kind: "export-done";
       download?: { url: string; name: string };
@@ -47,17 +57,26 @@ export function TransferProgressOverlay({ phase, onClose }: Props) {
   })();
 
   const current =
-    phase.kind === "exporting" || phase.kind === "importing" ? phase.current : 0;
+    phase.kind === "exporting" || phase.kind === "importing"
+      ? phase.current
+      : 0;
   const total =
     phase.kind === "exporting" || phase.kind === "importing" ? phase.total : 0;
-  const pct = total > 0 ? Math.round((current / total) * 100) : isDone ? 100 : 0;
+  const pct =
+    total > 0 ? Math.round((current / total) * 100) : isDone ? 100 : 0;
 
   return (
     <Modal
       open
       onClose={isDone ? onClose : undefined}
       title={title}
-      icon={isDone ? <MdCheckCircle aria-hidden="true" /> : <MdSwapHoriz aria-hidden="true" />}
+      icon={
+        isDone ? (
+          <MdCheckCircle aria-hidden="true" />
+        ) : (
+          <MdSwapHoriz aria-hidden="true" />
+        )
+      }
       labelledBy="transfer-progress-title"
       dismissOnOverlayClick={isDone}
       dismissOnEscape={isDone}
@@ -73,65 +92,81 @@ export function TransferProgressOverlay({ phase, onClose }: Props) {
         </>
       ) : null}
 
-      {phase.kind === "export-done" && (
-        <>
-          {phase.download || phase.shareFile ? (
-            <>
-              <p className={styles.counter}>準備ができました</p>
-              {phase.shareFile && navigator.canShare?.({ files: [phase.shareFile] }) && (
+      {phase.kind === "export-done" &&
+        (phase.download || phase.shareFile ? (
+          <>
+            <p className={styles.counter}>準備ができました</p>
+            {phase.shareFile &&
+              navigator.canShare?.({ files: [phase.shareFile] }) && (
                 <button
                   type="button"
                   className={modalStyles.primaryButton}
-                  style={{ display: "inline-flex", alignItems: "center", justifyContent: "center", gap: 8, marginTop: 8 }}
+                  style={{
+                    display: "inline-flex",
+                    alignItems: "center",
+                    justifyContent: "center",
+                    gap: 8,
+                    marginTop: 8,
+                  }}
+                  // biome-ignore lint/style/noNonNullAssertion: shareFile existence checked above
                   onClick={() => sharePhaseFile(phase.shareFile!)}
                 >
                   <MdShare aria-hidden="true" />
                   共有・保存
                 </button>
               )}
-              {phase.download && (
-                <a
-                  className={modalStyles.secondaryButton}
-                  href={phase.download.url}
-                  download={phase.download.name}
-                  style={{ display: "inline-flex", alignItems: "center", justifyContent: "center", gap: 8, textDecoration: "none", marginTop: 8 }}
-                >
-                  <MdDownload aria-hidden="true" />
-                  ダウンロード
-                </a>
-              )}
-              <button
-                type="button"
+            {phase.download && (
+              <a
                 className={modalStyles.secondaryButton}
-                style={{ marginTop: 8 }}
-                onClick={onClose}
+                href={phase.download.url}
+                download={phase.download.name}
+                style={{
+                  display: "inline-flex",
+                  alignItems: "center",
+                  justifyContent: "center",
+                  gap: 8,
+                  textDecoration: "none",
+                  marginTop: 8,
+                }}
               >
-                閉じる
-              </button>
-            </>
-          ) : (
-            <>
-              <p className={styles.counter}>保存しました</p>
-              <button
-                type="button"
-                className={modalStyles.primaryButton}
-                style={{ marginTop: 8 }}
-                onClick={onClose}
-              >
-                閉じる
-              </button>
-            </>
-          )}
-        </>
-      )}
+                <MdDownload aria-hidden="true" />
+                ダウンロード
+              </a>
+            )}
+            <button
+              type="button"
+              className={modalStyles.secondaryButton}
+              style={{ marginTop: 8 }}
+              onClick={onClose}
+            >
+              閉じる
+            </button>
+          </>
+        ) : (
+          <>
+            <p className={styles.counter}>保存しました</p>
+            <button
+              type="button"
+              className={modalStyles.primaryButton}
+              style={{ marginTop: 8 }}
+              onClick={onClose}
+            >
+              閉じる
+            </button>
+          </>
+        ))}
 
       {phase.kind === "import-done" && (
         <>
           <p className={styles.counter}>
             読み込み: {phase.result.imported}
-            {phase.result.skipped > 0 && <span>&nbsp; スキップ: {phase.result.skipped}</span>}
+            {phase.result.skipped > 0 && (
+              <span>&nbsp; スキップ: {phase.result.skipped}</span>
+            )}
             {phase.result.failed > 0 && (
-              <span className={styles.failed}>&nbsp; 失敗: {phase.result.failed}</span>
+              <span className={styles.failed}>
+                &nbsp; 失敗: {phase.result.failed}
+              </span>
             )}
           </p>
           {phase.result.errors.length > 0 && (

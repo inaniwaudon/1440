@@ -16,12 +16,12 @@
   width: 100%;
   height: 100%;
   border-radius: 50%;
-  background: var(--accent-glass-dim);
+  background: var(--accent-glass-dark);
   backdrop-filter: blur(14px);
   -webkit-backdrop-filter: blur(14px);
   box-sizing: border-box;
   border: 1px solid var(--accent-glass-light);
-  box-shadow: 0 2px 16px var(--scrim-40);
+  box-shadow: 0 2px 16px var(--scrim-50);
 }
 
 .clockNumber {
@@ -105,10 +105,10 @@
   width: 100%;
   height: 100%;
   border-radius: 50%;
-  background: var(--scrim-60);
+  background: var(--scrim-50);
   backdrop-filter: blur(16px);
   -webkit-backdrop-filter: blur(14px);
-  box-shadow: 0 2px 16px var(--scrim-40);
+  box-shadow: 0 2px 16px var(--scrim-50);
   position: absolute;
   inset: 0;
   will-change: transform;
@@ -144,9 +144,9 @@
 }
 
 .tickSelected {
-  color: var(--white) !important;
-  font-size: 30px !important;
-  font-weight: 800 !important;
+  color: var(--white);
+  font-size: 30px;
+  font-weight: 800;
 }
 
 .readout {

@@ -37,7 +37,11 @@ export function FabMenu({ onCamera, onImport, onOption }: Props) {
     const diagonalOffset = radialDistance * Math.SQRT1_2;
     const candidates: Array<{ item: Item; x: number; y: number }> = [
       { item: "option", x: centerX - radialDistance, y: centerY },
-      { item: "import", x: centerX - diagonalOffset, y: centerY - diagonalOffset },
+      {
+        item: "import",
+        x: centerX - diagonalOffset,
+        y: centerY - diagonalOffset,
+      },
       { item: "photo", x: centerX, y: centerY - radialDistance },
     ];
     const closest = candidates.reduce((best, candidate) => {
@@ -64,7 +68,9 @@ export function FabMenu({ onCamera, onImport, onOption }: Props) {
     setPending(null);
   };
 
+  // biome-ignore lint/correctness/useExhaustiveDependencies: handlers read latest state via refs
   useEffect(() => {
+    // biome-ignore lint/style/noNonNullAssertion: gestureRef is attached by this component
     const el = gestureRef.current!;
 
     function onTouchStart(e: TouchEvent) {
@@ -138,25 +144,32 @@ export function FabMenu({ onCamera, onImport, onOption }: Props) {
 
   return (
     <>
-      {(open || pending) && <div className={styles.backdrop} onClick={close} />}
+      {(open || pending) && (
+        // biome-ignore lint/a11y/noStaticElementInteractions: backdrop click closes menu
+        // biome-ignore lint/a11y/useKeyWithClickEvents: menu is dismissed via FAB press
+        <div className={styles.backdrop} onClick={close} />
+      )}
 
       <div className={styles.root}>
         {open && (
           <>
             <div
               className={`${styles.item} ${styles.itemLeft} ${active === "option" ? styles.itemActive : ""}`}
+              role="img"
               aria-label="Option"
             >
               <MdSettings className={styles.itemIcon} aria-hidden="true" />
             </div>
             <div
               className={`${styles.item} ${styles.itemDiagonal} ${active === "import" ? styles.itemActive : ""}`}
+              role="img"
               aria-label="Import"
             >
               <MdFolderOpen className={styles.itemIcon} aria-hidden="true" />
             </div>
             <div
               className={`${styles.item} ${styles.itemTop} ${active === "photo" ? styles.itemActive : ""}`}
+              role="img"
               aria-label="Photo"
             >
               <MdPhotoCamera className={styles.itemIcon} aria-hidden="true" />
@@ -165,11 +178,21 @@ export function FabMenu({ onCamera, onImport, onOption }: Props) {
         )}
 
         {pending && (
-          <button type="button" className={styles.confirmButton} onClick={confirmPending}>
+          <button
+            type="button"
+            className={styles.confirmButton}
+            onClick={confirmPending}
+          >
             {pending === "photo" ? (
-              <><MdPhotoCamera aria-hidden="true" />カメラを起動</>
+              <>
+                <MdPhotoCamera aria-hidden="true" />
+                カメラを起動
+              </>
             ) : (
-              <><MdFolderOpen aria-hidden="true" />写真を選択</>
+              <>
+                <MdFolderOpen aria-hidden="true" />
+                写真を選択
+              </>
             )}
           </button>
         )}
@@ -178,7 +201,11 @@ export function FabMenu({ onCamera, onImport, onOption }: Props) {
           ref={gestureRef}
           className={`${styles.fab} ${open ? styles.fabOpen : ""}`}
         >
-          <span className={`${styles.fabIcon} ${open ? styles.fabIconOpen : ""}`}>＋</span>
+          <span
+            className={`${styles.fabIcon} ${open ? styles.fabIconOpen : ""}`}
+          >
+            ＋
+          </span>
         </div>
         <input
           ref={cameraInputRef}

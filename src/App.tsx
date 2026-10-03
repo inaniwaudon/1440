@@ -1,37 +1,37 @@
 import { useEffect, useRef, useState } from "react";
 import { flushSync } from "react-dom";
-import { Timeline } from "./components/timeline/Timeline";
 import { MinuteDetail } from "./components/minute/MinuteDetail";
-import { ImportProgressOverlay } from "./components/modals/ImportProgress";
-import { ImportConflictOverlay } from "./components/modals/ImportConflict";
-import { InstallPrompt } from "./components/shell/InstallPrompt";
-import { FabMenu } from "./components/shell/FabMenu";
-import { OptionsModal } from "./components/modals/OptionsModal";
 import { ImageExportModal } from "./components/modals/ImageExportModal";
+import { ImportConflictOverlay } from "./components/modals/ImportConflict";
+import { ImportProgressOverlay } from "./components/modals/ImportProgress";
+import { OptionsModal } from "./components/modals/OptionsModal";
 import { TransferModal } from "./components/modals/TransferModal";
 import {
-  TransferProgressOverlay,
   type TransferPhase,
+  TransferProgressOverlay,
 } from "./components/modals/TransferProgress";
+import { FabMenu } from "./components/shell/FabMenu";
+import { InstallPrompt } from "./components/shell/InstallPrompt";
+import { Timeline } from "./components/timeline/Timeline";
+import { db } from "./db/db";
 import { exportContactSheet } from "./features/export/exportContactSheet";
 import {
-  exportArchive,
-  cleanupExportedArchive,
-} from "./features/transfer/exportArchive";
-import {
-  importArchive,
-  readArchiveMetadata,
-  type ArchiveSummary,
-  type ImportMode,
-} from "./features/transfer/importArchive";
-import { db } from "./db/db";
-import {
-  importCameraPhoto,
-  importBulkPhotos,
+  type ImportConflict,
   type ImportProgress,
   type ImportResult,
-  type ImportConflict,
+  importBulkPhotos,
+  importCameraPhoto,
 } from "./features/import/importPhotos";
+import {
+  cleanupExportedArchive,
+  exportArchive,
+} from "./features/transfer/exportArchive";
+import {
+  type ArchiveSummary,
+  type ImportMode,
+  importArchive,
+  readArchiveMetadata,
+} from "./features/transfer/importArchive";
 
 type ImportState =
   | { status: "idle" }
@@ -70,17 +70,24 @@ function loadOptions(): StoredOptions {
 
 export default function App() {
   const [selectedMinute, setSelectedMinute] = useState<number | null>(null);
-  const [importState, setImportState] = useState<ImportState>({ status: "idle" });
+  const [importState, setImportState] = useState<ImportState>({
+    status: "idle",
+  });
   const [optionsOpen, setOptionsOpen] = useState(false);
   const [options, setOptions] = useState<StoredOptions>(loadOptions);
   const [exportError, setExportError] = useState<string | null>(null);
-  const [imageExportProgress, setImageExportProgress] = useState<{ current: number; total: number } | null>(null);
+  const [imageExportProgress, setImageExportProgress] = useState<{
+    current: number;
+    total: number;
+  } | null>(null);
   const [exportedImageUrl, setExportedImageUrl] = useState<string | null>(null);
   const [conflict, setConflict] = useState<{
     details: ImportConflict;
     resolve: (replace: boolean) => void;
   } | null>(null);
-  const [transferPhase, setTransferPhase] = useState<TransferPhase | null>(null);
+  const [transferPhase, setTransferPhase] = useState<TransferPhase | null>(
+    null,
+  );
   const [transferConfirm, setTransferConfirm] = useState<{
     file: File;
     summary: ArchiveSummary;
@@ -89,11 +96,14 @@ export default function App() {
   const importFileInputRef = useRef<HTMLInputElement | null>(null);
   const exportedDownloadUrlRef = useRef<string | null>(null);
 
-  useEffect(() => () => {
-    if (exportedDownloadUrlRef.current) {
-      URL.revokeObjectURL(exportedDownloadUrlRef.current);
-    }
-  }, []);
+  useEffect(
+    () => () => {
+      if (exportedDownloadUrlRef.current) {
+        URL.revokeObjectURL(exportedDownloadUrlRef.current);
+      }
+    },
+    [],
+  );
 
   useEffect(() => {
     try {
@@ -135,21 +145,47 @@ export default function App() {
   };
 
   const handleCameraFile = async (file: File) => {
-    setImportState({ status: "importing", progress: { total: 1, current: 0, currentFile: file.name } });
+    setImportState({
+      status: "importing",
+      progress: { total: 1, current: 0, currentFile: file.name },
+    });
     try {
       const imported = await importCameraPhoto(file, compareReplacement);
-      setImportState({ status: "done", result: { succeeded: imported ? 1 : 0, skipped: imported ? 0 : 1, failed: 0, errors: [] } });
+      setImportState({
+        status: "done",
+        result: {
+          succeeded: imported ? 1 : 0,
+          skipped: imported ? 0 : 1,
+          failed: 0,
+          errors: [],
+        },
+      });
     } catch (err) {
-      setImportState({ status: "done", result: { succeeded: 0, skipped: 0, failed: 1, errors: [{ file: file.name, error: String(err) }] } });
+      setImportState({
+        status: "done",
+        result: {
+          succeeded: 0,
+          skipped: 0,
+          failed: 1,
+          errors: [{ file: file.name, error: String(err) }],
+        },
+      });
     }
   };
 
   const handleBulkImport = async (files: File[]) => {
     if (files.length === 0) return;
-    setImportState({ status: "importing", progress: { total: files.length, current: 0, currentFile: "" } });
-    const result = await importBulkPhotos(files, (progress) => {
-      setImportState({ status: "importing", progress });
-    }, compareReplacement);
+    setImportState({
+      status: "importing",
+      progress: { total: files.length, current: 0, currentFile: "" },
+    });
+    const result = await importBulkPhotos(
+      files,
+      (progress) => {
+        setImportState({ status: "importing", progress });
+      },
+      compareReplacement,
+    );
     setImportState({ status: "done", result });
   };
 
@@ -158,7 +194,11 @@ export default function App() {
     setTransferPhase({ kind: "exporting", current: 0, total: 0 });
     try {
       const destination = await exportArchive((p) => {
-        setTransferPhase({ kind: "exporting", current: p.current, total: p.total });
+        setTransferPhase({
+          kind: "exporting",
+          current: p.current,
+          total: p.total,
+        });
       });
       if (destination.kind === "saved") {
         setTransferPhase({ kind: "export-done" });
@@ -188,12 +228,19 @@ export default function App() {
     importFileInputRef.current?.click();
   };
 
-  const handleImportFile = async (event: React.ChangeEvent<HTMLInputElement>) => {
+  const handleImportFile = async (
+    event: React.ChangeEvent<HTMLInputElement>,
+  ) => {
     const file = event.target.files?.[0];
     event.target.value = "";
     if (!file) return;
     setExportError(null);
-    setTransferPhase({ kind: "importing", current: 0, total: 0, phase: "scan" });
+    setTransferPhase({
+      kind: "importing",
+      current: 0,
+      total: 0,
+      phase: "scan",
+    });
     try {
       const summary = await readArchiveMetadata(file);
       const existingPhotoCount = await db.photos.count();
@@ -273,7 +320,9 @@ export default function App() {
       />
 
       <ImportProgressOverlay
-        progress={importState.status === "importing" ? importState.progress : null}
+        progress={
+          importState.status === "importing" ? importState.progress : null
+        }
         result={importState.status === "done" ? importState.result : null}
         onClose={() => setImportState({ status: "idle" })}
       />

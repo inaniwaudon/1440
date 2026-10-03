@@ -28,7 +28,10 @@
   align-items: center;
   justify-content: center;
   box-shadow: 0 4px 16px var(--accent-glow);
-  transition: transform 0.18s, background 0.18s, box-shadow 0.18s;
+  transition:
+    transform 0.18s,
+    background 0.18s,
+    box-shadow 0.18s;
 }
 
 .hiddenInput {

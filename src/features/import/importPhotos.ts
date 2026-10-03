@@ -1,6 +1,10 @@
 import { db } from "../../db/db";
 import type { PhotoRecord } from "../../db/types";
-import { createThumbnail, createPreview, createVideoThumbnail } from "../../utils/image";
+import {
+  createPreview,
+  createThumbnail,
+  createVideoThumbnail,
+} from "../../utils/image";
 import { getMinuteOfDayFromDate } from "../../utils/time";
 import { parsePhotoMetadata } from "./parsePhotoMetadata";
 
@@ -31,7 +35,9 @@ export type ImportConflict = {
   incoming: ImportCandidate;
 };
 
-type ConflictResolver = (conflict: ImportConflict) => boolean | Promise<boolean>;
+type ConflictResolver = (
+  conflict: ImportConflict,
+) => boolean | Promise<boolean>;
 
 async function savePhoto(
   file: File,
@@ -50,22 +56,30 @@ async function savePhoto(
 
   if (existingSlot?.photoId) {
     const existing = await db.photos.get(existingSlot.photoId);
-    if (existing && resolveConflict && !(await resolveConflict({
-      minuteOfDay: meta.minuteOfDay,
-      existing,
-      incoming: {
-        fileName: file.name,
-        mimeType: file.type || (isVideo ? "video/*" : "image/*"),
-        capturedAt: meta.capturedAt,
-        capturedAtSource: meta.capturedAtSource,
-        thumbnailBlob,
-      },
-    }))) {
+    if (
+      existing &&
+      resolveConflict &&
+      !(await resolveConflict({
+        minuteOfDay: meta.minuteOfDay,
+        existing,
+        incoming: {
+          fileName: file.name,
+          mimeType: file.type || (isVideo ? "video/*" : "image/*"),
+          capturedAt: meta.capturedAt,
+          capturedAtSource: meta.capturedAtSource,
+          thumbnailBlob,
+        },
+      }))
+    ) {
       return false;
     }
   }
 
-  const id = crypto.randomUUID?.() ?? Array.from(crypto.getRandomValues(new Uint8Array(16)), b => b.toString(16).padStart(2, "0")).join("");
+  const id =
+    crypto.randomUUID?.() ??
+    Array.from(crypto.getRandomValues(new Uint8Array(16)), (b) =>
+      b.toString(16).padStart(2, "0"),
+    ).join("");
   const record: PhotoRecord = {
     id,
     capturedAt: meta.capturedAt,
@@ -74,7 +88,9 @@ async function savePhoto(
     previewBlob,
     videoBlob: isVideo ? file : undefined,
     originalFileName: file.name,
-    mimeType: isVideo ? (file.type || "video/*") : (previewBlob?.type || "image/webp"),
+    mimeType: isVideo
+      ? file.type || "video/*"
+      : previewBlob?.type || "image/webp",
     importedAt: new Date().toISOString(),
     capturedAtSource: meta.capturedAtSource,
   };
@@ -88,16 +104,26 @@ async function savePhoto(
   return true;
 }
 
-export async function importCameraPhoto(file: File, resolveConflict?: ConflictResolver): Promise<boolean> {
+export async function importCameraPhoto(
+  file: File,
+  resolveConflict?: ConflictResolver,
+): Promise<boolean> {
   const now = new Date();
-  return savePhoto(file, {
-    capturedAt: now.toISOString(),
-    capturedAtSource: "currentTime",
-    minuteOfDay: getMinuteOfDayFromDate(now),
-  }, resolveConflict);
+  return savePhoto(
+    file,
+    {
+      capturedAt: now.toISOString(),
+      capturedAtSource: "currentTime",
+      minuteOfDay: getMinuteOfDayFromDate(now),
+    },
+    resolveConflict,
+  );
 }
 
-export async function importLibraryPhoto(file: File, resolveConflict?: ConflictResolver): Promise<boolean> {
+export async function importLibraryPhoto(
+  file: File,
+  resolveConflict?: ConflictResolver,
+): Promise<boolean> {
   const meta = await parsePhotoMetadata(file);
   return savePhoto(file, meta, resolveConflict);
 }
@@ -107,7 +133,12 @@ export async function importBulkPhotos(
   onProgress: (p: ImportProgress) => void,
   resolveConflict?: ConflictResolver,
 ): Promise<ImportResult> {
-  const result: ImportResult = { succeeded: 0, skipped: 0, failed: 0, errors: [] };
+  const result: ImportResult = {
+    succeeded: 0,
+    skipped: 0,
+    failed: 0,
+    errors: [],
+  };
 
   for (let i = 0; i < files.length; i++) {
     const file = files[i];

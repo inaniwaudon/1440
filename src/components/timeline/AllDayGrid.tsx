@@ -8,7 +8,11 @@ type Props = {
   onSelectHour: (hour: number) => void;
 };
 
-export function AllDayGrid({ nowMinuteOfDay, selectedHour, onSelectHour }: Props) {
+export function AllDayGrid({
+  nowMinuteOfDay,
+  selectedHour,
+  onSelectHour,
+}: Props) {
   // Single query for all filled slots — far cheaper than per-cell queries
   const filledSet = useLiveQuery(
     () =>
@@ -39,12 +43,13 @@ export function AllDayGrid({ nowMinuteOfDay, selectedHour, onSelectHour }: Props
         const isSelected = selectedHour === hour;
 
         let cls = styles.cell;
-        if (isNow) cls += " " + styles.nowCell;
-        else if (filled && isSelected) cls += " " + styles.filledSelected;
-        else if (filled) cls += " " + styles.filled;
-        else if (isSelected) cls += " " + styles.selected;
-        else if (isNowHour) cls += " " + styles.nowHourCell;
+        if (isNow) cls += ` ${styles.nowCell}`;
+        else if (filled && isSelected) cls += ` ${styles.filledSelected}`;
+        else if (filled) cls += ` ${styles.filled}`;
+        else if (isSelected) cls += ` ${styles.selected}`;
+        else if (isNowHour) cls += ` ${styles.nowHourCell}`;
 
+        // biome-ignore lint/suspicious/noArrayIndexKey: static 1440-length list, order fixed
         return <div key={i} className={cls} />;
       })}
     </div>

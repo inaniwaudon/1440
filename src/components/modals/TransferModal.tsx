@@ -1,6 +1,9 @@
 import { MdSwapHoriz } from "react-icons/md";
+import type {
+  ArchiveSummary,
+  ImportMode,
+} from "../../features/transfer/importArchive";
 import { Modal, modalStyles } from "./Modal";
-import type { ArchiveSummary, ImportMode } from "../../features/transfer/importArchive";
 import styles from "./TransferModal.module.css";
 
 type Props = {
@@ -10,7 +13,12 @@ type Props = {
   onConfirm: (mode: ImportMode) => void;
 };
 
-export function TransferModal({ summary, existingPhotoCount, onCancel, onConfirm }: Props) {
+export function TransferModal({
+  summary,
+  existingPhotoCount,
+  onCancel,
+  onConfirm,
+}: Props) {
   if (!summary) return null;
   const exportedAt = new Date(summary.manifest.exportedAt);
   const exportedLabel = Number.isNaN(exportedAt.getTime())
@@ -33,7 +41,8 @@ export function TransferModal({ summary, existingPhotoCount, onCancel, onConfirm
       {existingPhotoCount > 0 ? (
         <>
           <p className={styles.note}>
-            現在 {existingPhotoCount} 枚のデータがあります。どのように読み込みますか？
+            現在 {existingPhotoCount}{" "}
+            枚のデータがあります。どのように読み込みますか？
           </p>
           <button
             type="button"

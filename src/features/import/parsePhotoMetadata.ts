@@ -1,6 +1,6 @@
 import exifr from "exifr";
-import { getMinuteOfDayFromDate } from "../../utils/time";
 import type { PhotoRecord } from "../../db/types";
+import { getMinuteOfDayFromDate } from "../../utils/time";
 
 export type PhotoMetadata = {
   capturedAt: string | null;

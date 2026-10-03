@@ -1,4 +1,4 @@
-import { useEffect, type ReactNode } from "react";
+import { type ReactNode, useEffect } from "react";
 import styles from "./Modal.module.css";
 
 type Props = {
@@ -36,6 +36,8 @@ export function Modal({
   if (!open) return null;
 
   return (
+    // biome-ignore lint/a11y/noStaticElementInteractions: overlay click dismisses modal
+    // biome-ignore lint/a11y/useKeyWithClickEvents: Escape handled by keydown listener
     <div
       className={styles.overlay}
       onClick={(event) => {

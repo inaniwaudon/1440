@@ -19,6 +19,18 @@ export type ArchivePhotoMeta = Omit<
 
 export type ArchiveSlots = SlotRecord[];
 
+export type VideoArchiveEntry = {
+  photoId: string;
+  path: string;
+  mimeType?: string;
+};
+
+export type VideoArchiveManifest = {
+  version: number;
+  exportedAt: string;
+  videos: VideoArchiveEntry[];
+};
+
 export function videoExtension(mime?: string): string {
   if (!mime) return "bin";
   if (mime.includes("mp4")) return "mp4";

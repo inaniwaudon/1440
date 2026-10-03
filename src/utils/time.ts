@@ -2,7 +2,10 @@ export function toMinuteOfDay(hour: number, minute: number): number {
   return hour * 60 + minute;
 }
 
-export function fromMinuteOfDay(value: number): { hour: number; minute: number } {
+export function fromMinuteOfDay(value: number): {
+  hour: number;
+  minute: number;
+} {
   return { hour: Math.floor(value / 60), minute: value % 60 };
 }
 
@@ -15,7 +18,9 @@ export function getMinuteOfDayFromDate(date: Date): number {
   return date.getHours() * 60 + date.getMinutes();
 }
 
-export function formatCapturedDate(capturedAt: string | null | undefined): string | null {
+export function formatCapturedDate(
+  capturedAt: string | null | undefined,
+): string | null {
   if (!capturedAt) return null;
 
   const date = new Date(capturedAt);

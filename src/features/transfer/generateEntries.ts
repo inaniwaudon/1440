@@ -4,11 +4,14 @@ import {
   ARCHIVE_VERSION,
   type ArchiveManifest,
   type ArchivePhotoMeta,
-  videoExtension,
 } from "./archive";
 
 export type ExportProgress = { current: number; total: number };
-export type ZipEntry = { name: string; lastModified: Date; input: Blob | string };
+export type ZipEntry = {
+  name: string;
+  lastModified: Date;
+  input: Blob | string;
+};
 
 export async function* generateEntries(
   photoIds: string[],
@@ -18,15 +21,32 @@ export async function* generateEntries(
   const now = new Date();
   const metas: ArchivePhotoMeta[] = [];
 
-  const layout = photoIds.map((id) => ({
-    id,
-    thumbnailPath: `photos/${id}/thumbnail.bin`,
-    previewPath: `photos/${id}/preview.bin`,
-  }));
+  // Emit a version marker up front so consumers can bail out early on
+  // unsupported archives before scanning the whole file.
+  yield {
+    name: "version.json",
+    lastModified: now,
+    input: JSON.stringify({ version: ARCHIVE_VERSION, kind: "main" }),
+  };
 
-  for (const { id, thumbnailPath, previewPath } of layout) {
-    const photo = await db.photos.get(id);
+  // Single pass: read each photo exactly once, yield its blobs, release the
+  // record before advancing. Keeping the first-pass meta build out of the way
+  // avoids Safari holding onto Blob references materialized by IndexedDB gets.
+  //
+  // Videos are intentionally omitted from the main archive and shipped in a
+  // separate video archive to keep the per-ZIP memory footprint bounded on
+  // iOS Safari PWA.
+  for (let i = 0; i < photoIds.length; i++) {
+    const id = photoIds[i];
+    onProgress({ current: i, total: photoIds.length });
+    let photo = await db.photos.get(id);
     if (!photo) continue;
+
+    const thumbnailPath = `photos/${id}/thumbnail.bin`;
+    const previewPath = photo.previewBlob
+      ? `photos/${id}/preview.bin`
+      : undefined;
+
     metas.push({
       id: photo.id,
       capturedAt: photo.capturedAt,
@@ -38,11 +58,22 @@ export async function* generateEntries(
       importedAt: photo.importedAt,
       capturedAtSource: photo.capturedAtSource,
       thumbnail: thumbnailPath,
-      preview: photo.previewBlob ? previewPath : undefined,
-      video: photo.videoBlob
-        ? `photos/${photo.id}/video.${videoExtension(photo.mimeType)}`
-        : undefined,
+      preview: previewPath,
+      video: photo.videoBlob ? "external" : undefined,
     });
+
+    yield {
+      name: thumbnailPath,
+      lastModified: now,
+      input: photo.thumbnailBlob,
+    };
+    if (previewPath && photo.previewBlob) {
+      yield { name: previewPath, lastModified: now, input: photo.previewBlob };
+    }
+
+    // Drop references so Safari IndexedDB-materialized bytes can be collected
+    // before the next get().
+    photo = undefined;
   }
 
   const manifest: ArchiveManifest = {
@@ -51,24 +82,17 @@ export async function* generateEntries(
     photoCount: metas.length,
   };
 
-  yield { name: "manifest.json", lastModified: now, input: JSON.stringify(manifest) };
-  yield { name: "photos.json", lastModified: now, input: JSON.stringify(metas) };
+  yield {
+    name: "manifest.json",
+    lastModified: now,
+    input: JSON.stringify(manifest),
+  };
+  yield {
+    name: "photos.json",
+    lastModified: now,
+    input: JSON.stringify(metas),
+  };
   yield { name: "slots.json", lastModified: now, input: JSON.stringify(slots) };
 
-  for (let i = 0; i < metas.length; i++) {
-    const meta = metas[i];
-    onProgress({ current: i, total: metas.length });
-    const photo = await db.photos.get(meta.id);
-    if (!photo) continue;
-
-    yield { name: meta.thumbnail, lastModified: now, input: photo.thumbnailBlob };
-    if (meta.preview && photo.previewBlob) {
-      yield { name: meta.preview, lastModified: now, input: photo.previewBlob };
-    }
-    if (meta.video && photo.videoBlob) {
-      yield { name: meta.video, lastModified: now, input: photo.videoBlob };
-    }
-  }
-
-  onProgress({ current: metas.length, total: metas.length });
+  onProgress({ current: photoIds.length, total: photoIds.length });
 }

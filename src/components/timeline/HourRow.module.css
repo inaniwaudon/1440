@@ -5,10 +5,6 @@
   min-height: 0;
 }
 
-.nowHour > .header {
-  border-left: 2px solid var(--danger);
-}
-
 .header {
   flex: 1;
   display: flex;
@@ -21,8 +17,12 @@
   min-height: 0;
 }
 
+.nowHour > .header {
+  border-left: 2px solid var(--danger);
+}
+
 .header:active {
-  background: var(--bg-surface);
+  background: var(--bg-elevated);
 }
 
 .hourLabel {

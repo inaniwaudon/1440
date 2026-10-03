@@ -1,6 +1,6 @@
+import { useLiveQuery } from "dexie-react-hooks";
 import { useEffect, useRef, useState } from "react";
 import { flushSync } from "react-dom";
-import { useLiveQuery } from "dexie-react-hooks";
 import { MdDeleteOutline } from "react-icons/md";
 import { db } from "../../db/db";
 import type { PhotoRecord } from "../../db/types";
@@ -18,12 +18,21 @@ const SWIPE_DIRECTION_RATIO = 1.2;
 const SLIDE_EASING = "cubic-bezier(0.16, 1, 0.3, 1)";
 const RETURN_EASING = "cubic-bezier(0.34, 1.3, 0.64, 1)";
 
-function PhotoPreview({ photo, active }: { photo: PhotoRecord; active: boolean }) {
+function PhotoPreview({
+  photo,
+  active,
+}: {
+  photo: PhotoRecord;
+  active: boolean;
+}) {
   const [url, setUrl] = useState<string | null>(null);
   const isVideo = photo.mimeType?.startsWith("video/") && !!photo.videoBlob;
 
   useEffect(() => {
-    const blob = isVideo ? photo.videoBlob! : (photo.previewBlob ?? photo.thumbnailBlob);
+    const blob = isVideo
+      ? // biome-ignore lint/style/noNonNullAssertion: isVideo guards videoBlob
+        photo.videoBlob!
+      : (photo.previewBlob ?? photo.thumbnailBlob);
     const u = URL.createObjectURL(blob);
     setUrl(u);
     return () => URL.revokeObjectURL(u);
@@ -45,10 +54,13 @@ function PhotoPreview({ photo, active }: { photo: PhotoRecord; active: boolean }
           className={styles.previewImg}
         />
       ) : (
-        <img src={url} alt="Saved photo" className={styles.previewImg} />
+        <img src={url} alt="Saved" className={styles.previewImg} />
       )}
       {capturedDate && (
-        <time className={styles.capturedDate} dateTime={photo.capturedAt ?? undefined}>
+        <time
+          className={styles.capturedDate}
+          dateTime={photo.capturedAt ?? undefined}
+        >
           {capturedDate}
         </time>
       )}
@@ -56,11 +68,7 @@ function PhotoPreview({ photo, active }: { photo: PhotoRecord; active: boolean }
   );
 }
 
-export function MinuteDetail({
-  minuteOfDay,
-  onClose,
-  onNavigate,
-}: Props) {
+export function MinuteDetail({ minuteOfDay, onClose, onNavigate }: Props) {
   const overlayRef = useRef<HTMLDivElement>(null);
   const trackRef = useRef<HTMLDivElement>(null);
   const swipeRef = useRef<{
@@ -84,26 +92,35 @@ export function MinuteDetail({
 
   const activeMinute = minuteOfDay ?? -1;
   const currentIndex = occupiedMinutes.indexOf(activeMinute);
-  const windowMinutes = currentIndex >= 0
-    ? occupiedMinutes.slice(Math.max(0, currentIndex - 2), currentIndex + 3)
-    : [];
+  const windowMinutes =
+    currentIndex >= 0
+      ? occupiedMinutes.slice(Math.max(0, currentIndex - 2), currentIndex + 3)
+      : [];
   const windowKey = windowMinutes.join(",");
   const photos = useLiveQuery<PhotoRecord[], PhotoRecord[]>(
     async () => {
-      const records = await Promise.all(windowMinutes.map(async (minute) => {
-        const entry = await db.slots.get(minute);
-        return entry ? db.photos.get(entry.photoId) : undefined;
-      }));
-      return records.filter((record): record is PhotoRecord => record !== undefined);
+      const records = await Promise.all(
+        windowMinutes.map(async (minute) => {
+          const entry = await db.slots.get(minute);
+          return entry ? db.photos.get(entry.photoId) : undefined;
+        }),
+      );
+      return records.filter(
+        (record): record is PhotoRecord => record !== undefined,
+      );
     },
     [windowKey],
     [],
   );
-  const previousMinute = currentIndex > 0 ? occupiedMinutes[currentIndex - 1] : undefined;
-  const nextMinute = currentIndex >= 0 && currentIndex < occupiedMinutes.length - 1
-    ? occupiedMinutes[currentIndex + 1]
-    : undefined;
-  const previousPhoto = photos.find((entry) => entry.minuteOfDay === previousMinute);
+  const previousMinute =
+    currentIndex > 0 ? occupiedMinutes[currentIndex - 1] : undefined;
+  const nextMinute =
+    currentIndex >= 0 && currentIndex < occupiedMinutes.length - 1
+      ? occupiedMinutes[currentIndex + 1]
+      : undefined;
+  const previousPhoto = photos.find(
+    (entry) => entry.minuteOfDay === previousMinute,
+  );
   const photo = photos.find((entry) => entry.minuteOfDay === activeMinute);
   const nextPhoto = photos.find((entry) => entry.minuteOfDay === nextMinute);
   const hasPhoto = photo !== undefined;
@@ -115,10 +132,14 @@ export function MinuteDetail({
   };
 
   const handleDeletePhoto = async () => {
-    if (!window.confirm("この写真を削除しますか？")) {return;}
+    if (!window.confirm("この写真を削除しますか？")) {
+      return;
+    }
 
     await db.transaction("rw", db.photos, db.slots, async () => {
-      if (photo) {await db.photos.delete(photo.id);}
+      if (photo) {
+        await db.photos.delete(photo.id);
+      }
       if (photo) {
         await db.slots.delete(minuteOfDay);
       }
@@ -126,6 +147,8 @@ export function MinuteDetail({
   };
 
   return (
+    // biome-ignore lint/a11y/noStaticElementInteractions: overlay click dismisses modal
+    // biome-ignore lint/a11y/useKeyWithClickEvents: Escape key handled elsewhere
     <div
       className={styles.overlay}
       ref={overlayRef}
@@ -133,10 +156,10 @@ export function MinuteDetail({
         if (e.target === overlayRef.current) handleClose();
       }}
     >
-      <div
-        className={styles.sheet}
-      >
+      <div className={styles.sheet}>
         <div className={styles.content}>
+          {/* biome-ignore lint/a11y/noStaticElementInteractions: swipe gestures only */}
+          {/* biome-ignore lint/a11y/useKeyWithClickEvents: delete button provides keyboard access */}
           <div
             className={styles.previewWrap}
             style={{ viewTransitionName: `minute-photo-${minuteOfDay}` }}
@@ -147,7 +170,9 @@ export function MinuteDetail({
                 pendingNavigateRef.current = null;
                 flushSync(() => onNavigate(pending));
               }
-              trackRef.current?.getAnimations().forEach((animation) => animation.cancel());
+              trackRef.current?.getAnimations().forEach((animation) => {
+                animation.cancel();
+              });
               if (trackRef.current) trackRef.current.style.transform = "";
               swipeRef.current = {
                 pointerId: event.pointerId,
@@ -171,7 +196,10 @@ export function MinuteDetail({
                 swipe.isHorizontal = true;
               }
 
-              const canNavigate = deltaX < 0 ? nextMinute !== undefined : previousMinute !== undefined;
+              const canNavigate =
+                deltaX < 0
+                  ? nextMinute !== undefined
+                  : previousMinute !== undefined;
               const displayedDelta = canNavigate ? deltaX : deltaX * 0.22;
               if (trackRef.current) {
                 trackRef.current.style.transform = `translate3d(calc(-100% + ${displayedDelta}px), 0, 0)`;
@@ -201,7 +229,10 @@ export function MinuteDetail({
               if (shouldReturn || destination === undefined) {
                 const animation = track.animate(
                   [
-                    { transform: track.style.transform || "translate3d(-100%, 0, 0)" },
+                    {
+                      transform:
+                        track.style.transform || "translate3d(-100%, 0, 0)",
+                    },
                     { transform: "translate3d(-100%, 0, 0)" },
                   ],
                   { duration: 280, easing: RETURN_EASING },
@@ -213,7 +244,9 @@ export function MinuteDetail({
 
               suppressClickUntilRef.current = Date.now() + 350;
               const direction = deltaX < 0 ? -1 : 1;
-              const reducedMotion = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+              const reducedMotion = window.matchMedia(
+                "(prefers-reduced-motion: reduce)",
+              ).matches;
               if (reducedMotion) {
                 track.style.transform = "";
                 onNavigate(destination);
@@ -222,8 +255,17 @@ export function MinuteDetail({
 
               const exitAnimation = track.animate(
                 [
-                  { transform: track.style.transform || `translate3d(calc(-100% + ${deltaX}px), 0, 0)` },
-                  { transform: direction < 0 ? "translate3d(-200%, 0, 0)" : "translate3d(0, 0, 0)" },
+                  {
+                    transform:
+                      track.style.transform ||
+                      `translate3d(calc(-100% + ${deltaX}px), 0, 0)`,
+                  },
+                  {
+                    transform:
+                      direction < 0
+                        ? "translate3d(-200%, 0, 0)"
+                        : "translate3d(0, 0, 0)",
+                  },
                 ],
                 { duration: 260, easing: SLIDE_EASING },
               );
@@ -253,12 +295,14 @@ export function MinuteDetail({
               const frame = image.getBoundingClientRect();
               const imageRatio = image.naturalWidth / image.naturalHeight;
               const frameRatio = frame.width / frame.height;
-              const width = imageRatio > frameRatio
-                ? frame.width
-                : frame.height * imageRatio;
-              const height = imageRatio > frameRatio
-                ? frame.width / imageRatio
-                : frame.height;
+              const width =
+                imageRatio > frameRatio
+                  ? frame.width
+                  : frame.height * imageRatio;
+              const height =
+                imageRatio > frameRatio
+                  ? frame.width / imageRatio
+                  : frame.height;
               const left = frame.left + (frame.width - width) / 2;
               const top = frame.top + (frame.height - height) / 2;
               const isOnImage =
@@ -271,7 +315,10 @@ export function MinuteDetail({
           >
             <div ref={trackRef} className={styles.slideTrack}>
               {[previousPhoto, photo, nextPhoto].map((entry, index) => (
-                <div className={styles.slidePanel} key={entry?.id ?? `empty-${index}`}>
+                <div
+                  className={styles.slidePanel}
+                  key={entry?.id ?? `empty-${index}`}
+                >
                   {entry ? (
                     <PhotoPreview photo={entry} active={index === 1} />
                   ) : index === 1 ? (
@@ -288,6 +335,7 @@ export function MinuteDetail({
           </div>
           {hasPhoto && (
             <button
+              type="button"
               className={styles.deleteBtn}
               onClick={handleDeletePhoto}
               aria-label="Delete media"

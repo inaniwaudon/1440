@@ -32,7 +32,11 @@ class AppDB extends Dexie {
         await tx.table("slots").bulkPut(migrated);
         await tx
           .table("photos")
-          .bulkDelete(photos.filter((photo) => !retainedPhotoIds.has(photo.id)).map((photo) => photo.id));
+          .bulkDelete(
+            photos
+              .filter((photo) => !retainedPhotoIds.has(photo.id))
+              .map((photo) => photo.id),
+          );
       });
   }
 }

@@ -1,6 +1,6 @@
 import { useRef } from "react";
-import { MinuteCell } from "../minute/MinuteCell";
 import { toMinuteOfDay } from "../../utils/time";
+import { MinuteCell } from "../minute/MinuteCell";
 import styles from "./HourDetail.module.css";
 
 type Props = {
@@ -10,7 +10,12 @@ type Props = {
   onSelectMinute: (minuteOfDay: number) => void;
 };
 
-export function HourDetail({ hour, nowMinuteOfDay, onClose, onSelectMinute }: Props) {
+export function HourDetail({
+  hour,
+  nowMinuteOfDay,
+  onClose,
+  onSelectMinute,
+}: Props) {
   const overlayRef = useRef<HTMLDivElement>(null);
 
   if (hour === null) return null;
@@ -26,12 +31,17 @@ export function HourDetail({ hour, nowMinuteOfDay, onClose, onSelectMinute }: Pr
       <div className={styles.sheet}>
         <div className={styles.handle} />
         <div className={styles.titleBar}>
-          <span className={styles.title}>{String(hour).padStart(2, "0")}:00</span>
-          <button className={styles.closeBtn} onClick={onClose}>✕</button>
+          <span className={styles.title}>
+            {String(hour).padStart(2, "0")}:00
+          </span>
+          <button type="button" className={styles.closeBtn} onClick={onClose}>
+            ✕
+          </button>
         </div>
         <div className={styles.grid}>
           {Array.from({ length: 60 }, (_, m) => (
             <MinuteCell
+              // biome-ignore lint/suspicious/noArrayIndexKey: static 60-length list, order fixed
               key={m}
               minuteOfDay={toMinuteOfDay(hour, m)}
               nowMinuteOfDay={nowMinuteOfDay}

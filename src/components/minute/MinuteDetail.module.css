@@ -6,7 +6,8 @@
   display: flex;
   align-items: center;
   justify-content: center;
-  padding: max(20px, env(safe-area-inset-top)) 20px max(20px, env(safe-area-inset-bottom));
+  padding: max(20px, env(safe-area-inset-top)) 20px
+    max(20px, env(safe-area-inset-bottom));
   animation: fadeIn 220ms ease-out;
 }
 
@@ -195,10 +196,12 @@
   align-items: center;
   justify-content: center;
   box-shadow: 0 6px 24px var(--scrim-50);
-  transition: transform 120ms ease, background 120ms ease;
+  transition:
+    transform 120ms ease,
+    background 120ms ease;
 }
 
 .deleteBtn:active {
   transform: scale(0.92);
-  background: var(--danger-strong);
+  background: var(--danger);
 }

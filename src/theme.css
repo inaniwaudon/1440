@@ -5,10 +5,8 @@
 
   /* Surfaces (dark → light) */
   --bg-body: #111;
-  --bg-surface: #1c1c1c;
   --bg-elevated: #222;
   --bg-pressed: #2a2a2a;
-  --bg-divider: #393939;
   --bg-switch: #444;
 
   /* Text (bright → dim) */
@@ -24,7 +22,6 @@
   --accent-bg-filled: #2a5fa0;
 
   /* Danger (red) */
-  --danger-strong: #bd2828;
   --danger: #d83232;
   --danger-text: #f77;
 
@@ -33,9 +30,7 @@
 
   /* Scrims / shadows */
   --scrim-0: rgba(0, 0, 0, 0);
-  --scrim-40: rgba(0, 0, 0, 0.4);
   --scrim-50: rgba(0, 0, 0, 0.5);
-  --scrim-60: rgba(0, 0, 0, 0.6);
   --shadow-text: rgba(0, 0, 0, 0.8);
 
   /* Glass / translucent fills */
@@ -53,5 +48,4 @@
   --accent-glass: rgba(74, 158, 255, 0.72);
   --accent-glass-light: rgba(106, 174, 255, 0.45);
   --accent-glass-dark: rgba(26, 58, 96, 0.78);
-  --accent-glass-dim: rgba(30, 58, 95, 0.7);
 }

@@ -33,10 +33,18 @@ export function InstallPrompt() {
   return (
     <div className={styles.banner}>
       <span className={styles.text}>Add this app to your Home Screen</span>
-      <button className={styles.installBtn} onClick={handleInstall}>
+      <button
+        type="button"
+        className={styles.installBtn}
+        onClick={handleInstall}
+      >
         Add
       </button>
-      <button className={styles.dismissBtn} onClick={() => setDismissed(true)}>
+      <button
+        type="button"
+        className={styles.dismissBtn}
+        onClick={() => setDismissed(true)}
+      >
         ✕
       </button>
     </div>

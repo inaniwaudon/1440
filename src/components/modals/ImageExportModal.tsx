@@ -1,6 +1,6 @@
 import { useEffect } from "react";
-import { modalStyles } from "./Modal";
 import styles from "./ImageExportModal.module.css";
+import { modalStyles } from "./Modal";
 
 type Props = {
   url: string | null;
@@ -20,6 +20,8 @@ export function ImageExportModal({ url, onClose }: Props) {
   if (!url) return null;
 
   return (
+    // biome-ignore lint/a11y/noStaticElementInteractions: overlay click dismisses modal
+    // biome-ignore lint/a11y/useKeyWithClickEvents: Escape handled by keydown listener
     <div
       className={styles.overlay}
       onClick={(event) => {

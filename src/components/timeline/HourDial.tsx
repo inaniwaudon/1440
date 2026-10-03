@@ -89,6 +89,7 @@ export function HourDial({ activeHour, onScrub }: Props) {
       {!open ? (
         <div
           className={styles.dot}
+          role="img"
           aria-label={`${String(activeHour).padStart(2, "0")}:00`}
         >
           <span className={styles.clockNumber}>
@@ -96,7 +97,9 @@ export function HourDial({ activeHour, onScrub }: Props) {
           </span>
           <span
             className={styles.hourHand}
-            style={{ transform: `translateX(-50%) rotate(${(activeHour % 12) * 30}deg)` }}
+            style={{
+              transform: `translateX(-50%) rotate(${(activeHour % 12) * 30}deg)`,
+            }}
           />
           <span className={styles.minuteHand} />
           <span className={styles.clockPin} />
@@ -117,6 +120,7 @@ export function HourDial({ activeHour, onScrub }: Props) {
               const isSelected = h === displayHour;
               return (
                 <div
+                  // biome-ignore lint/suspicious/noArrayIndexKey: static 24-length list, order fixed
                   key={h}
                   className={`${styles.tick} ${isSelected ? styles.tickActive : ""}`}
                   style={{ transform: `translate(${x}px, ${y}px)` }}

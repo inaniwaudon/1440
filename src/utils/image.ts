@@ -22,6 +22,7 @@ async function resizeToBlob(
   const canvas = document.createElement("canvas");
   canvas.width = outW;
   canvas.height = outH;
+  // biome-ignore lint/style/noNonNullAssertion: 2d context is always available for a fresh canvas
   const ctx = canvas.getContext("2d")!;
   ctx.drawImage(bitmap, 0, 0, outW, outH);
   bitmap.close();
@@ -29,13 +30,18 @@ async function resizeToBlob(
   return new Promise<Blob>((resolve, reject) => {
     canvas.toBlob(
       (blob) => {
-        if (blob) { resolve(blob); return; }
+        if (blob) {
+          resolve(blob);
+          return;
+        }
         // WebP not supported — fall back to JPEG
         canvas.toBlob(
           (jpegBlob) =>
             jpegBlob
               ? resolve(jpegBlob)
-              : reject(new Error("canvas.toBlob failed for both WebP and JPEG")),
+              : reject(
+                  new Error("canvas.toBlob failed for both WebP and JPEG"),
+                ),
           "image/jpeg",
           quality,
         );
@@ -76,15 +82,23 @@ export async function createVideoThumbnail(file: File): Promise<Blob> {
       });
     }
 
-    const scale = Math.min(1, 320 / Math.max(video.videoWidth, video.videoHeight));
+    const scale = Math.min(
+      1,
+      320 / Math.max(video.videoWidth, video.videoHeight),
+    );
     const canvas = document.createElement("canvas");
     canvas.width = Math.max(1, Math.round(video.videoWidth * scale));
     canvas.height = Math.max(1, Math.round(video.videoHeight * scale));
-    canvas.getContext("2d")!.drawImage(video, 0, 0, canvas.width, canvas.height);
+    canvas
+      .getContext("2d")
+      ?.drawImage(video, 0, 0, canvas.width, canvas.height);
 
     return await new Promise<Blob>((resolve, reject) => {
       canvas.toBlob(
-        (blob) => blob ? resolve(blob) : reject(new Error("Video thumbnail creation failed")),
+        (blob) =>
+          blob
+            ? resolve(blob)
+            : reject(new Error("Video thumbnail creation failed")),
         "image/webp",
         0.78,
       );

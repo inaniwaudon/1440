@@ -5,7 +5,8 @@ const CELL_SIZE = 240;
 function canvasToBlob(canvas: HTMLCanvasElement) {
   return new Promise<Blob>((resolve, reject) => {
     canvas.toBlob(
-      (blob) => blob ? resolve(blob) : reject(new Error("画像の生成に失敗しました")),
+      (blob) =>
+        blob ? resolve(blob) : reject(new Error("画像の生成に失敗しました")),
       "image/png",
     );
   });
@@ -15,15 +16,24 @@ export async function exportContactSheet(
   onProgress: (current: number, total: number) => void,
 ): Promise<{ blob: Blob; count: number }> {
   const slots = await db.slots.orderBy("minuteOfDay").toArray();
-  const entries = (await Promise.all(
-    slots.map(async (slot) => ({ slot, photo: await db.photos.get(slot.photoId) })),
-  )).filter((entry) => !!entry.photo);
+  const entries = (
+    await Promise.all(
+      slots.map(async (slot) => ({
+        slot,
+        photo: await db.photos.get(slot.photoId),
+      })),
+    )
+  ).filter((entry) => !!entry.photo);
 
-  if (entries.length === 0) throw new Error("書き出せる画像または動画がありません");
+  if (entries.length === 0)
+    throw new Error("書き出せる画像または動画がありません");
 
   // Keep small exports timeline-like while preventing an excessively tall
   // canvas when a full day contains many entries.
-  const columns = Math.min(entries.length, Math.max(5, Math.ceil(Math.sqrt(entries.length))));
+  const columns = Math.min(
+    entries.length,
+    Math.max(5, Math.ceil(Math.sqrt(entries.length))),
+  );
   const rows = Math.ceil(entries.length / columns);
   const canvas = document.createElement("canvas");
   canvas.width = columns * CELL_SIZE;
@@ -37,11 +47,16 @@ export async function exportContactSheet(
     onProgress(index, entries.length);
     const { slot, photo } = entries[index];
     if (!photo) continue;
-    const bitmap = await createImageBitmap(photo.previewBlob ?? photo.thumbnailBlob);
+    const bitmap = await createImageBitmap(
+      photo.previewBlob ?? photo.thumbnailBlob,
+    );
     try {
       const x = (index % columns) * CELL_SIZE;
       const y = Math.floor(index / columns) * CELL_SIZE;
-      const scale = Math.max(CELL_SIZE / bitmap.width, CELL_SIZE / bitmap.height);
+      const scale = Math.max(
+        CELL_SIZE / bitmap.width,
+        CELL_SIZE / bitmap.height,
+      );
       const width = bitmap.width * scale;
       const height = bitmap.height * scale;
       ctx.save();

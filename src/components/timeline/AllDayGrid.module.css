@@ -13,7 +13,7 @@
 
 .cell {
   aspect-ratio: 1;
-  background: var(--bg-surface);
+  background: var(--bg-elevated);
 }
 
 /* 現在時間帯の行（nowHourと同じ行）をわずかに明るく */

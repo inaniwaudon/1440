@@ -1,10 +1,7 @@
 import { downloadZip } from "client-zip";
 import { db } from "../../db/db";
+import type { ExportWorkerInMsg, ExportWorkerOutMsg } from "./exportWorker";
 import { generateEntries } from "./generateEntries";
-import type {
-  ExportWorkerInMsg,
-  ExportWorkerOutMsg,
-} from "./exportWorker";
 
 export type ExportProgress = { current: number; total: number };
 
@@ -82,16 +79,23 @@ export async function exportArchive(
   const name = suggestedArchiveName();
 
   // Desktop Chrome/Edge: let the user pick a destination and stream to disk.
-  const picker = (window as unknown as {
-    showSaveFilePicker?: (opts: {
-      suggestedName?: string;
-      types?: Array<{ description: string; accept: Record<string, string[]> }>;
-    }) => Promise<FileSystemFileHandle>;
-  }).showSaveFilePicker;
+  const picker = (
+    window as unknown as {
+      showSaveFilePicker?: (opts: {
+        suggestedName?: string;
+        types?: Array<{
+          description: string;
+          accept: Record<string, string[]>;
+        }>;
+      }) => Promise<FileSystemFileHandle>;
+    }
+  ).showSaveFilePicker;
 
   if (picker) {
     try {
-      const photoIds = (await db.photos.toCollection().primaryKeys()) as string[];
+      const photoIds = (await db.photos
+        .toCollection()
+        .primaryKeys()) as string[];
       if (photoIds.length === 0) throw new Error("書き出すデータがありません");
       const slots = await db.slots.orderBy("minuteOfDay").toArray();
 
@@ -107,7 +111,8 @@ export async function exportArchive(
       const response = downloadZip(
         generateEntries(photoIds, slots, onProgress),
       );
-      if (!response.body) throw new Error("ZIP ストリームを作成できませんでした");
+      if (!response.body)
+        throw new Error("ZIP ストリームを作成できませんでした");
       const writable = await handle.createWritable();
       await response.body.pipeTo(writable);
       return { kind: "saved" };
@@ -134,7 +139,10 @@ export async function exportArchive(
       const file = await handle.getFile();
       return { kind: "file", blob: file, name, shareFile: file };
     } catch (err) {
-      console.warn("[exportArchive] worker/OPFS path failed, falling back", err);
+      console.warn(
+        "[exportArchive] worker/OPFS path failed, falling back",
+        err,
+      );
       // fall through
     }
   }

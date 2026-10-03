@@ -1,5 +1,5 @@
-import { useRef } from "react";
 import { useLiveQuery } from "dexie-react-hooks";
+import { useRef } from "react";
 import { db } from "../../db/db";
 import { toMinuteOfDay } from "../../utils/time";
 import { MinuteGrid } from "../minute/MinuteGrid";
@@ -43,7 +43,7 @@ export function HourRow({
     const cell = el.closest("[data-minute]") as HTMLElement | null;
     if (!cell) return null;
     const m = parseInt(cell.dataset.minute ?? "", 10);
-    return isNaN(m) ? null : m;
+    return Number.isNaN(m) ? null : m;
   };
 
   const handlePointerDown = (e: React.PointerEvent<HTMLDivElement>) => {
@@ -74,16 +74,24 @@ export function HourRow({
         onPointerDown={handlePointerDown}
         style={{ touchAction: "manipulation" }}
       >
-        <span className={`${styles.hourLabel} ${isNowHour ? styles.nowHourLabel : ""}`}>
+        <span
+          className={`${styles.hourLabel} ${isNowHour ? styles.nowHourLabel : ""}`}
+        >
           {String(hour).padStart(2, "0")}
         </span>
         <span className={styles.fillInfo}>
           {filledCount > 0 ? `${filledCount}/60` : ""}
         </span>
-        <span className={`${styles.arrow} ${isExpanded ? styles.arrowExpanded : ""}`}>▼</span>
+        <span
+          className={`${styles.arrow} ${isExpanded ? styles.arrowExpanded : ""}`}
+        >
+          ▼
+        </span>
       </div>
 
-      <div className={`${styles.expandPanel} ${isExpanded ? styles.expanded : ""}`}>
+      <div
+        className={`${styles.expandPanel} ${isExpanded ? styles.expanded : ""}`}
+      >
         <div className={styles.expandInner}>
           {isExpanded && (
             <div

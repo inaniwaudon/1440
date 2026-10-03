@@ -1,7 +1,10 @@
-import { MdCloudUpload, MdCheckCircle } from "react-icons/md";
-import type { ImportProgress, ImportResult } from "../../features/import/importPhotos";
-import { Modal, modalStyles } from "./Modal";
+import { MdCheckCircle, MdCloudUpload } from "react-icons/md";
+import type {
+  ImportProgress,
+  ImportResult,
+} from "../../features/import/importPhotos";
 import styles from "./ImportProgress.module.css";
+import { Modal, modalStyles } from "./Modal";
 
 type Props = {
   progress: ImportProgress | null;
@@ -25,7 +28,13 @@ export function ImportProgressOverlay({ progress, result, onClose }: Props) {
       open
       onClose={isDone ? onClose : undefined}
       title={isDone ? "読み込み完了" : "読み込み中"}
-      icon={isDone ? <MdCheckCircle aria-hidden="true" /> : <MdCloudUpload aria-hidden="true" />}
+      icon={
+        isDone ? (
+          <MdCheckCircle aria-hidden="true" />
+        ) : (
+          <MdCloudUpload aria-hidden="true" />
+        )
+      }
       labelledBy="import-progress-title"
       dismissOnOverlayClick={isDone}
       dismissOnEscape={isDone}
@@ -33,22 +42,26 @@ export function ImportProgressOverlay({ progress, result, onClose }: Props) {
       {!isDone ? (
         <>
           <p className={styles.counter}>
-            {progress!.current} / {progress!.total}
+            {progress?.current} / {progress?.total}
           </p>
           <div className={styles.barBg}>
             <div className={styles.barFill} style={{ width: `${pct}%` }} />
           </div>
-          {progress!.currentFile && (
-            <p className={styles.fileName}>{progress!.currentFile}</p>
+          {progress?.currentFile && (
+            <p className={styles.fileName}>{progress?.currentFile}</p>
           )}
         </>
       ) : (
         <>
           <p className={styles.counter}>
             Imported: {result.succeeded}
-            {result.skipped > 0 && <span>&nbsp; Skipped: {result.skipped}</span>}
+            {result.skipped > 0 && (
+              <span>&nbsp; Skipped: {result.skipped}</span>
+            )}
             {result.failed > 0 && (
-              <span className={styles.failed}>&nbsp; Failed: {result.failed}</span>
+              <span className={styles.failed}>
+                &nbsp; Failed: {result.failed}
+              </span>
             )}
           </p>
           {result.errors.length > 0 && (

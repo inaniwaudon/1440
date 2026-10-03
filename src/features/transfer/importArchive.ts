@@ -1,10 +1,10 @@
-import { Unzip, UnzipInflate, type UnzipFile } from "fflate";
+import { Unzip, type UnzipFile, UnzipInflate } from "fflate";
 import { db } from "../../db/db";
 import type { PhotoRecord, SlotRecord } from "../../db/types";
 import {
+  ARCHIVE_VERSION,
   type ArchiveManifest,
   type ArchivePhotoMeta,
-  ARCHIVE_VERSION,
 } from "./archive";
 
 export type ImportArchiveProgress = {
@@ -28,7 +28,13 @@ export type ArchiveSummary = {
   slots: SlotRecord[];
 };
 
-const METADATA_FILES = new Set(["manifest.json", "photos.json", "slots.json"]);
+const METADATA_FILES = new Set([
+  "version.json",
+  "manifest.json",
+  "photos.json",
+  "slots.json",
+]);
+const REQUIRED_METADATA = ["manifest", "photos", "slots"] as const;
 
 function concat(chunks: Uint8Array[], total: number): Uint8Array {
   const out = new Uint8Array(total);
@@ -65,9 +71,9 @@ export async function readArchiveMetadata(file: File): Promise<ArchiveSummary> {
             const text = new TextDecoder().decode(concat(chunks, size));
             const parsed = JSON.parse(text);
             if (entry.name === "manifest.json") summary.manifest = parsed;
-            if (entry.name === "photos.json") summary.photos = parsed;
-            if (entry.name === "slots.json") summary.slots = parsed;
-            if (summary.manifest && summary.photos && summary.slots) {
+            else if (entry.name === "photos.json") summary.photos = parsed;
+            else if (entry.name === "slots.json") summary.slots = parsed;
+            if (REQUIRED_METADATA.every((key) => summary[key])) {
               done = true;
               resolve();
             }
@@ -86,7 +92,10 @@ export async function readArchiveMetadata(file: File): Promise<ArchiveSummary> {
           const { value, done: streamDone } = await reader.read();
           if (streamDone) {
             unzip.push(new Uint8Array(0), true);
-            if (!done) reject(new Error("アーカイブに必要なメタデータが含まれていません"));
+            if (!done)
+              reject(
+                new Error("アーカイブに必要なメタデータが含まれていません"),
+              );
             return;
           }
           unzip.push(value, false);
@@ -205,10 +214,7 @@ export async function importArchive(
     };
     try {
       await db.transaction("rw", db.photos, db.slots, async () => {
-        await db.photos
-          .where("minuteOfDay")
-          .equals(slot.minuteOfDay)
-          .delete();
+        await db.photos.where("minuteOfDay").equals(slot.minuteOfDay).delete();
         await db.photos.put(record);
         await db.slots.put({
           minuteOfDay: slot.minuteOfDay,
@@ -230,16 +236,20 @@ export async function importArchive(
   // writes while the ZIP stream keeps flowing.
   let queue: Promise<void> = Promise.resolve();
   const enqueueWrite = (ph: PendingPhoto) => {
-    queue = queue.then(() => flushPhoto(ph)).then(() => {
-      onProgress({
-        current: result.imported + result.skipped + result.failed,
-        total,
-        phase: "write",
+    queue = queue
+      .then(() => flushPhoto(ph))
+      .then(() => {
+        onProgress({
+          current: result.imported + result.skipped + result.failed,
+          total,
+          phase: "write",
+        });
       });
-    });
   };
 
-  const resolveMetaForEntry = (name: string): {
+  const resolveMetaForEntry = (
+    name: string,
+  ): {
     meta: ArchivePhotoMeta;
     kind: "thumbnail" | "preview" | "video";
   } | null => {
@@ -299,17 +309,19 @@ export async function importArchive(
       }
       if (final) {
         const bytes = concat(chunks, size);
-        const type = resolved.kind === "video"
-          ? resolved.meta.mimeType ?? "video/*"
-          : resolved.meta.mimeType ?? "image/webp";
+        const type =
+          resolved.kind === "video"
+            ? (resolved.meta.mimeType ?? "video/*")
+            : (resolved.meta.mimeType ?? "image/webp");
         const blob = new Blob([bytes.buffer as ArrayBuffer], { type });
-        if (resolved.kind === "thumbnail") ph!.thumbnail = blob;
-        else if (resolved.kind === "preview") ph!.preview = blob;
-        else ph!.video = blob;
-        ph!.pending.delete(resolved.kind);
-        if (ph!.pending.size === 0) {
+        if (!ph) return;
+        if (resolved.kind === "thumbnail") ph.thumbnail = blob;
+        else if (resolved.kind === "preview") ph.preview = blob;
+        else ph.video = blob;
+        ph.pending.delete(resolved.kind);
+        if (ph.pending.size === 0) {
           pending.delete(resolved.meta.id);
-          enqueueWrite(ph!);
+          enqueueWrite(ph);
         }
       }
     };

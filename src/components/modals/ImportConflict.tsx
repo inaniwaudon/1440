@@ -2,8 +2,8 @@ import { useEffect, useRef } from "react";
 import { MdCompareArrows } from "react-icons/md";
 import type { ImportConflict } from "../../features/import/importPhotos";
 import { formatMinuteOfDay } from "../../utils/time";
-import { Modal, modalStyles } from "./Modal";
 import styles from "./ImportConflict.module.css";
+import { Modal, modalStyles } from "./Modal";
 
 type Props = {
   conflict: ImportConflict | null;
@@ -32,7 +32,11 @@ export function ImportConflictOverlay({ conflict, onResolve }: Props) {
   return (
     <Modal
       open={open}
-      title={conflict ? `${formatMinuteOfDay(conflict.minuteOfDay)} に重複があります` : ""}
+      title={
+        conflict
+          ? `${formatMinuteOfDay(conflict.minuteOfDay)} に重複があります`
+          : ""
+      }
       icon={<MdCompareArrows aria-hidden="true" />}
       labelledBy="conflict-title"
       wide
@@ -49,25 +53,32 @@ export function ImportConflictOverlay({ conflict, onResolve }: Props) {
                 alt="現在保存されているメディア"
               />
             </div>
-            <p className={styles.fileName} title={displayName(conflict.existing.originalFileName)}>
+            <p
+              className={styles.fileName}
+              title={displayName(conflict.existing.originalFileName)}
+            >
               {displayName(conflict.existing.originalFileName)}
             </p>
             <button
               type="button"
               className={modalStyles.secondaryButton}
               onClick={() => onResolve(false)}
-              autoFocus
             >
               現在を残す
             </button>
           </article>
 
-          <div className={styles.divider} aria-hidden="true">VS</div>
+          <div className={styles.divider} aria-hidden="true">
+            VS
+          </div>
 
           <article className={`${styles.option} ${styles.newOption}`}>
             <span className={`${styles.badge} ${styles.newBadge}`}>新規</span>
             <div className={styles.preview}>
-              <BlobPreview blob={conflict.incoming.thumbnailBlob} alt="新しく読み込むメディア" />
+              <BlobPreview
+                blob={conflict.incoming.thumbnailBlob}
+                alt="新しく読み込むメディア"
+              />
             </div>
             <p className={styles.fileName} title={conflict.incoming.fileName}>
               {conflict.incoming.fileName}

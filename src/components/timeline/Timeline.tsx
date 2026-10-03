@@ -1,18 +1,17 @@
+import { useLiveQuery } from "dexie-react-hooks";
 import {
+  type CSSProperties,
+  type TouchList as ReactTouchList,
+  type TouchEvent,
   useEffect,
   useRef,
   useState,
-  type CSSProperties,
-  type TouchEvent,
-  type TouchList as ReactTouchList,
 } from "react";
 import { flushSync } from "react-dom";
-import { useLiveQuery } from "dexie-react-hooks";
 import { db } from "../../db/db";
 import { getMinuteOfDayFromDate, toMinuteOfDay } from "../../utils/time";
 import { HourDial } from "./HourDial";
 import styles from "./Timeline.module.css";
-
 
 type Props = {
   onSelectMinute: (m: number, cell: HTMLElement) => void;
@@ -25,7 +24,10 @@ const MAX_GRID_COLUMNS = 12;
 
 function touchDistance(touches: ReactTouchList) {
   const [first, second] = [touches[0], touches[1]];
-  return Math.hypot(second.clientX - first.clientX, second.clientY - first.clientY);
+  return Math.hypot(
+    second.clientX - first.clientX,
+    second.clientY - first.clientY,
+  );
 }
 
 function touchCenter(touches: ReactTouchList) {
@@ -36,10 +38,14 @@ function touchCenter(touches: ReactTouchList) {
 }
 
 export function Timeline({ onSelectMinute, showOnlyWithImages }: Props) {
-  const [nowMod, setNowMod] = useState(() => getMinuteOfDayFromDate(new Date()));
+  const [nowMod, setNowMod] = useState(() =>
+    getMinuteOfDayFromDate(new Date()),
+  );
   const [activeHour, setActiveHour] = useState(0);
   const [gridColumns, setGridColumns] = useState(INITIAL_GRID_COLUMNS);
-  const [pinchFeedback, setPinchFeedback] = useState<"hidden" | "active" | "settling">("hidden");
+  const [pinchFeedback, setPinchFeedback] = useState<
+    "hidden" | "active" | "settling"
+  >("hidden");
   const gridRef = useRef<HTMLDivElement>(null);
   const blockRefs = useRef<(HTMLDivElement | null)[]>(Array(24).fill(null));
   const pinchRef = useRef<{ distance: number; columns: number } | null>(null);
@@ -47,30 +53,43 @@ export function Timeline({ onSelectMinute, showOnlyWithImages }: Props) {
   const wheelRef = useRef({ delta: 0, timer: null as number | null });
   const suppressClickUntilRef = useRef(0);
 
-  useEffect(() => () => {
-    if (feedbackTimerRef.current !== null) window.clearTimeout(feedbackTimerRef.current);
-    if (wheelRef.current.timer !== null) window.clearTimeout(wheelRef.current.timer);
-  }, []);
+  useEffect(
+    () => () => {
+      if (feedbackTimerRef.current !== null)
+        window.clearTimeout(feedbackTimerRef.current);
+      if (wheelRef.current.timer !== null)
+        window.clearTimeout(wheelRef.current.timer);
+    },
+    [],
+  );
 
   const showPinchFeedback = () => {
-    if (feedbackTimerRef.current !== null) window.clearTimeout(feedbackTimerRef.current);
+    if (feedbackTimerRef.current !== null)
+      window.clearTimeout(feedbackTimerRef.current);
     setPinchFeedback("active");
   };
 
   const settlePinchFeedback = () => {
     setPinchFeedback("settling");
-    if (feedbackTimerRef.current !== null) window.clearTimeout(feedbackTimerRef.current);
+    if (feedbackTimerRef.current !== null)
+      window.clearTimeout(feedbackTimerRef.current);
     feedbackTimerRef.current = window.setTimeout(() => {
       setPinchFeedback("hidden");
       feedbackTimerRef.current = null;
     }, 260);
   };
 
-  const changeColumns = (nextColumns: number, focusX: number, focusY: number) => {
+  const changeColumns = (
+    nextColumns: number,
+    focusX: number,
+    focusY: number,
+  ) => {
     const grid = gridRef.current;
     if (!grid || nextColumns === gridColumns) return;
 
-    const anchor = document.elementFromPoint(focusX, focusY)?.closest<HTMLElement>("[data-minute]");
+    const anchor = document
+      .elementFromPoint(focusX, focusY)
+      ?.closest<HTMLElement>("[data-minute]");
     const anchorMinute = anchor?.dataset.minute;
     const anchorTop = anchor?.getBoundingClientRect().top;
     const oldRects = new Map<string, DOMRect>();
@@ -84,8 +103,11 @@ export function Timeline({ onSelectMinute, showOnlyWithImages }: Props) {
     flushSync(() => setGridColumns(nextColumns));
 
     if (anchorMinute !== undefined && anchorTop !== undefined) {
-      const nextAnchor = grid.querySelector<HTMLElement>(`[data-minute="${anchorMinute}"]`);
-      if (nextAnchor) grid.scrollTop += nextAnchor.getBoundingClientRect().top - anchorTop;
+      const nextAnchor = grid.querySelector<HTMLElement>(
+        `[data-minute="${anchorMinute}"]`,
+      );
+      if (nextAnchor)
+        grid.scrollTop += nextAnchor.getBoundingClientRect().top - anchorTop;
     }
 
     if (window.matchMedia("(prefers-reduced-motion: reduce)").matches) return;
@@ -96,12 +118,25 @@ export function Timeline({ onSelectMinute, showOnlyWithImages }: Props) {
       const dx = before.left - after.left;
       const dy = before.top - after.top;
       const scale = before.width / after.width;
-      if (Math.abs(dx) < 0.5 && Math.abs(dy) < 0.5 && Math.abs(scale - 1) < 0.01) return;
-      cell.getAnimations().forEach((animation) => animation.cancel());
+      if (
+        Math.abs(dx) < 0.5 &&
+        Math.abs(dy) < 0.5 &&
+        Math.abs(scale - 1) < 0.01
+      )
+        return;
+      cell.getAnimations().forEach((animation) => {
+        animation.cancel();
+      });
       cell.animate(
         [
-          { transform: `translate(${dx}px, ${dy}px) scale(${scale})`, transformOrigin: "top left" },
-          { transform: "translate(0, 0) scale(1)", transformOrigin: "top left" },
+          {
+            transform: `translate(${dx}px, ${dy}px) scale(${scale})`,
+            transformOrigin: "top left",
+          },
+          {
+            transform: "translate(0, 0) scale(1)",
+            transformOrigin: "top left",
+          },
         ],
         { duration: 180, easing: "cubic-bezier(0.22, 1, 0.36, 1)" },
       );
@@ -109,21 +144,28 @@ export function Timeline({ onSelectMinute, showOnlyWithImages }: Props) {
   };
 
   useEffect(() => {
-    const id = setInterval(() => setNowMod(getMinuteOfDayFromDate(new Date())), 60_000);
+    const id = setInterval(
+      () => setNowMod(getMinuteOfDayFromDate(new Date())),
+      60_000,
+    );
     return () => clearInterval(id);
   }, []);
 
-  const thumbnails = useLiveQuery(async () => {
-    const slots = await db.slots.filter((s) => !!s.photoId).toArray();
-    const map = new Map<number, Blob>();
-    await Promise.all(
-      slots.map(async (slot) => {
-        const photo = await db.photos.get(slot.photoId);
-        if (photo) map.set(slot.minuteOfDay, photo.thumbnailBlob);
-      }),
-    );
-    return map;
-  }, [], new Map<number, Blob>());
+  const thumbnails = useLiveQuery(
+    async () => {
+      const slots = await db.slots.filter((s) => !!s.photoId).toArray();
+      const map = new Map<number, Blob>();
+      await Promise.all(
+        slots.map(async (slot) => {
+          const photo = await db.photos.get(slot.photoId);
+          if (photo) map.set(slot.minuteOfDay, photo.thumbnailBlob);
+        }),
+      );
+      return map;
+    },
+    [],
+    new Map<number, Blob>(),
+  );
 
   const [thumbs, setThumbs] = useState(new Map<number, string>());
   const blobUrlCache = useRef(new Map<Blob, string>());
@@ -148,15 +190,20 @@ export function Timeline({ onSelectMinute, showOnlyWithImages }: Props) {
       }
     });
   }, [thumbnails]);
-  useEffect(() => () => {
-    blobUrlCache.current.forEach((u) => URL.revokeObjectURL(u));
-    blobUrlCache.current.clear();
-  }, []);
+  useEffect(
+    () => () => {
+      blobUrlCache.current.forEach((u) => {
+        URL.revokeObjectURL(u);
+      });
+      blobUrlCache.current.clear();
+    },
+    [],
+  );
 
   const visibleHours = showOnlyWithImages
-    ? Array.from(new Set(Array.from(thumbs.keys(), (minute) => Math.floor(minute / 60)))).sort(
-        (a, b) => a - b,
-      )
+    ? Array.from(
+        new Set(Array.from(thumbs.keys(), (minute) => Math.floor(minute / 60))),
+      ).sort((a, b) => a - b)
     : Array.from({ length: 24 }, (_, hour) => hour);
 
   // Which hour block is at the top of the scroll viewport
@@ -182,7 +229,9 @@ export function Timeline({ onSelectMinute, showOnlyWithImages }: Props) {
       if (nearest === null) return hour;
       return Math.abs(hour - h) < Math.abs(nearest - h) ? hour : nearest;
     }, null);
-    (exact ?? (nearestHour === null ? null : blockRefs.current[nearestHour]))?.scrollIntoView({
+    (
+      exact ?? (nearestHour === null ? null : blockRefs.current[nearestHour])
+    )?.scrollIntoView({
       behavior: "smooth",
       block: "start",
     });
@@ -206,7 +255,7 @@ export function Timeline({ onSelectMinute, showOnlyWithImages }: Props) {
     const scale = touchDistance(event.touches) / pinch.distance;
     // Logarithmic scaling feels even in both directions. A little hysteresis
     // keeps the grid from flickering around a column boundary.
-    const continuousColumns = pinch.columns / Math.pow(scale, 0.9);
+    const continuousColumns = pinch.columns / scale ** 0.9;
     const hysteresis = continuousColumns > gridColumns ? 0.62 : 0.38;
     const nextColumns = Math.max(
       MIN_GRID_COLUMNS,
@@ -230,11 +279,15 @@ export function Timeline({ onSelectMinute, showOnlyWithImages }: Props) {
     if (Math.abs(wheelRef.current.delta) < 18) return;
     const direction = wheelRef.current.delta > 0 ? 1 : -1;
     wheelRef.current.delta = 0;
-    const nextColumns = Math.max(MIN_GRID_COLUMNS, Math.min(MAX_GRID_COLUMNS, gridColumns + direction));
+    const nextColumns = Math.max(
+      MIN_GRID_COLUMNS,
+      Math.min(MAX_GRID_COLUMNS, gridColumns + direction),
+    );
     if (nextColumns === gridColumns) return;
     showPinchFeedback();
     changeColumns(nextColumns, event.clientX, event.clientY);
-    if (wheelRef.current.timer !== null) window.clearTimeout(wheelRef.current.timer);
+    if (wheelRef.current.timer !== null)
+      window.clearTimeout(wheelRef.current.timer);
     wheelRef.current.timer = window.setTimeout(() => {
       settlePinchFeedback();
       wheelRef.current.timer = null;
@@ -263,13 +316,19 @@ export function Timeline({ onSelectMinute, showOnlyWithImages }: Props) {
             <p className={styles.empty}>画像が追加されている時刻はありません</p>
           )}
           {visibleHours.map((hour) => (
+            // biome-ignore lint/a11y/noStaticElementInteractions: delegated click opens photo
+            // biome-ignore lint/a11y/useKeyWithClickEvents: minute cells themselves are focusable buttons
             <div
               key={hour}
-              ref={(el) => { blockRefs.current[hour] = el; }}
+              ref={(el) => {
+                blockRefs.current[hour] = el;
+              }}
               className={styles.hourBlock}
               onClick={(e) => {
                 if (Date.now() < suppressClickUntilRef.current) return;
-                const cell = (e.target as HTMLElement).closest("[data-minute]") as HTMLElement | null;
+                const cell = (e.target as HTMLElement).closest(
+                  "[data-minute]",
+                ) as HTMLElement | null;
                 if (
                   cell?.dataset.minute !== undefined &&
                   cell.dataset.hasPhoto === "true"
@@ -278,33 +337,44 @@ export function Timeline({ onSelectMinute, showOnlyWithImages }: Props) {
                 }
               }}
             >
-              <span className={styles.hourMarker}>{String(hour).padStart(2, "0")}</span>
+              <span className={styles.hourMarker}>
+                {String(hour).padStart(2, "0")}
+              </span>
               <div className={styles.minuteGrid} style={gridStyle}>
-                {Array.from({ length: 60 }, (_, m) => m).filter((m) =>
-                  !showOnlyWithImages || thumbs.has(toMinuteOfDay(hour, m)),
-                ).map((m) => {
-                  const mod = toMinuteOfDay(hour, m);
-                  const thumb = thumbs.get(mod);
-                  return (
-                    <div
-                      key={m}
-                      data-minute={mod}
-                      data-has-photo={thumb ? "true" : "false"}
-                      className={[
-                        styles.cell,
-                        thumb ? styles.cellFilled : "",
-                        mod === nowMod ? styles.cellNow : "",
-                      ]
-                        .filter(Boolean)
-                        .join(" ")}
-                    >
-                      {thumb && <img src={thumb} className={styles.cellThumb} alt="" />}
-                      <span className={styles.cellLabel}>
-                        {String(m).padStart(2, "0")}
-                      </span>
-                    </div>
-                  );
-                })}
+                {Array.from({ length: 60 }, (_, m) => m)
+                  .filter(
+                    (m) =>
+                      !showOnlyWithImages || thumbs.has(toMinuteOfDay(hour, m)),
+                  )
+                  .map((m) => {
+                    const mod = toMinuteOfDay(hour, m);
+                    const thumb = thumbs.get(mod);
+                    return (
+                      <div
+                        key={m}
+                        data-minute={mod}
+                        data-has-photo={thumb ? "true" : "false"}
+                        className={[
+                          styles.cell,
+                          thumb ? styles.cellFilled : "",
+                          mod === nowMod ? styles.cellNow : "",
+                        ]
+                          .filter(Boolean)
+                          .join(" ")}
+                      >
+                        {thumb && (
+                          <img
+                            src={thumb}
+                            className={styles.cellThumb}
+                            alt=""
+                          />
+                        )}
+                        <span className={styles.cellLabel}>
+                          {String(m).padStart(2, "0")}
+                        </span>
+                      </div>
+                    );
+                  })}
               </div>
             </div>
           ))}
@@ -318,13 +388,9 @@ export function Timeline({ onSelectMinute, showOnlyWithImages }: Props) {
             横 {gridColumns} マス
           </output>
         )}
-
       </div>
 
-      <HourDial
-        activeHour={activeHour}
-        onScrub={scrollToHour}
-      />
+      <HourDial activeHour={activeHour} onScrub={scrollToHour} />
     </div>
   );
 }
