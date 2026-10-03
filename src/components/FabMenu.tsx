@@ -10,7 +10,6 @@ type Props = {
 };
 
 const MIN_DIST = 20;
-const OPEN_DELAY_MS = 200;
 
 export function FabMenu({ onCamera, onImport, onOption }: Props) {
   const [open, setOpen] = useState(false);
@@ -22,8 +21,6 @@ export function FabMenu({ onCamera, onImport, onOption }: Props) {
   const openRef = useRef(false);
   const activeRef = useRef<Item | null>(null);
   const originRef = useRef({ x: 0, y: 0 });
-  const pointerRef = useRef({ x: 0, y: 0 });
-  const openTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   function getItem(x: number, y: number): Item | null {
     const dx = x - originRef.current.x;
@@ -60,10 +57,6 @@ export function FabMenu({ onCamera, onImport, onOption }: Props) {
   }
 
   const close = () => {
-    if (openTimerRef.current !== null) {
-      clearTimeout(openTimerRef.current);
-      openTimerRef.current = null;
-    }
     openRef.current = false;
     activeRef.current = null;
     setOpen(false);
@@ -77,28 +70,18 @@ export function FabMenu({ onCamera, onImport, onOption }: Props) {
     function onTouchStart(e: TouchEvent) {
       const t = e.touches[0];
       originRef.current = { x: t.clientX, y: t.clientY };
-      pointerRef.current = { x: t.clientX, y: t.clientY };
       selectItem(null);
-      openTimerRef.current = setTimeout(() => {
-        openTimerRef.current = null;
-        openRef.current = true;
-        setOpen(true);
-        selectItem(getItem(pointerRef.current.x, pointerRef.current.y));
-      }, OPEN_DELAY_MS);
+      openRef.current = true;
+      setOpen(true);
     }
 
     function onTouchMove(e: TouchEvent) {
       const t = e.touches[0];
-      pointerRef.current = { x: t.clientX, y: t.clientY };
       if (!openRef.current) return;
       selectItem(getItem(t.clientX, t.clientY));
     }
 
     function onTouchEnd(e: TouchEvent) {
-      if (openTimerRef.current !== null) {
-        clearTimeout(openTimerRef.current);
-        openTimerRef.current = null;
-      }
       if (!openRef.current) return;
 
       // touchmove is not guaranteed to fire at the finger's final position.
@@ -132,7 +115,6 @@ export function FabMenu({ onCamera, onImport, onOption }: Props) {
       el.removeEventListener("touchmove", onTouchMove);
       el.removeEventListener("touchend", onTouchEnd);
       el.removeEventListener("touchcancel", onTouchCancel);
-      if (openTimerRef.current !== null) clearTimeout(openTimerRef.current);
     };
   }, [onOption]);
 

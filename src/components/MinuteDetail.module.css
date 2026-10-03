@@ -11,7 +11,7 @@
 }
 
 .sheet {
-  width: 90vw;
+  width: 100vw;
   height: 80dvh;
 }
 
@@ -80,6 +80,27 @@
   align-items: center;
   justify-content: center;
   contain: layout;
+  touch-action: pan-y;
+}
+
+.slideTrack {
+  width: 100%;
+  height: 100%;
+  display: flex;
+  transform: translate3d(-100%, 0, 0);
+  will-change: transform;
+}
+
+.slidePanel {
+  position: relative;
+  flex: 0 0 100%;
+  min-width: 0;
+  height: 100%;
+  box-sizing: border-box;
+  padding-inline: 2px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
 }
 
 .photoTime {
@@ -98,9 +119,31 @@
   pointer-events: none;
 }
 
+.capturedDate {
+  position: absolute;
+  right: 10px;
+  bottom: 10px;
+  z-index: 2;
+  color: #fff;
+  font-size: 13px;
+  font-weight: 650;
+  font-variant-numeric: tabular-nums;
+  line-height: 1.2;
+  pointer-events: none;
+}
+
+.mediaFrame {
+  position: relative;
+  display: flex;
+  max-width: 90vw;
+  max-height: 100%;
+}
+
 .previewImg {
-  width: 100%;
-  height: 100%;
+  width: auto;
+  height: auto;
+  max-width: 90vw;
+  max-height: 100%;
   object-fit: contain;
   display: block;
 }

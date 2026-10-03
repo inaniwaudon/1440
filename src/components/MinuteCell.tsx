@@ -33,7 +33,6 @@ export function MinuteCell({ minuteOfDay, nowMinuteOfDay, onSelect }: Props) {
   }, [photo?.thumbnailBlob]);
 
   const filled = !!slot?.photoId;
-
   return (
     <button
       className={`${styles.cell} ${filled ? styles.filled : ""} ${isNow ? styles.now : ""}`}

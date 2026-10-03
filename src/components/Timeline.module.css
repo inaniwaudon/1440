@@ -44,19 +44,24 @@
   flex: 1;
   overflow-y: auto;
   overscroll-behavior: contain;
+  touch-action: pan-y;
   padding-bottom: env(safe-area-inset-bottom);
+  background: #0d0d0d;
+}
+
+.empty {
+  margin: 0;
+  padding: 72px 24px;
+  color: #777;
+  font-size: 14px;
+  text-align: center;
 }
 
 /* ── Hour block (one per hour, contains 5×12 grid) ── */
 .hourBlock {
   position: relative;
-  border-bottom: 2px solid #111;
+  margin-bottom: 16px;
   cursor: pointer;
-  touch-action: manipulation;
-}
-
-.hourBlockNow {
-  border-bottom-color: #3a1a1a;
 }
 
 .hourMarker {
@@ -71,17 +76,12 @@
   z-index: 1;
 }
 
-.hourBlockNow .hourMarker {
-  color: #a03030;
-}
-
-/* ── 5×12 minute grid ── */
+/* ── Pinch-resizable minute grid ── */
 .minuteGrid {
   display: grid;
-  grid-template-columns: repeat(5, 1fr);
+  grid-template-columns: repeat(var(--grid-columns, 5), minmax(0, 1fr));
   gap: 2px;
   padding: 2px;
-  background: #0d0d0d;
 }
 
 /* ── Minute cell ── */
@@ -93,10 +93,44 @@
   display: flex;
   align-items: center;
   justify-content: center;
-  font-size: calc((100vw - 56px) / 5 * 0.42);
+  font-size: var(--cell-font-size, 8vw);
   font-weight: 800;
   color: #3a3a3a;
   font-variant-numeric: tabular-nums;
+}
+
+.columnIndicator {
+  position: fixed;
+  left: 50%;
+  bottom: max(28px, env(safe-area-inset-bottom));
+  z-index: 45;
+  transform: translateX(-50%);
+  padding: 9px 14px;
+  border: 1px solid #444;
+  border-radius: 999px;
+  background: rgba(25, 25, 25, 0.92);
+  box-shadow: 0 6px 24px rgba(0, 0, 0, 0.4);
+  color: #fff;
+  font-size: 13px;
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+  pointer-events: none;
+  animation: columnIndicatorIn 180ms cubic-bezier(0.22, 1, 0.36, 1) both;
+  will-change: transform, opacity;
+}
+
+.columnIndicatorSettling {
+  animation: columnIndicatorOut 260ms cubic-bezier(0.4, 0, 1, 1) both;
+}
+
+@keyframes columnIndicatorIn {
+  from { opacity: 0; transform: translateX(-50%) translateY(10px) scale(0.9); }
+  to { opacity: 1; transform: translateX(-50%) translateY(0) scale(1); }
+}
+
+@keyframes columnIndicatorOut {
+  from { opacity: 1; transform: translateX(-50%) translateY(0) scale(1); }
+  to { opacity: 0; transform: translateX(-50%) translateY(6px) scale(0.96); }
 }
 
 .cellThumb {
@@ -126,6 +160,13 @@
 .cellNow {
   background: #c03030 !important;
   color: #ffaaaa;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .columnIndicator,
+  .columnIndicatorSettling {
+    animation-duration: 1ms;
+  }
 }
 
 /* ── Right nav bar ── */

@@ -18,7 +18,9 @@
   position: absolute;
   inset: 0;
   border-radius: 50%;
-  background: #4a9eff;
+  background: rgba(74, 158, 255, 0.72);
+  backdrop-filter: blur(14px);
+  -webkit-backdrop-filter: blur(14px);
   border: none;
   cursor: pointer;
   touch-action: none;
@@ -45,7 +47,9 @@
   height: 50px;
   border: 0;
   border-radius: 25px;
-  background: #4a9eff;
+  background: rgba(74, 158, 255, 0.72);
+  backdrop-filter: blur(14px);
+  -webkit-backdrop-filter: blur(14px);
   color: #fff;
   display: flex;
   align-items: center;
@@ -60,7 +64,7 @@
 }
 
 .fabOpen {
-  background: #2e2e2e;
+  background: rgba(46, 46, 46, 0.72);
   box-shadow: 0 0 0 8px rgba(74, 158, 255, 0.12);
   transform: scale(1.08);
 }
@@ -81,15 +85,17 @@
 
 /* ── Pie items ── */
 /* Root is 60×60, FAB center = (30, 30) from root origin.
-   Items are 68×68 circles, distance from FAB center = 92px. */
+   Items are 56×56 circles, distance from FAB center = 92px. */
 
 .item {
   position: absolute;
-  width: 68px;
-  height: 68px;
+  width: 56px;
+  height: 56px;
   border-radius: 50%;
-  background: #1e1e1e;
-  border: 1.5px solid #333;
+  background: rgba(30, 30, 30, 0.72);
+  backdrop-filter: blur(14px);
+  -webkit-backdrop-filter: blur(14px);
+  border: none;
   display: flex;
   flex-direction: column;
   align-items: center;
@@ -97,38 +103,36 @@
   gap: 3px;
   cursor: pointer;
   touch-action: manipulation;
-  animation: popIn 0.22s cubic-bezier(0.34, 1.56, 0.64, 1) forwards;
-  transition: background 0.1s, border-color 0.1s;
+  animation: popIn 0.2s cubic-bezier(0.34, 1.56, 0.64, 1) forwards;
+  transition: background 0.1s;
 }
 
 .item:active {
-  background: #1a3a60;
-  border-color: #4a9eff;
+  background: rgba(26, 58, 96, 0.78);
   transform: scale(1.1);
 }
 
 .itemActive {
-  background: #1a3a60;
-  border-color: #4a9eff;
+  background: rgba(26, 58, 96, 0.78);
   transform: scale(1.12);
 }
 
-/* Left: center at (30-92, 30) = (-62, 30) → top-left: (-96, -4) */
+/* Left: center at (30-92, 30) = (-62, 30) → top-left: (-90, 2) */
 .itemLeft {
-  left: -96px;
-  top: -4px;
+  left: -90px;
+  top: 2px;
 }
 
-/* Top: center at (30, 30-92) = (30, -62) → top-left: (-4, -96) */
+/* Top: center at (30, 30-92) = (30, -62) → top-left: (2, -90) */
 .itemTop {
-  left: -4px;
-  top: -96px;
+  left: 2px;
+  top: -90px;
 }
 
 /* Upper-left: center is 92px from the FAB center at a 45-degree angle. */
 .itemDiagonal {
-  left: -69px;
-  top: -69px;
+  left: -63px;
+  top: -63px;
 }
 
 .itemIcon {

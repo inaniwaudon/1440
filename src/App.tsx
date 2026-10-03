@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { flushSync } from "react-dom";
 import { Timeline } from "./components/Timeline";
 import { MinuteDetail } from "./components/MinuteDetail";
@@ -6,6 +6,9 @@ import { ImportProgressOverlay } from "./components/ImportProgress";
 import { ImportConflictOverlay } from "./components/ImportConflict";
 import { InstallPrompt } from "./components/InstallPrompt";
 import { FabMenu } from "./components/FabMenu";
+import { OptionsModal } from "./components/OptionsModal";
+import { ImageExportModal } from "./components/ImageExportModal";
+import { exportContactSheet } from "./features/export/exportContactSheet";
 import {
   importCameraPhoto,
   importBulkPhotos,
@@ -19,13 +22,56 @@ type ImportState =
   | { status: "importing"; progress: ImportProgress }
   | { status: "done"; result: ImportResult };
 
+const OPTIONS_STORAGE_KEY = "setlog-options";
+
+type StoredOptions = {
+  showOnlyWithImages: boolean;
+};
+
+const defaultOptions: StoredOptions = {
+  showOnlyWithImages: false,
+};
+
+function loadOptions(): StoredOptions {
+  try {
+    const stored = localStorage.getItem(OPTIONS_STORAGE_KEY);
+    if (!stored) return defaultOptions;
+
+    const parsed: unknown = JSON.parse(stored);
+    if (typeof parsed !== "object" || parsed === null) return defaultOptions;
+
+    const options = parsed as Partial<StoredOptions>;
+    return {
+      showOnlyWithImages:
+        typeof options.showOnlyWithImages === "boolean"
+          ? options.showOnlyWithImages
+          : defaultOptions.showOnlyWithImages,
+    };
+  } catch {
+    return defaultOptions;
+  }
+}
+
 export default function App() {
   const [selectedMinute, setSelectedMinute] = useState<number | null>(null);
   const [importState, setImportState] = useState<ImportState>({ status: "idle" });
+  const [optionsOpen, setOptionsOpen] = useState(false);
+  const [options, setOptions] = useState<StoredOptions>(loadOptions);
+  const [exportError, setExportError] = useState<string | null>(null);
+  const [imageExportProgress, setImageExportProgress] = useState<{ current: number; total: number } | null>(null);
+  const [exportedImageUrl, setExportedImageUrl] = useState<string | null>(null);
   const [conflict, setConflict] = useState<{
     details: ImportConflict;
     resolve: (replace: boolean) => void;
   } | null>(null);
+
+  useEffect(() => {
+    try {
+      localStorage.setItem(OPTIONS_STORAGE_KEY, JSON.stringify(options));
+    } catch {
+      // Keep options usable for this session when storage is unavailable.
+    }
+  }, [options]);
 
   const selectMinute = (minuteOfDay: number, cell: HTMLElement) => {
     const transitionName = `minute-photo-${minuteOfDay}`;
@@ -47,22 +93,7 @@ export default function App() {
   };
 
   const closeMinute = () => {
-    if (selectedMinute === null || !document.startViewTransition) {
-      setSelectedMinute(null);
-      return;
-    }
-
-    const minuteOfDay = selectedMinute;
-    const transitionName = `minute-photo-${minuteOfDay}`;
-    const transition = document.startViewTransition(() => {
-      flushSync(() => setSelectedMinute(null));
-      const cell = document.querySelector<HTMLElement>(`[data-minute="${minuteOfDay}"]`);
-      if (cell) cell.style.viewTransitionName = transitionName;
-    });
-    transition.finished.finally(() => {
-      const cell = document.querySelector<HTMLElement>(`[data-minute="${minuteOfDay}"]`);
-      if (cell) cell.style.viewTransitionName = "";
-    });
+    setSelectedMinute(null);
   };
 
   const compareReplacement = (details: ImportConflict) =>
@@ -92,13 +123,36 @@ export default function App() {
     setImportState({ status: "done", result });
   };
 
+  const handleExportImage = async () => {
+    setExportError(null);
+    setImageExportProgress({ current: 0, total: 0 });
+    try {
+      const result = await exportContactSheet((current, total) => {
+        setImageExportProgress({ current, total });
+      });
+      const url = URL.createObjectURL(result.blob);
+      setExportedImageUrl((previous) => {
+        if (previous) URL.revokeObjectURL(previous);
+        return url;
+      });
+    } catch (error) {
+      setExportError(error instanceof Error ? error.message : String(error));
+    } finally {
+      setImageExportProgress(null);
+    }
+  };
+
   return (
     <>
-      <Timeline onSelectMinute={selectMinute} />
+      <Timeline
+        onSelectMinute={selectMinute}
+        showOnlyWithImages={options.showOnlyWithImages}
+      />
 
       <MinuteDetail
         minuteOfDay={selectedMinute}
         onClose={closeMinute}
+        onNavigate={setSelectedMinute}
       />
 
       <ImportProgressOverlay
@@ -112,9 +166,34 @@ export default function App() {
         onResolve={resolveConflict}
       />
 
-      <FabMenu
-        onCamera={handleCameraFile}
-        onImport={handleBulkImport}
+      {selectedMinute === null && (
+        <FabMenu
+          onCamera={handleCameraFile}
+          onImport={handleBulkImport}
+          onOption={() => setOptionsOpen(true)}
+        />
+      )}
+
+      <OptionsModal
+        open={optionsOpen}
+        onClose={() => setOptionsOpen(false)}
+        showOnlyWithImages={options.showOnlyWithImages}
+        onShowOnlyWithImagesChange={(showOnlyWithImages) =>
+          setOptions((current) => ({ ...current, showOnlyWithImages }))
+        }
+        exportError={exportError}
+        onExportImage={handleExportImage}
+        imageExportProgress={imageExportProgress}
+      />
+
+      <ImageExportModal
+        url={exportedImageUrl}
+        onClose={() => {
+          setExportedImageUrl((previous) => {
+            if (previous) URL.revokeObjectURL(previous);
+            return null;
+          });
+        }}
       />
 
       <InstallPrompt />
