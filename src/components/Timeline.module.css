@@ -1,0 +1,163 @@
+.container {
+  height: 100dvh;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+}
+
+.header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: max(10px, env(safe-area-inset-top)) 12px 8px;
+  flex-shrink: 0;
+  border-bottom: 1px solid #1e1e1e;
+}
+
+.stats {
+  font-size: 12px;
+  color: #555;
+  margin: 0;
+}
+
+.importBtn {
+  background: #1e3a5f;
+  border: 1px solid #2d5a9e;
+  border-radius: 8px;
+  color: #4a9eff;
+  font-size: 13px;
+  font-weight: 600;
+  padding: 6px 14px;
+  cursor: pointer;
+  touch-action: manipulation;
+}
+.importBtn:active { opacity: 0.7; }
+
+.body {
+  flex: 1;
+  min-height: 0;
+  display: flex;
+}
+
+/* ── Scrollable area ── */
+.gridScroll {
+  flex: 1;
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  padding-bottom: env(safe-area-inset-bottom);
+}
+
+/* ── Hour block (one per hour, contains 5×12 grid) ── */
+.hourBlock {
+  position: relative;
+  border-bottom: 2px solid #111;
+  cursor: pointer;
+  touch-action: manipulation;
+}
+
+.hourBlockNow {
+  border-bottom-color: #3a1a1a;
+}
+
+.hourMarker {
+  position: absolute;
+  top: 4px;
+  left: 6px;
+  font-size: 10px;
+  font-weight: 700;
+  color: #333;
+  font-variant-numeric: tabular-nums;
+  pointer-events: none;
+  z-index: 1;
+}
+
+.hourBlockNow .hourMarker {
+  color: #a03030;
+}
+
+/* ── 5×12 minute grid ── */
+.minuteGrid {
+  display: grid;
+  grid-template-columns: repeat(5, 1fr);
+  gap: 2px;
+  padding: 2px;
+  background: #0d0d0d;
+}
+
+/* ── Minute cell ── */
+.cell {
+  position: relative;
+  aspect-ratio: 1;
+  background: #1c1c1c;
+  overflow: hidden;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: calc((100vw - 56px) / 5 * 0.42);
+  font-weight: 800;
+  color: #3a3a3a;
+  font-variant-numeric: tabular-nums;
+}
+
+.cellThumb {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+}
+
+.cellLabel {
+  position: relative;
+  z-index: 1;
+}
+
+.cellFilled .cellLabel {
+  color: #fff;
+  opacity: 0.5;
+}
+
+.cellFilled {
+  background: #1e4a8a;
+  color: #6aaeff;
+}
+
+.cellNow {
+  background: #c03030 !important;
+  color: #ffaaaa;
+}
+
+/* ── Right nav bar ── */
+.hourNav {
+  width: 56px;
+  flex-shrink: 0;
+  display: flex;
+  flex-direction: column;
+  border-left: 1px solid #1e1e1e;
+  touch-action: none;
+  user-select: none;
+  cursor: pointer;
+  padding-bottom: env(safe-area-inset-bottom);
+}
+
+.navItem {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 11px;
+  font-weight: 600;
+  color: #333;
+  font-variant-numeric: tabular-nums;
+  transition: color 0.1s, background 0.1s;
+}
+
+.navActive {
+  color: #ccc;
+  background: #1e1e1e;
+}
+
+.navNow {
+  color: #f55 !important;
+}

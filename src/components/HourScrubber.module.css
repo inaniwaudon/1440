@@ -1,0 +1,52 @@
+.strip {
+  width: 36px;
+  flex-shrink: 0;
+  display: flex;
+  flex-direction: column;
+  touch-action: none;
+  cursor: pointer;
+  border-left: 1px solid #1e1e1e;
+  user-select: none;
+}
+
+.tick {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  position: relative;
+  transition: background 0.08s;
+}
+
+.tickSelected {
+  background: #1e3a5f;
+}
+
+.tickNow::after {
+  content: "";
+  position: absolute;
+  left: 0;
+  top: 50%;
+  transform: translateY(-50%);
+  width: 3px;
+  height: 60%;
+  background: #e44;
+  border-radius: 0 2px 2px 0;
+}
+
+.label {
+  font-size: 9px;
+  font-weight: 600;
+  color: #555;
+  font-variant-numeric: tabular-nums;
+  margin: 0;
+}
+
+.tickSelected .label {
+  color: #4a9eff;
+  font-size: 10px;
+}
+
+.tickNow .label {
+  color: #f77;
+}

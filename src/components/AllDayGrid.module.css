@@ -1,0 +1,42 @@
+/* 60列×24行のグリッド。行ごとにsubgrid的な区切りを背景色で表現 */
+.grid {
+  display: grid;
+  grid-template-columns: repeat(60, 1fr);
+  width: 100%;
+  flex: 1;
+  min-height: 0;
+  touch-action: manipulation;
+  cursor: pointer;
+  /* 行間の区切りはhour-rowグループの背景差異で表現 */
+  background: #0d0d0d;
+}
+
+.cell {
+  aspect-ratio: 1;
+  background: #1c1c1c;
+}
+
+/* 現在時間帯の行（nowHourと同じ行）をわずかに明るく */
+.nowHourCell {
+  background: #212121;
+}
+
+/* 写真ありスロット */
+.filled {
+  background: #2a5fa0;
+}
+
+/* 選択中の行（写真なし） */
+.selected {
+  background: #2a2a2a;
+}
+
+/* 選択中 かつ 写真あり */
+.filledSelected {
+  background: #4a9eff;
+}
+
+/* 現在分 — 最優先 */
+.nowCell {
+  background: #e44;
+}

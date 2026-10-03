@@ -1,0 +1,70 @@
+.row {
+  display: flex;
+  flex-direction: column;
+  border-bottom: 1px solid #1e1e1e;
+  min-height: 0;
+}
+
+.nowHour > .header {
+  border-left: 2px solid #e44;
+}
+
+.header {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  padding: 0 12px;
+  cursor: pointer;
+  user-select: none;
+  border-left: 2px solid transparent;
+  transition: background 0.15s;
+  min-height: 0;
+}
+
+.header:active {
+  background: #1a1a1a;
+}
+
+.hourLabel {
+  font-size: 15px;
+  font-weight: 600;
+  color: #666;
+  min-width: 32px;
+  margin: 0;
+  font-variant-numeric: tabular-nums;
+}
+
+.nowHourLabel {
+  color: #f55;
+}
+
+.fillInfo {
+  flex: 1;
+  font-size: 11px;
+  color: #4a9eff;
+  margin-left: 10px;
+}
+
+.arrow {
+  font-size: 9px;
+  color: #333;
+  transition: transform 250ms ease-out;
+}
+
+.arrowExpanded {
+  transform: rotate(180deg);
+}
+
+.expandPanel {
+  display: grid;
+  grid-template-rows: 0fr;
+  transition: grid-template-rows 280ms cubic-bezier(0.25, 0.46, 0.45, 0.94);
+}
+
+.expandInner {
+  overflow: hidden;
+}
+
+.expanded {
+  grid-template-rows: 1fr;
+}

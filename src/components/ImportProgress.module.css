@@ -1,0 +1,83 @@
+.overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.75);
+  z-index: 200;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 24px;
+}
+
+.card {
+  background: #1e1e1e;
+  border-radius: 16px;
+  padding: 28px 24px;
+  width: 100%;
+  max-width: 340px;
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.title {
+  font-size: 17px;
+  font-weight: 600;
+  color: #fff;
+}
+
+.counter {
+  font-size: 28px;
+  font-weight: 700;
+  color: #fff;
+  font-variant-numeric: tabular-nums;
+}
+
+.failed {
+  color: #e44;
+}
+
+.barBg {
+  height: 6px;
+  background: #333;
+  border-radius: 3px;
+  overflow: hidden;
+}
+
+.barFill {
+  height: 100%;
+  background: #4a9eff;
+  border-radius: 3px;
+  transition: width 0.2s linear;
+}
+
+.fileName {
+  font-size: 12px;
+  color: #666;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.errorDetail {
+  font-size: 11px;
+  color: #e44;
+  word-break: break-all;
+  max-height: 80px;
+  overflow-y: auto;
+}
+
+.closeBtn {
+  padding: 12px;
+  background: #2a2a2a;
+  border: 1px solid #444;
+  border-radius: 10px;
+  color: #fff;
+  font-size: 15px;
+  cursor: pointer;
+  touch-action: manipulation;
+}
+
+.closeBtn:active {
+  opacity: 0.7;
+}

@@ -1,0 +1,161 @@
+.overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.55);
+  z-index: 100;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: max(20px, env(safe-area-inset-top)) 20px max(20px, env(safe-area-inset-bottom));
+  animation: fadeIn 220ms ease-out;
+}
+
+.sheet {
+  width: 90vw;
+  height: 80dvh;
+}
+
+@keyframes fadeIn {
+  from {
+    background: rgba(0, 0, 0, 0);
+  }
+  to {
+    background: rgba(0, 0, 0, 0.55);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .overlay {
+    animation-duration: 1ms;
+  }
+}
+
+.closeBtn {
+  background: #2a2a2a;
+  border: none;
+  border-radius: 50%;
+  width: 30px;
+  height: 30px;
+  color: #888;
+  font-size: 14px;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  touch-action: manipulation;
+}
+
+.empty {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 16px;
+  padding: 36px 20px;
+}
+
+.emptyText {
+  color: #555;
+  font-size: 16px;
+}
+
+.content {
+  width: 100%;
+  height: 100%;
+}
+
+.sectionLabel {
+  font-size: 10px;
+  font-weight: 700;
+  color: #555;
+  margin: 0;
+  text-transform: uppercase;
+}
+
+.previewWrap {
+  position: relative;
+  width: 100%;
+  height: 100%;
+  overflow: hidden;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  contain: layout;
+}
+
+.photoTime {
+  position: absolute;
+  inset: 0;
+  z-index: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #fff;
+  opacity: 0.6;
+  font-size: clamp(42px, 14vw, 88px);
+  font-weight: 800;
+  line-height: 1;
+  font-variant-numeric: tabular-nums;
+  pointer-events: none;
+}
+
+.previewImg {
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+  display: block;
+}
+
+.missingPhoto {
+  color: #555;
+  font-size: 13px;
+}
+
+.sourceNote {
+  font-size: 11px;
+  color: #555;
+  margin-top: -8px;
+}
+
+.actionBtn {
+  width: 100%;
+  padding: 15px;
+  background: #222;
+  border: 1px solid #2e2e2e;
+  border-radius: 12px;
+  color: #ddd;
+  font-size: 15px;
+  cursor: pointer;
+  touch-action: manipulation;
+  transition: background 0.1s;
+}
+
+.actionBtn:active {
+  background: #2a2a2a;
+}
+
+.deleteBtn {
+  position: fixed;
+  right: max(20px, env(safe-area-inset-right));
+  bottom: max(20px, env(safe-area-inset-bottom));
+  z-index: 2;
+  width: 56px;
+  height: 56px;
+  padding: 0;
+  border: none;
+  border-radius: 50%;
+  background: #d83232;
+  color: #fff;
+  font-size: 26px;
+  cursor: pointer;
+  touch-action: manipulation;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: 0 6px 24px rgba(0, 0, 0, 0.45);
+  transition: transform 120ms ease, background 120ms ease;
+}
+
+.deleteBtn:active {
+  transform: scale(0.92);
+  background: #bd2828;
+}

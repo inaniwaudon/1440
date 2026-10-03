@@ -1,0 +1,150 @@
+.overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 300;
+  display: grid;
+  place-items: center;
+  padding: max(20px, env(safe-area-inset-top)) 20px max(20px, env(safe-area-inset-bottom));
+  background: rgba(0, 0, 0, 0.86);
+  backdrop-filter: blur(10px);
+}
+
+.card {
+  width: min(760px, 100%);
+  max-height: 100%;
+  overflow-y: auto;
+  padding: 26px;
+  border: 1px solid #343434;
+  border-radius: 22px;
+  background: #191919;
+  box-shadow: 0 24px 80px rgba(0, 0, 0, 0.55);
+}
+
+.header {
+  margin-bottom: 22px;
+  text-align: center;
+}
+
+.eyebrow {
+  margin-bottom: 5px;
+  color: #9b9b9b;
+  font-size: 13px;
+  font-variant-numeric: tabular-nums;
+}
+
+.title {
+  font-size: clamp(21px, 4vw, 28px);
+  line-height: 1.25;
+}
+
+.comparison {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) 34px minmax(0, 1fr);
+  align-items: center;
+}
+
+.option {
+  min-width: 0;
+  padding: 12px;
+  border: 1px solid #343434;
+  border-radius: 16px;
+  background: #202020;
+}
+
+.newOption {
+  border-color: rgba(74, 158, 255, 0.55);
+}
+
+.badge {
+  display: inline-block;
+  margin-bottom: 9px;
+  padding: 4px 9px;
+  border-radius: 999px;
+  background: #393939;
+  color: #d2d2d2;
+  font-size: 11px;
+  font-weight: 700;
+}
+
+.newBadge {
+  background: rgba(74, 158, 255, 0.18);
+  color: #80baff;
+}
+
+.preview {
+  aspect-ratio: 4 / 3;
+  overflow: hidden;
+  border-radius: 10px;
+  background: #0d0d0d;
+}
+
+.image {
+  width: 100%;
+  height: 100%;
+  display: block;
+  object-fit: contain;
+}
+
+.fileName {
+  margin: 10px 2px;
+  overflow: hidden;
+  color: #aaa;
+  font-size: 12px;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.keepButton,
+.replaceButton {
+  width: 100%;
+  min-height: 46px;
+  border-radius: 11px;
+  font-size: 14px;
+  font-weight: 700;
+  cursor: pointer;
+  touch-action: manipulation;
+}
+
+.keepButton {
+  border: 1px solid #4b4b4b;
+  background: #2a2a2a;
+  color: #eee;
+}
+
+.replaceButton {
+  border: 1px solid #4a9eff;
+  background: #4a9eff;
+  color: #08192d;
+}
+
+.keepButton:active,
+.replaceButton:active {
+  transform: scale(0.98);
+}
+
+.divider {
+  color: #666;
+  font-size: 10px;
+  font-weight: 800;
+  text-align: center;
+}
+
+@media (max-width: 560px) {
+  .card {
+    padding: 20px 14px;
+  }
+
+  .comparison {
+    grid-template-columns: minmax(0, 1fr) 20px minmax(0, 1fr);
+  }
+
+  .option {
+    padding: 8px;
+  }
+
+  .keepButton,
+  .replaceButton {
+    padding: 7px;
+    font-size: 12px;
+  }
+}
