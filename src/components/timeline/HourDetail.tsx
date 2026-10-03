@@ -1,6 +1,6 @@
 import { useRef } from "react";
-import { MinuteCell } from "./MinuteCell";
-import { toMinuteOfDay } from "../utils/time";
+import { MinuteCell } from "../minute/MinuteCell";
+import { toMinuteOfDay } from "../../utils/time";
 import styles from "./HourDetail.module.css";
 
 type Props = {

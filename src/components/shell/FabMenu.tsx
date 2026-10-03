@@ -167,9 +167,9 @@ export function FabMenu({ onCamera, onImport, onOption }: Props) {
         {pending && (
           <button type="button" className={styles.confirmButton} onClick={confirmPending}>
             {pending === "photo" ? (
-              <><MdPhotoCamera aria-hidden="true" />Open Camera</>
+              <><MdPhotoCamera aria-hidden="true" />カメラを起動</>
             ) : (
-              <><MdFolderOpen aria-hidden="true" />Choose Media</>
+              <><MdFolderOpen aria-hidden="true" />写真を選択</>
             )}
           </button>
         )}

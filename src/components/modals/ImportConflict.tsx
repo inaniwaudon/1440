@@ -1,6 +1,8 @@
 import { useEffect, useRef } from "react";
-import type { ImportConflict } from "../features/import/importPhotos";
-import { formatMinuteOfDay } from "../utils/time";
+import { MdCompareArrows } from "react-icons/md";
+import type { ImportConflict } from "../../features/import/importPhotos";
+import { formatMinuteOfDay } from "../../utils/time";
+import { Modal, modalStyles } from "./Modal";
 import styles from "./ImportConflict.module.css";
 
 type Props = {
@@ -25,31 +27,37 @@ function displayName(name?: string) {
 }
 
 export function ImportConflictOverlay({ conflict, onResolve }: Props) {
-  if (!conflict) return null;
-
-  const { existing, incoming, minuteOfDay } = conflict;
+  const open = !!conflict;
 
   return (
-    <div className={styles.overlay} role="dialog" aria-modal="true" aria-labelledby="conflict-title">
-      <section className={styles.card}>
-        <header className={styles.header}>
-          <p className={styles.eyebrow}>{formatMinuteOfDay(minuteOfDay)} に重複があります</p>
-          <h2 className={styles.title} id="conflict-title">どちらを残しますか？</h2>
-        </header>
-
+    <Modal
+      open={open}
+      title={conflict ? `${formatMinuteOfDay(conflict.minuteOfDay)} に重複があります` : ""}
+      icon={<MdCompareArrows aria-hidden="true" />}
+      labelledBy="conflict-title"
+      wide
+      dismissOnOverlayClick={false}
+      dismissOnEscape={false}
+    >
+      {conflict && (
         <div className={styles.comparison}>
           <article className={styles.option}>
             <span className={styles.badge}>現在</span>
             <div className={styles.preview}>
               <BlobPreview
-                blob={existing.thumbnailBlob}
+                blob={conflict.existing.thumbnailBlob}
                 alt="現在保存されているメディア"
               />
             </div>
-            <p className={styles.fileName} title={displayName(existing.originalFileName)}>
-              {displayName(existing.originalFileName)}
+            <p className={styles.fileName} title={displayName(conflict.existing.originalFileName)}>
+              {displayName(conflict.existing.originalFileName)}
             </p>
-            <button className={styles.keepButton} onClick={() => onResolve(false)} autoFocus>
+            <button
+              type="button"
+              className={modalStyles.secondaryButton}
+              onClick={() => onResolve(false)}
+              autoFocus
+            >
               現在を残す
             </button>
           </article>
@@ -59,15 +67,21 @@ export function ImportConflictOverlay({ conflict, onResolve }: Props) {
           <article className={`${styles.option} ${styles.newOption}`}>
             <span className={`${styles.badge} ${styles.newBadge}`}>新規</span>
             <div className={styles.preview}>
-              <BlobPreview blob={incoming.thumbnailBlob} alt="新しく読み込むメディア" />
+              <BlobPreview blob={conflict.incoming.thumbnailBlob} alt="新しく読み込むメディア" />
             </div>
-            <p className={styles.fileName} title={incoming.fileName}>{incoming.fileName}</p>
-            <button className={styles.replaceButton} onClick={() => onResolve(true)}>
+            <p className={styles.fileName} title={conflict.incoming.fileName}>
+              {conflict.incoming.fileName}
+            </p>
+            <button
+              type="button"
+              className={modalStyles.primaryButton}
+              onClick={() => onResolve(true)}
+            >
               新規に置換
             </button>
           </article>
         </div>
-      </section>
-    </div>
+      )}
+    </Modal>
   );
 }

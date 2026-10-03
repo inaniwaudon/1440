@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react";
 import { useLiveQuery } from "dexie-react-hooks";
-import { db } from "../db/db";
-import { fromMinuteOfDay } from "../utils/time";
+import { db } from "../../db/db";
+import { fromMinuteOfDay } from "../../utils/time";
 import styles from "./MinuteCell.module.css";
 
 type Props = {

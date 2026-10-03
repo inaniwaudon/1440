@@ -1,5 +1,5 @@
 import { MinuteCell } from "./MinuteCell";
-import { toMinuteOfDay } from "../utils/time";
+import { toMinuteOfDay } from "../../utils/time";
 import styles from "./MinuteGrid.module.css";
 
 type Props = {

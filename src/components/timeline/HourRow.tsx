@@ -1,8 +1,8 @@
 import { useRef } from "react";
 import { useLiveQuery } from "dexie-react-hooks";
-import { db } from "../db/db";
-import { toMinuteOfDay } from "../utils/time";
-import { MinuteGrid } from "./MinuteGrid";
+import { db } from "../../db/db";
+import { toMinuteOfDay } from "../../utils/time";
+import { MinuteGrid } from "../minute/MinuteGrid";
 import styles from "./HourRow.module.css";
 
 type Props = {

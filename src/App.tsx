@@ -1,14 +1,30 @@
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { flushSync } from "react-dom";
-import { Timeline } from "./components/Timeline";
-import { MinuteDetail } from "./components/MinuteDetail";
-import { ImportProgressOverlay } from "./components/ImportProgress";
-import { ImportConflictOverlay } from "./components/ImportConflict";
-import { InstallPrompt } from "./components/InstallPrompt";
-import { FabMenu } from "./components/FabMenu";
-import { OptionsModal } from "./components/OptionsModal";
-import { ImageExportModal } from "./components/ImageExportModal";
+import { Timeline } from "./components/timeline/Timeline";
+import { MinuteDetail } from "./components/minute/MinuteDetail";
+import { ImportProgressOverlay } from "./components/modals/ImportProgress";
+import { ImportConflictOverlay } from "./components/modals/ImportConflict";
+import { InstallPrompt } from "./components/shell/InstallPrompt";
+import { FabMenu } from "./components/shell/FabMenu";
+import { OptionsModal } from "./components/modals/OptionsModal";
+import { ImageExportModal } from "./components/modals/ImageExportModal";
+import { TransferModal } from "./components/modals/TransferModal";
+import {
+  TransferProgressOverlay,
+  type TransferPhase,
+} from "./components/modals/TransferProgress";
 import { exportContactSheet } from "./features/export/exportContactSheet";
+import {
+  exportArchive,
+  cleanupExportedArchive,
+} from "./features/transfer/exportArchive";
+import {
+  importArchive,
+  readArchiveMetadata,
+  type ArchiveSummary,
+  type ImportMode,
+} from "./features/transfer/importArchive";
+import { db } from "./db/db";
 import {
   importCameraPhoto,
   importBulkPhotos,
@@ -64,6 +80,20 @@ export default function App() {
     details: ImportConflict;
     resolve: (replace: boolean) => void;
   } | null>(null);
+  const [transferPhase, setTransferPhase] = useState<TransferPhase | null>(null);
+  const [transferConfirm, setTransferConfirm] = useState<{
+    file: File;
+    summary: ArchiveSummary;
+    existingPhotoCount: number;
+  } | null>(null);
+  const importFileInputRef = useRef<HTMLInputElement | null>(null);
+  const exportedDownloadUrlRef = useRef<string | null>(null);
+
+  useEffect(() => () => {
+    if (exportedDownloadUrlRef.current) {
+      URL.revokeObjectURL(exportedDownloadUrlRef.current);
+    }
+  }, []);
 
   useEffect(() => {
     try {
@@ -121,6 +151,93 @@ export default function App() {
       setImportState({ status: "importing", progress });
     }, compareReplacement);
     setImportState({ status: "done", result });
+  };
+
+  const handleExportData = async () => {
+    setExportError(null);
+    setTransferPhase({ kind: "exporting", current: 0, total: 0 });
+    try {
+      const destination = await exportArchive((p) => {
+        setTransferPhase({ kind: "exporting", current: p.current, total: p.total });
+      });
+      if (destination.kind === "saved") {
+        setTransferPhase({ kind: "export-done" });
+      } else {
+        if (exportedDownloadUrlRef.current) {
+          URL.revokeObjectURL(exportedDownloadUrlRef.current);
+        }
+        const url = URL.createObjectURL(destination.blob);
+        exportedDownloadUrlRef.current = url;
+        setTransferPhase({
+          kind: "export-done",
+          download: { url, name: destination.name },
+          shareFile: destination.shareFile,
+        });
+      }
+    } catch (err) {
+      if (err instanceof DOMException && err.name === "AbortError") {
+        setTransferPhase(null);
+        return;
+      }
+      setExportError(err instanceof Error ? err.message : String(err));
+      setTransferPhase(null);
+    }
+  };
+
+  const handleImportDataClick = () => {
+    importFileInputRef.current?.click();
+  };
+
+  const handleImportFile = async (event: React.ChangeEvent<HTMLInputElement>) => {
+    const file = event.target.files?.[0];
+    event.target.value = "";
+    if (!file) return;
+    setExportError(null);
+    setTransferPhase({ kind: "importing", current: 0, total: 0, phase: "scan" });
+    try {
+      const summary = await readArchiveMetadata(file);
+      const existingPhotoCount = await db.photos.count();
+      setTransferPhase(null);
+      setTransferConfirm({ file, summary, existingPhotoCount });
+    } catch (err) {
+      setExportError(err instanceof Error ? err.message : String(err));
+      setTransferPhase(null);
+    }
+  };
+
+  const handleImportConfirm = async (mode: ImportMode) => {
+    if (!transferConfirm) return;
+    const { file, summary } = transferConfirm;
+    setTransferConfirm(null);
+    setTransferPhase({
+      kind: "importing",
+      current: 0,
+      total: summary.photos.length,
+      phase: "write",
+    });
+    try {
+      const result = await importArchive(file, summary, mode, (p) => {
+        setTransferPhase({
+          kind: "importing",
+          current: p.current,
+          total: p.total,
+          phase: p.phase,
+        });
+      });
+      setTransferPhase({ kind: "import-done", result });
+    } catch (err) {
+      setExportError(err instanceof Error ? err.message : String(err));
+      setTransferPhase(null);
+    }
+  };
+
+  const handleTransferClose = () => {
+    setTransferPhase(null);
+    if (exportedDownloadUrlRef.current) {
+      URL.revokeObjectURL(exportedDownloadUrlRef.current);
+      exportedDownloadUrlRef.current = null;
+    }
+    cleanupExportedArchive().catch(() => {});
   };
 
   const handleExportImage = async () => {
@@ -184,6 +301,29 @@ export default function App() {
         exportError={exportError}
         onExportImage={handleExportImage}
         imageExportProgress={imageExportProgress}
+        onExportData={handleExportData}
+        onImportData={handleImportDataClick}
+        transferBusy={transferPhase !== null || transferConfirm !== null}
+      />
+
+      <TransferModal
+        summary={transferConfirm?.summary ?? null}
+        existingPhotoCount={transferConfirm?.existingPhotoCount ?? 0}
+        onCancel={() => setTransferConfirm(null)}
+        onConfirm={handleImportConfirm}
+      />
+
+      <TransferProgressOverlay
+        phase={transferPhase}
+        onClose={handleTransferClose}
+      />
+
+      <input
+        ref={importFileInputRef}
+        type="file"
+        accept=".zip,application/zip"
+        style={{ display: "none" }}
+        onChange={handleImportFile}
       />
 
       <ImageExportModal

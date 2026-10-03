@@ -16,12 +16,12 @@
   width: 100%;
   height: 100%;
   border-radius: 50%;
-  background: rgba(30, 58, 95, 0.72);
+  background: var(--accent-glass-dim);
   backdrop-filter: blur(14px);
   -webkit-backdrop-filter: blur(14px);
   box-sizing: border-box;
-  border: 1px solid rgba(106, 174, 255, 0.45);
-  box-shadow: 0 2px 16px rgba(0, 0, 0, 0.4);
+  border: 1px solid var(--accent-glass-light);
+  box-shadow: 0 2px 16px var(--scrim-40);
 }
 
 .clockNumber {
@@ -30,7 +30,7 @@
   display: flex;
   align-items: center;
   justify-content: center;
-  color: #d8ebff;
+  color: var(--accent-ice);
   font-size: 22px;
   font-weight: 800;
   font-variant-numeric: tabular-nums;
@@ -46,7 +46,7 @@
   z-index: 1;
   width: 3px;
   border-radius: 999px;
-  background: #d8ebff;
+  background: var(--accent-ice);
   transform-origin: 50% 100%;
   pointer-events: none;
 }
@@ -59,7 +59,7 @@
   height: 17px;
   width: 2px;
   transform: translateX(-50%);
-  background: #79bbff;
+  background: var(--accent);
 }
 
 .clockPin {
@@ -70,9 +70,9 @@
   width: 6px;
   height: 6px;
   border-radius: 50%;
-  background: #fff;
+  background: var(--white);
   transform: translate(-50%, -50%);
-  box-shadow: 0 0 0 2px #2b73b9;
+  box-shadow: 0 0 0 2px var(--accent-bg-filled);
   pointer-events: none;
 }
 
@@ -105,14 +105,10 @@
   width: 100%;
   height: 100%;
   border-radius: 50%;
-  background: radial-gradient(
-    circle at 50% 50%,
-    rgba(26, 26, 26, 0.72) 55%,
-    rgba(38, 38, 38, 0.72) 100%
-  );
-  backdrop-filter: blur(14px);
+  background: var(--scrim-60);
+  backdrop-filter: blur(16px);
   -webkit-backdrop-filter: blur(14px);
-  box-shadow: 0 2px 16px rgba(0, 0, 0, 0.4);
+  box-shadow: 0 2px 16px var(--scrim-40);
   position: absolute;
   inset: 0;
   will-change: transform;
@@ -126,7 +122,7 @@
   height: 0;
   font-size: 14px;
   font-weight: 600;
-  color: #666;
+  color: var(--text-translucent);
   font-variant-numeric: tabular-nums;
   letter-spacing: 0;
   pointer-events: none;
@@ -148,7 +144,7 @@
 }
 
 .tickSelected {
-  color: #fff !important;
+  color: var(--white) !important;
   font-size: 30px !important;
   font-weight: 800 !important;
 }
@@ -160,9 +156,9 @@
   transform: translateY(-50%);
   font-size: 28px;
   font-weight: 800;
-  color: #4a9eff;
+  color: var(--accent);
   font-variant-numeric: tabular-nums;
   letter-spacing: 0;
   pointer-events: none;
-  text-shadow: 0 1px 3px rgba(0, 0, 0, 0.8);
+  text-shadow: 0 1px 3px var(--shadow-text);
 }

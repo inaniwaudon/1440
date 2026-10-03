@@ -1,7 +1,7 @@
 .overlay {
   position: fixed;
   inset: 0;
-  background: rgba(0, 0, 0, 0.55);
+  background: var(--scrim-50);
   z-index: 100;
   display: flex;
   align-items: center;
@@ -17,10 +17,10 @@
 
 @keyframes fadeIn {
   from {
-    background: rgba(0, 0, 0, 0);
+    background: var(--scrim-0);
   }
   to {
-    background: rgba(0, 0, 0, 0.55);
+    background: var(--scrim-50);
   }
 }
 
@@ -31,12 +31,12 @@
 }
 
 .closeBtn {
-  background: #2a2a2a;
+  background: var(--bg-pressed);
   border: none;
   border-radius: 50%;
   width: 30px;
   height: 30px;
-  color: #888;
+  color: var(--text-muted);
   font-size: 14px;
   cursor: pointer;
   display: flex;
@@ -54,7 +54,7 @@
 }
 
 .emptyText {
-  color: #555;
+  color: var(--text-faint);
   font-size: 16px;
 }
 
@@ -66,7 +66,7 @@
 .sectionLabel {
   font-size: 10px;
   font-weight: 700;
-  color: #555;
+  color: var(--text-faint);
   margin: 0;
   text-transform: uppercase;
 }
@@ -110,7 +110,7 @@
   display: flex;
   align-items: center;
   justify-content: center;
-  color: #fff;
+  color: var(--white);
   opacity: 0.6;
   font-size: clamp(42px, 14vw, 88px);
   font-weight: 800;
@@ -124,7 +124,7 @@
   right: 10px;
   bottom: 10px;
   z-index: 2;
-  color: #fff;
+  color: var(--white);
   font-size: 13px;
   font-weight: 650;
   font-variant-numeric: tabular-nums;
@@ -149,23 +149,23 @@
 }
 
 .missingPhoto {
-  color: #555;
+  color: var(--text-faint);
   font-size: 13px;
 }
 
 .sourceNote {
   font-size: 11px;
-  color: #555;
+  color: var(--text-faint);
   margin-top: -8px;
 }
 
 .actionBtn {
   width: 100%;
   padding: 15px;
-  background: #222;
-  border: 1px solid #2e2e2e;
+  background: var(--bg-elevated);
+  border: 1px solid var(--bg-pressed);
   border-radius: 12px;
-  color: #ddd;
+  color: var(--text-secondary);
   font-size: 15px;
   cursor: pointer;
   touch-action: manipulation;
@@ -173,7 +173,7 @@
 }
 
 .actionBtn:active {
-  background: #2a2a2a;
+  background: var(--bg-pressed);
 }
 
 .deleteBtn {
@@ -186,19 +186,19 @@
   padding: 0;
   border: none;
   border-radius: 50%;
-  background: #d83232;
-  color: #fff;
+  background: var(--danger);
+  color: var(--white);
   font-size: 26px;
   cursor: pointer;
   touch-action: manipulation;
   display: flex;
   align-items: center;
   justify-content: center;
-  box-shadow: 0 6px 24px rgba(0, 0, 0, 0.45);
+  box-shadow: 0 6px 24px var(--scrim-50);
   transition: transform 120ms ease, background 120ms ease;
 }
 
 .deleteBtn:active {
   transform: scale(0.92);
-  background: #bd2828;
+  background: var(--danger-strong);
 }

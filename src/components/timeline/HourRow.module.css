@@ -1,12 +1,12 @@
 .row {
   display: flex;
   flex-direction: column;
-  border-bottom: 1px solid #1e1e1e;
+  border-bottom: 1px solid var(--bg-elevated);
   min-height: 0;
 }
 
 .nowHour > .header {
-  border-left: 2px solid #e44;
+  border-left: 2px solid var(--danger);
 }
 
 .header {
@@ -22,32 +22,32 @@
 }
 
 .header:active {
-  background: #1a1a1a;
+  background: var(--bg-surface);
 }
 
 .hourLabel {
   font-size: 15px;
   font-weight: 600;
-  color: #666;
+  color: var(--text-faint);
   min-width: 32px;
   margin: 0;
   font-variant-numeric: tabular-nums;
 }
 
 .nowHourLabel {
-  color: #f55;
+  color: var(--danger-text);
 }
 
 .fillInfo {
   flex: 1;
   font-size: 11px;
-  color: #4a9eff;
+  color: var(--accent);
   margin-left: 10px;
 }
 
 .arrow {
   font-size: 9px;
-  color: #333;
+  color: var(--border-default);
   transition: transform 250ms ease-out;
 }
 

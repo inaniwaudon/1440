@@ -1,14 +1,14 @@
 .overlay {
   position: fixed;
   inset: 0;
-  background: rgba(0, 0, 0, 0.5);
+  background: var(--scrim-50);
   z-index: 80;
   display: flex;
   align-items: flex-end;
 }
 
 .sheet {
-  background: #161616;
+  background: var(--bg-surface);
   border-radius: 20px 20px 0 0;
   width: 100%;
   padding-bottom: max(24px, env(safe-area-inset-bottom));
@@ -23,7 +23,7 @@
 .handle {
   width: 40px;
   height: 4px;
-  background: #333;
+  background: var(--border-default);
   border-radius: 2px;
   margin: 14px auto 0;
 }
@@ -38,18 +38,18 @@
 .title {
   font-size: 20px;
   font-weight: 700;
-  color: #fff;
+  color: var(--white);
   margin: 0;
   font-variant-numeric: tabular-nums;
 }
 
 .closeBtn {
-  background: #2a2a2a;
+  background: var(--bg-pressed);
   border: none;
   border-radius: 50%;
   width: 30px;
   height: 30px;
-  color: #888;
+  color: var(--text-muted);
   font-size: 14px;
   cursor: pointer;
   display: flex;

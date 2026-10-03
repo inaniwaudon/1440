@@ -1,4 +1,5 @@
 import { useEffect } from "react";
+import { modalStyles } from "./Modal";
 import styles from "./ImageExportModal.module.css";
 
 type Props = {
@@ -26,7 +27,12 @@ export function ImageExportModal({ url, onClose }: Props) {
       }}
     >
       <div className={styles.closeRow}>
-        <button type="button" className={styles.closeButton} onClick={onClose}>
+        <button
+          type="button"
+          className={modalStyles.secondaryButton}
+          style={{ width: "auto", padding: "8px 16px", fontWeight: 600 }}
+          onClick={onClose}
+        >
           閉じる
         </button>
       </div>

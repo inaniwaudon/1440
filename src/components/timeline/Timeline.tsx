@@ -8,8 +8,8 @@ import {
 } from "react";
 import { flushSync } from "react-dom";
 import { useLiveQuery } from "dexie-react-hooks";
-import { db } from "../db/db";
-import { getMinuteOfDayFromDate, toMinuteOfDay } from "../utils/time";
+import { db } from "../../db/db";
+import { getMinuteOfDayFromDate, toMinuteOfDay } from "../../utils/time";
 import { HourDial } from "./HourDial";
 import styles from "./Timeline.module.css";
 

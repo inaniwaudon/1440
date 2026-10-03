@@ -7,24 +7,13 @@
   padding: 20px;
   gap: 14px;
   backdrop-filter: blur(5px);
-  background: rgba(0, 0, 0, 0.6);
+  background: var(--scrim-60);
   animation: fadeIn 0.16s ease-out;
 }
 
 .closeRow {
   display: flex;
   justify-content: flex-end;
-}
-
-.closeButton {
-  padding: 8px 14px;
-  border: 0;
-  border-radius: 10px;
-  background: rgba(255, 255, 255, 0.15);
-  color: #fff;
-  font: inherit;
-  font-size: 14px;
-  cursor: pointer;
 }
 
 .imageWrap {
@@ -39,7 +28,7 @@
   max-width: 100%;
   max-height: 100%;
   border-radius: 8px;
-  box-shadow: 0 2px 24px rgba(0, 0, 0, 0.6);
+  box-shadow: 0 2px 24px var(--scrim-60);
   -webkit-touch-callout: default;
   touch-action: manipulation;
 }
@@ -48,8 +37,8 @@
   margin: 0;
   padding: 10px 14px;
   border-radius: 10px;
-  background: rgba(255, 255, 255, 0.1);
-  color: #fff;
+  background: var(--chip);
+  color: var(--white);
   font-size: 13px;
   line-height: 1.5;
   text-align: center;

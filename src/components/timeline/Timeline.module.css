@@ -11,20 +11,20 @@
   justify-content: space-between;
   padding: max(10px, env(safe-area-inset-top)) 12px 8px;
   flex-shrink: 0;
-  border-bottom: 1px solid #1e1e1e;
+  border-bottom: 1px solid var(--bg-elevated);
 }
 
 .stats {
   font-size: 12px;
-  color: #555;
+  color: var(--text-faint);
   margin: 0;
 }
 
 .importBtn {
-  background: #1e3a5f;
-  border: 1px solid #2d5a9e;
+  background: var(--accent-bg);
+  border: 1px solid var(--accent-bg-filled);
   border-radius: 8px;
-  color: #4a9eff;
+  color: var(--accent);
   font-size: 13px;
   font-weight: 600;
   padding: 6px 14px;
@@ -46,13 +46,13 @@
   overscroll-behavior: contain;
   touch-action: pan-y;
   padding-bottom: env(safe-area-inset-bottom);
-  background: #0d0d0d;
+  background: var(--bg-body);
 }
 
 .empty {
   margin: 0;
   padding: 72px 24px;
-  color: #777;
+  color: var(--text-muted);
   font-size: 14px;
   text-align: center;
 }
@@ -70,7 +70,7 @@
   left: 6px;
   font-size: 10px;
   font-weight: 700;
-  color: #333;
+  color: var(--border-default);
   font-variant-numeric: tabular-nums;
   pointer-events: none;
   z-index: 1;
@@ -88,14 +88,14 @@
 .cell {
   position: relative;
   aspect-ratio: 1;
-  background: #1c1c1c;
+  background: var(--bg-surface);
   overflow: hidden;
   display: flex;
   align-items: center;
   justify-content: center;
   font-size: var(--cell-font-size, 8vw);
   font-weight: 800;
-  color: #3a3a3a;
+  color: var(--border-default);
   font-variant-numeric: tabular-nums;
 }
 
@@ -106,11 +106,11 @@
   z-index: 45;
   transform: translateX(-50%);
   padding: 9px 14px;
-  border: 1px solid #444;
+  border: 1px solid var(--bg-switch);
   border-radius: 999px;
-  background: rgba(25, 25, 25, 0.92);
-  box-shadow: 0 6px 24px rgba(0, 0, 0, 0.4);
-  color: #fff;
+  background: var(--glass-indicator);
+  box-shadow: 0 6px 24px var(--scrim-40);
+  color: var(--white);
   font-size: 13px;
   font-weight: 700;
   font-variant-numeric: tabular-nums;
@@ -148,18 +148,18 @@
 }
 
 .cellFilled .cellLabel {
-  color: #fff;
+  color: var(--white);
   opacity: 0.5;
 }
 
 .cellFilled {
-  background: #1e4a8a;
-  color: #6aaeff;
+  background: var(--accent-bg);
+  color: var(--accent);
 }
 
 .cellNow {
-  background: #c03030 !important;
-  color: #ffaaaa;
+  background: var(--danger) !important;
+  color: var(--danger-text);
 }
 
 @media (prefers-reduced-motion: reduce) {
@@ -175,7 +175,7 @@
   flex-shrink: 0;
   display: flex;
   flex-direction: column;
-  border-left: 1px solid #1e1e1e;
+  border-left: 1px solid var(--bg-elevated);
   touch-action: none;
   user-select: none;
   cursor: pointer;
@@ -189,16 +189,16 @@
   justify-content: center;
   font-size: 11px;
   font-weight: 600;
-  color: #333;
+  color: var(--border-default);
   font-variant-numeric: tabular-nums;
   transition: color 0.1s, background 0.1s;
 }
 
 .navActive {
-  color: #ccc;
-  background: #1e1e1e;
+  color: var(--text-secondary);
+  background: var(--bg-elevated);
 }
 
 .navNow {
-  color: #f55 !important;
+  color: var(--danger-text) !important;
 }

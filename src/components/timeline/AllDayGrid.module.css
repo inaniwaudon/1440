@@ -8,35 +8,35 @@
   touch-action: manipulation;
   cursor: pointer;
   /* 行間の区切りはhour-rowグループの背景差異で表現 */
-  background: #0d0d0d;
+  background: var(--bg-body);
 }
 
 .cell {
   aspect-ratio: 1;
-  background: #1c1c1c;
+  background: var(--bg-surface);
 }
 
 /* 現在時間帯の行（nowHourと同じ行）をわずかに明るく */
 .nowHourCell {
-  background: #212121;
+  background: var(--bg-elevated);
 }
 
 /* 写真ありスロット */
 .filled {
-  background: #2a5fa0;
+  background: var(--accent-bg-filled);
 }
 
 /* 選択中の行（写真なし） */
 .selected {
-  background: #2a2a2a;
+  background: var(--bg-pressed);
 }
 
 /* 選択中 かつ 写真あり */
 .filledSelected {
-  background: #4a9eff;
+  background: var(--accent);
 }
 
 /* 現在分 — 最優先 */
 .nowCell {
-  background: #e44;
+  background: var(--danger);
 }

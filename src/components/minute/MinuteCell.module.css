@@ -5,10 +5,10 @@
   justify-content: flex-end;
   padding: 4px;
   min-height: 44px;
-  background: #222;
+  background: var(--bg-elevated);
   cursor: pointer;
   touch-action: manipulation;
-  color: #888;
+  color: var(--text-muted);
   font-size: 11px;
   background-size: cover;
   background-position: center;
@@ -22,12 +22,12 @@
 }
 
 .filled {
-  background-color: #1a3a5c;
-  color: #cce;
+  background-color: var(--accent-bg);
+  color: var(--accent-ice);
 }
 
 .now {
-  color: #f88;
+  color: var(--danger-text);
 }
 
 .nowLabel {
@@ -37,12 +37,12 @@
   transform: translateX(-50%);
   font-size: 8px;
   font-weight: bold;
-  color: #f55;
+  color: var(--danger-text);
   margin: 0;
 }
 
 .minuteLabel {
   position: relative;
   z-index: 1;
-  text-shadow: 0 0 4px rgba(0, 0, 0, 0.8);
+  text-shadow: 0 0 4px var(--shadow-text);
 }

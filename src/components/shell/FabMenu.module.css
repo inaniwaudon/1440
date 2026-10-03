@@ -18,7 +18,7 @@
   position: absolute;
   inset: 0;
   border-radius: 50%;
-  background: rgba(74, 158, 255, 0.72);
+  background: var(--accent-glass);
   backdrop-filter: blur(14px);
   -webkit-backdrop-filter: blur(14px);
   border: none;
@@ -27,7 +27,7 @@
   display: flex;
   align-items: center;
   justify-content: center;
-  box-shadow: 0 4px 16px rgba(74, 158, 255, 0.4);
+  box-shadow: 0 4px 16px var(--accent-glow);
   transition: transform 0.18s, background 0.18s, box-shadow 0.18s;
 }
 
@@ -47,10 +47,10 @@
   height: 50px;
   border: 0;
   border-radius: 25px;
-  background: rgba(74, 158, 255, 0.72);
+  background: var(--accent-glass);
   backdrop-filter: blur(14px);
   -webkit-backdrop-filter: blur(14px);
-  color: #fff;
+  color: var(--white);
   display: flex;
   align-items: center;
   justify-content: center;
@@ -59,20 +59,20 @@
   font-size: 15px;
   font-weight: 700;
   cursor: pointer;
-  box-shadow: 0 4px 18px rgba(74, 158, 255, 0.45);
+  box-shadow: 0 4px 18px var(--accent-glow);
   animation: popIn 0.2s cubic-bezier(0.34, 1.56, 0.64, 1) forwards;
 }
 
 .fabOpen {
-  background: rgba(46, 46, 46, 0.72);
-  box-shadow: 0 0 0 8px rgba(74, 158, 255, 0.12);
+  background: var(--glass-dark);
+  box-shadow: 0 0 0 8px var(--accent-ring);
   transform: scale(1.08);
 }
 
 .fabIcon {
   font-size: 28px;
   font-weight: 300;
-  color: #fff;
+  color: var(--white);
   line-height: 1;
   user-select: none;
   transition: transform 0.22s cubic-bezier(0.34, 1.56, 0.64, 1);
@@ -92,7 +92,7 @@
   width: 56px;
   height: 56px;
   border-radius: 50%;
-  background: rgba(30, 30, 30, 0.72);
+  background: var(--glass-dark);
   backdrop-filter: blur(14px);
   -webkit-backdrop-filter: blur(14px);
   border: none;
@@ -108,12 +108,12 @@
 }
 
 .item:active {
-  background: rgba(26, 58, 96, 0.78);
+  background: var(--accent-glass-dark);
   transform: scale(1.1);
 }
 
 .itemActive {
-  background: rgba(26, 58, 96, 0.78);
+  background: var(--accent-glass-dark);
   transform: scale(1.12);
 }
 
@@ -138,7 +138,7 @@
 .itemIcon {
   width: 22px;
   height: 22px;
-  color: #fff;
+  color: var(--white);
 }
 
 @keyframes popIn {

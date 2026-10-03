@@ -2,9 +2,9 @@ import { useEffect, useRef, useState } from "react";
 import { flushSync } from "react-dom";
 import { useLiveQuery } from "dexie-react-hooks";
 import { MdDeleteOutline } from "react-icons/md";
-import { db } from "../db/db";
-import type { PhotoRecord } from "../db/types";
-import { formatCapturedDate, formatMinuteOfDay } from "../utils/time";
+import { db } from "../../db/db";
+import type { PhotoRecord } from "../../db/types";
+import { formatCapturedDate, formatMinuteOfDay } from "../../utils/time";
 import styles from "./MinuteDetail.module.css";
 
 type Props = {
@@ -115,10 +115,10 @@ export function MinuteDetail({
   };
 
   const handleDeletePhoto = async () => {
-    if (!window.confirm("Delete this media?")) return;
+    if (!window.confirm("この写真を削除しますか？")) {return;}
 
     await db.transaction("rw", db.photos, db.slots, async () => {
-      if (photo) await db.photos.delete(photo.id);
+      if (photo) {await db.photos.delete(photo.id);}
       if (photo) {
         await db.slots.delete(minuteOfDay);
       }

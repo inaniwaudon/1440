@@ -1,0 +1,57 @@
+:root {
+  /* Base */
+  --black: #000;
+  --white: #fff;
+
+  /* Surfaces (dark → light) */
+  --bg-body: #111;
+  --bg-surface: #1c1c1c;
+  --bg-elevated: #222;
+  --bg-pressed: #2a2a2a;
+  --bg-divider: #393939;
+  --bg-switch: #444;
+
+  /* Text (bright → dim) */
+  --text-secondary: #ddd;
+  --text-muted: #888;
+  --text-faint: #555;
+  --border-default: #333;
+
+  /* Accent (blue) */
+  --accent: #4a9eff;
+  --accent-ice: #cce;
+  --accent-bg: #1e3a5f;
+  --accent-bg-filled: #2a5fa0;
+
+  /* Danger (red) */
+  --danger-strong: #bd2828;
+  --danger: #d83232;
+  --danger-text: #f77;
+
+  /* Warning */
+  --warning: #ffcf6a;
+
+  /* Scrims / shadows */
+  --scrim-0: rgba(0, 0, 0, 0);
+  --scrim-40: rgba(0, 0, 0, 0.4);
+  --scrim-50: rgba(0, 0, 0, 0.5);
+  --scrim-60: rgba(0, 0, 0, 0.6);
+  --shadow-text: rgba(0, 0, 0, 0.8);
+
+  /* Glass / translucent fills */
+  --chip-subtle: rgba(255, 255, 255, 0.04);
+  --chip: rgba(255, 255, 255, 0.1);
+  --text-translucent: rgba(255, 255, 255, 0.6);
+  --glass-indicator: rgba(25, 25, 25, 0.92);
+  --glass-dark: rgba(30, 30, 30, 0.72);
+
+  /* Accent translucent */
+  --accent-ring: rgba(74, 158, 255, 0.12);
+  --accent-wash: rgba(74, 158, 255, 0.18);
+  --accent-glow: rgba(74, 158, 255, 0.4);
+  --accent-border-translucent: rgba(74, 158, 255, 0.55);
+  --accent-glass: rgba(74, 158, 255, 0.72);
+  --accent-glass-light: rgba(106, 174, 255, 0.45);
+  --accent-glass-dark: rgba(26, 58, 96, 0.78);
+  --accent-glass-dim: rgba(30, 58, 95, 0.7);
+}
