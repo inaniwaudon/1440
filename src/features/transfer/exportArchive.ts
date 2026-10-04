@@ -155,7 +155,7 @@ export async function exportArchive(
   const allPhotoIds = (await db.photos
     .toCollection()
     .primaryKeys()) as string[];
-  if (allPhotoIds.length === 0) throw new Error("書き出すデータがありません");
+  if (allPhotoIds.length === 0) throw new Error("エクスポートするデータがありません");
   const allSlots = await db.slots.orderBy("minuteOfDay").toArray();
   const slotByPhotoId = new Map(allSlots.map((s) => [s.photoId, s]));
 
@@ -205,7 +205,7 @@ export async function exportArchive(
             onProgress({
               step: i + 1,
               totalSteps,
-              label: "画像",
+              label: "写真",
               current: p.current,
               total: p.total,
             }),
@@ -272,7 +272,7 @@ export async function exportArchive(
               onProgress({
                 step: i + 1,
                 totalSteps,
-                label: "画像",
+                label: "写真",
                 current,
                 total,
               }),
@@ -358,7 +358,7 @@ export async function exportArchive(
         onProgress({
           step: i + 1,
           totalSteps,
-          label: "画像",
+          label: "写真",
           current: p.current,
           total: p.total,
         }),

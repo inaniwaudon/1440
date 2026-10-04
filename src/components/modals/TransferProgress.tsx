@@ -71,16 +71,16 @@ export function TransferProgressOverlay({ phase, onClose }: Props) {
   const title = (() => {
     switch (phase.kind) {
       case "exporting": {
-        return `書き出し中（${phase.step}/${phase.totalSteps} ${phase.label}）`;
+        return `エクスポート中（${phase.step}/${phase.totalSteps} ${phase.label}）`;
       }
       case "importing":
         return phase.phase === "scan"
           ? `読み取り中 ${phase.label}`
-          : `読み込み中 ${phase.label}`;
+          : `インポート中 ${phase.label}`;
       case "export-done":
-        return "書き出し完了";
+        return "エクスポート完了";
       case "import-done":
-        return "読み込み完了";
+        return "インポート完了";
     }
   })();
 
@@ -153,7 +153,7 @@ export function TransferProgressOverlay({ phase, onClose }: Props) {
             const canShare = file.shareFile
               ? !!navigator.canShare?.({ files: [file.shareFile] })
               : false;
-            const label = file.kind === "video" ? "動画" : "画像";
+            const label = file.kind === "video" ? "動画" : "写真";
             return (
               <div key={file.name} style={{ marginTop: 12 }}>
                 <p style={{ margin: "0 4px 6px", fontSize: 12, opacity: 0.8 }}>
@@ -199,7 +199,7 @@ export function TransferProgressOverlay({ phase, onClose }: Props) {
           })}
           <p className={styles.exportNote}>
             データを引き継ぐにはすべての zip
-            ファイルをダウンロードして、新しい端末に読み込む必要があります
+            ファイルをダウンロードして、新しい端末にインポートする必要があります
           </p>
           <button
             type="button"
@@ -214,7 +214,7 @@ export function TransferProgressOverlay({ phase, onClose }: Props) {
       {phase.kind === "import-done" && (
         <>
           <p className={styles.counter}>
-            読み込み: {phase.result.imported}
+            インポート: {phase.result.imported}
             {phase.result.skipped > 0 && (
               <span>&nbsp; スキップ: {phase.result.skipped}</span>
             )}

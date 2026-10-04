@@ -10,12 +10,14 @@ import {
 import { flushSync } from "react-dom";
 import { db } from "../../db/db";
 import { getMinuteOfDayFromDate, toMinuteOfDay } from "../../utils/time";
+import { FaceBlurImage } from "../media/FaceBlurImage";
 import { HourDial } from "./HourDial";
 import styles from "./Timeline.module.css";
 
 type Props = {
   onSelectMinute: (m: number, cell: HTMLElement) => void;
   showOnlyWithImages: boolean;
+  blurImages: boolean;
 };
 
 const INITIAL_GRID_COLUMNS = 5;
@@ -37,7 +39,11 @@ function touchCenter(touches: ReactTouchList) {
   };
 }
 
-export function Timeline({ onSelectMinute, showOnlyWithImages }: Props) {
+export function Timeline({
+  onSelectMinute,
+  showOnlyWithImages,
+  blurImages,
+}: Props) {
   const [nowMod, setNowMod] = useState(() =>
     getMinuteOfDayFromDate(new Date()),
   );
@@ -342,10 +348,13 @@ export function Timeline({ onSelectMinute, showOnlyWithImages }: Props) {
                           .join(" ")}
                       >
                         {thumb && (
-                          <img
+                          <FaceBlurImage
                             src={thumb}
-                            className={styles.cellThumb}
                             alt=""
+                            className={styles.cellThumb}
+                            fallbackBlurClassName={styles.blurred}
+                            blurPx={4}
+                            enabled={blurImages}
                           />
                         )}
                         <span className={styles.cellLabel}>
@@ -358,7 +367,6 @@ export function Timeline({ onSelectMinute, showOnlyWithImages }: Props) {
             </div>
           ))}
         </div>
-
       </div>
 
       <HourDial activeHour={activeHour} onScrub={scrollToHour} />

@@ -58,7 +58,7 @@ ctx.onmessage = async (event: MessageEvent<ExportWorkerInMsg>) => {
       let stream: AsyncGenerator<ZipEntry>;
       if (msg.kind === "main") {
         if (msg.photoIds.length === 0)
-          throw new Error("書き出すデータがありません");
+          throw new Error("エクスポートするデータがありません");
         stream = generateEntries(msg.photoIds, msg.slots, (p) => {
           post({ type: "progress", current: p.current, total: p.total });
         });

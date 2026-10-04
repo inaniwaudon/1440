@@ -42,10 +42,12 @@ const OPTIONS_STORAGE_KEY = "1440-options";
 
 type StoredOptions = {
   showOnlyWithImages: boolean;
+  blurImages: boolean;
 };
 
 const defaultOptions: StoredOptions = {
   showOnlyWithImages: false,
+  blurImages: false,
 };
 
 function loadOptions(): StoredOptions {
@@ -62,6 +64,10 @@ function loadOptions(): StoredOptions {
         typeof options.showOnlyWithImages === "boolean"
           ? options.showOnlyWithImages
           : defaultOptions.showOnlyWithImages,
+      blurImages:
+        typeof options.blurImages === "boolean"
+          ? options.blurImages
+          : defaultOptions.blurImages,
     };
   } catch {
     return defaultOptions;
@@ -196,7 +202,7 @@ export default function App() {
       kind: "exporting",
       step: 1,
       totalSteps: 1,
-      label: "画像",
+      label: "写真",
       current: 0,
       total: 0,
     });
@@ -285,7 +291,7 @@ export default function App() {
         const { file, summary } = sorted[i];
         const label =
           summary.kind === "main"
-            ? `画像（${i + 1}/${sorted.length}）`
+            ? `写真（${i + 1}/${sorted.length}）`
             : `動画（${i + 1}/${sorted.length}）`;
         setTransferPhase({
           kind: "importing",
@@ -361,7 +367,7 @@ export default function App() {
 
   const handleDeleteAllData = async () => {
     const confirmed = window.confirm(
-      "すべての画像と記録を削除します。この操作は取り消せません。",
+      "すべての写真と動画を削除します。この操作は取り消せません。",
     );
     if (!confirmed) return;
 
@@ -387,12 +393,14 @@ export default function App() {
       <Timeline
         onSelectMinute={selectMinute}
         showOnlyWithImages={options.showOnlyWithImages}
+        blurImages={options.blurImages}
       />
 
       <MinuteDetail
         minuteOfDay={selectedMinute}
         onClose={closeMinute}
         onNavigate={setSelectedMinute}
+        blurImages={options.blurImages}
       />
 
       <ImportProgressOverlay
@@ -425,6 +433,10 @@ export default function App() {
         showOnlyWithImages={options.showOnlyWithImages}
         onShowOnlyWithImagesChange={(showOnlyWithImages) =>
           setOptions((current) => ({ ...current, showOnlyWithImages }))
+        }
+        blurImages={options.blurImages}
+        onBlurImagesChange={(blurImages) =>
+          setOptions((current) => ({ ...current, blurImages }))
         }
         exportError={exportError}
         onExportImage={handleExportImage}

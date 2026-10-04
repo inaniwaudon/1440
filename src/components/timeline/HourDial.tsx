@@ -1,4 +1,4 @@
-import { useRef, useState } from "react";
+import { Fragment, useRef, useState } from "react";
 import styles from "./HourDial.module.css";
 
 type Props = {
@@ -77,6 +77,7 @@ export function HourDial({ activeHour, onScrub }: Props) {
 
   const radius = DIAL_SIZE / 2;
   const labelRadius = radius - 18;
+  const majorTickRadius = radius - 43;
 
   return (
     <div
@@ -119,24 +120,33 @@ export function HourDial({ activeHour, onScrub }: Props) {
               const isMajor = h % 3 === 0;
               const isSelected = h === displayHour;
               return (
-                <div
-                  // biome-ignore lint/suspicious/noArrayIndexKey: static 24-length list, order fixed
-                  key={h}
-                  className={`${styles.tick} ${isSelected ? styles.tickActive : ""}`}
-                  style={{ transform: `translate(${x}px, ${y}px)` }}
-                >
-                  <span
-                    className={[
-                      styles.tickInner,
-                      isMajor ? styles.tickMajor : "",
-                      isSelected ? styles.tickSelected : "",
-                    ]
-                      .filter(Boolean)
-                      .join(" ")}
+                // biome-ignore lint/suspicious/noArrayIndexKey: static 24-hour list, order fixed
+                <Fragment key={h}>
+                  {isMajor && (
+                    <span
+                      className={styles.majorTickMark}
+                      style={{
+                        transform: `translate(-50%, -50%) translate(${Math.cos(rad) * majorTickRadius}px, ${Math.sin(rad) * majorTickRadius}px) rotate(${mathAngle}deg)`,
+                      }}
+                    />
+                  )}
+                  <div
+                    className={`${styles.tick} ${isSelected ? styles.tickActive : ""}`}
+                    style={{ transform: `translate(${x}px, ${y}px)` }}
                   >
-                    {String(h).padStart(2, "0")}
-                  </span>
-                </div>
+                    <span
+                      className={[
+                        styles.tickInner,
+                        isMajor ? styles.tickMajor : "",
+                        isSelected ? styles.tickSelected : "",
+                      ]
+                        .filter(Boolean)
+                        .join(" ")}
+                    >
+                      {String(h).padStart(2, "0")}
+                    </span>
+                  </div>
+                </Fragment>
               );
             })}
           </div>

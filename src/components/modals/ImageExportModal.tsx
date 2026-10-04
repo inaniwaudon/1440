@@ -42,7 +42,7 @@ export function ImageExportModal({ url, onClose }: Props) {
         </button>
       </div>
       <div className={styles.imageWrap}>
-        <img className={styles.image} src={url} alt="書き出した画像" />
+        <img className={styles.image} src={url} alt="エクスポートした画像" />
       </div>
       <p className={styles.hint}>画像を長押しして保存</p>
     </div>

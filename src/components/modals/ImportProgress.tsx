@@ -27,7 +27,7 @@ export function ImportProgressOverlay({ progress, result, onClose }: Props) {
     <Modal
       open
       onClose={isDone ? onClose : undefined}
-      title={isDone ? "読み込み完了" : "読み込み中"}
+      title={isDone ? "インポート完了" : "インポート中"}
       icon={
         isDone ? (
           <MdCheckCircle aria-hidden="true" />

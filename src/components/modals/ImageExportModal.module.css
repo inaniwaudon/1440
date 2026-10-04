@@ -46,7 +46,7 @@
 .image {
   max-width: 100%;
   max-height: 100%;
-  box-shadow: 0 2px 24px var(--scrim-50);
+  box-shadow: var(--shadow-preview);
   -webkit-touch-callout: default;
   touch-action: manipulation;
 }

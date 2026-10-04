@@ -80,11 +80,15 @@ export async function compressVideo(file: File): Promise<Blob> {
           let patchedMeta: EncodedVideoChunkMetadata | undefined;
           if (dc) {
             const patchedDc: VideoDecoderConfig = { ...dc };
-            if (!patchedDc.colorSpace) patchedDc.colorSpace = DEFAULT_COLOR_SPACE;
+            if (!patchedDc.colorSpace)
+              patchedDc.colorSpace = DEFAULT_COLOR_SPACE;
             lastGoodDecoderConfig = patchedDc;
             patchedMeta = { ...meta, decoderConfig: patchedDc };
           } else if (lastGoodDecoderConfig) {
-            patchedMeta = { ...(meta ?? {}), decoderConfig: lastGoodDecoderConfig };
+            patchedMeta = {
+              ...(meta ?? {}),
+              decoderConfig: lastGoodDecoderConfig,
+            };
           }
 
           // Safari omits chunk.duration; mp4-muxer requires it. Supply a fixed one.
@@ -105,7 +109,9 @@ export async function compressVideo(file: File): Promise<Blob> {
           );
         } catch (e) {
           encoderError = e;
-          debugLog(`addVideoChunk threw at #${idx}: ${e instanceof Error ? e.message : String(e)}`);
+          debugLog(
+            `addVideoChunk threw at #${idx}: ${e instanceof Error ? e.message : String(e)}`,
+          );
         }
       },
       error: (e) => {
@@ -253,7 +259,9 @@ export async function compressVideo(file: File): Promise<Blob> {
     }
     return compressed;
   } catch (err) {
-    debugLog(`compressVideo FAILED: ${err instanceof Error ? err.message : String(err)}`);
+    debugLog(
+      `compressVideo FAILED: ${err instanceof Error ? err.message : String(err)}`,
+    );
     console.warn("Video compression failed, using original.", err);
     return file;
   } finally {

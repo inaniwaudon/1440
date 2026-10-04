@@ -114,6 +114,7 @@
   display: flex;
   max-width: 90vw;
   max-height: 100%;
+  overflow: hidden;
 }
 
 .previewImg {
@@ -125,6 +126,17 @@
   display: block;
 }
 
+.mediaFrame canvas.previewImg {
+  position: absolute;
+  inset: 0;
+  margin: auto;
+}
+
+.previewImg.blurred {
+  filter: blur(12px);
+  transform: scale(1.08);
+}
+
 .missingPhoto {
   color: var(--text-faint);
   font-size: 13px;
@@ -132,8 +144,8 @@
 
 .deleteBtn {
   position: fixed;
-  right: max(20px, env(safe-area-inset-right));
-  bottom: max(20px, env(safe-area-inset-bottom));
+  right: 20px;
+  bottom: max(24px, env(safe-area-inset-bottom));
   z-index: 2;
   width: 56px;
   height: 56px;
@@ -148,7 +160,7 @@
   display: flex;
   align-items: center;
   justify-content: center;
-  box-shadow: 0 6px 24px var(--scrim-50);
+  box-shadow: var(--shadow-action);
   transition:
     transform 120ms ease,
     background 120ms ease;

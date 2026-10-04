@@ -7,6 +7,8 @@ type Props = {
   onClose: () => void;
   showOnlyWithImages: boolean;
   onShowOnlyWithImagesChange: (enabled: boolean) => void;
+  blurImages: boolean;
+  onBlurImagesChange: (enabled: boolean) => void;
   exportError: string | null;
   onExportImage: () => void;
   imageExportProgress: { current: number; total: number } | null;
@@ -22,6 +24,8 @@ export function OptionsModal({
   onClose,
   showOnlyWithImages,
   onShowOnlyWithImagesChange,
+  blurImages,
+  onBlurImagesChange,
   exportError,
   onExportImage,
   imageExportProgress,
@@ -40,12 +44,22 @@ export function OptionsModal({
       labelledBy="options-title"
     >
       <label className={styles.optionRow}>
-        <span>画像が追加されている時刻だけを表示</span>
+        <span>写真・動画が追加された時刻だけを表示</span>
         <input
           className={styles.switchInput}
           type="checkbox"
           checked={showOnlyWithImages}
           onChange={(event) => onShowOnlyWithImagesChange(event.target.checked)}
+        />
+        <span className={styles.switch} aria-hidden="true" />
+      </label>
+      <label className={styles.optionRow}>
+        <span>顔を検出してぼかす</span>
+        <input
+          className={styles.switchInput}
+          type="checkbox"
+          checked={blurImages}
+          onChange={(event) => onBlurImagesChange(event.target.checked)}
         />
         <span className={styles.switch} aria-hidden="true" />
       </label>
@@ -56,8 +70,8 @@ export function OptionsModal({
         onClick={onExportImage}
       >
         {imageExportProgress
-          ? `一覧画像を書き出し中（${imageExportProgress.current}/${imageExportProgress.total}）`
-          : "一覧画像の書き出し"}
+          ? `一覧画像をエクスポート中（${imageExportProgress.current}/${imageExportProgress.total}）`
+          : "一覧画像のエクスポート"}
       </button>
       {exportError && <p className={styles.error}>{exportError}</p>}
       <button
@@ -66,7 +80,7 @@ export function OptionsModal({
         disabled={transferBusy}
         onClick={onExportData}
       >
-        データを書き出し
+        データをエクスポート
       </button>
       <button
         type="button"
@@ -74,7 +88,7 @@ export function OptionsModal({
         disabled={transferBusy}
         onClick={onImportData}
       >
-        データを読み込み
+        データをインポート
       </button>
       <button
         type="button"

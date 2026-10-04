@@ -6,12 +6,14 @@ import { db } from "../../db/db";
 import type { PhotoRecord } from "../../db/types";
 import { useBodyScrollLock } from "../../hooks/useBodyScrollLock";
 import { formatCapturedDate, formatMinuteOfDay } from "../../utils/time";
+import { FaceBlurImage } from "../media/FaceBlurImage";
 import styles from "./MinuteDetail.module.css";
 
 type Props = {
   minuteOfDay: number | null;
   onClose: () => void;
   onNavigate: (minuteOfDay: number) => void;
+  blurImages: boolean;
 };
 
 const SWIPE_MIN_DISTANCE = 48;
@@ -22,9 +24,11 @@ const RETURN_EASING = "cubic-bezier(0.34, 1.3, 0.64, 1)";
 function PhotoPreview({
   photo,
   active,
+  blurImages,
 }: {
   photo: PhotoRecord;
   active: boolean;
+  blurImages: boolean;
 }) {
   const [url, setUrl] = useState<string | null>(null);
   const isVideo = photo.mimeType?.startsWith("video/") && !!photo.videoBlob;
@@ -52,10 +56,17 @@ function PhotoPreview({
           muted
           playsInline
           preload="auto"
-          className={styles.previewImg}
+          className={`${styles.previewImg} ${blurImages ? styles.blurred : ""}`}
         />
       ) : (
-        <img src={url} alt="Saved" className={styles.previewImg} />
+        <FaceBlurImage
+          src={url}
+          alt="Saved"
+          className={styles.previewImg}
+          fallbackBlurClassName={styles.blurred}
+          blurPx={12}
+          enabled={blurImages}
+        />
       )}
       {capturedDate && (
         <time
@@ -69,7 +80,12 @@ function PhotoPreview({
   );
 }
 
-export function MinuteDetail({ minuteOfDay, onClose, onNavigate }: Props) {
+export function MinuteDetail({
+  minuteOfDay,
+  onClose,
+  onNavigate,
+  blurImages,
+}: Props) {
   const overlayRef = useRef<HTMLDivElement>(null);
   const trackRef = useRef<HTMLDivElement>(null);
   const swipeRef = useRef<{
@@ -142,7 +158,10 @@ export function MinuteDetail({ minuteOfDay, onClose, onNavigate }: Props) {
   useEffect(() => {
     if (!isOpen) return;
     const handleKey = (event: KeyboardEvent) => {
-      if (event.key === "ArrowLeft" && previousMinute !== undefined) {
+      if (event.key === "Escape") {
+        event.preventDefault();
+        onClose();
+      } else if (event.key === "ArrowLeft" && previousMinute !== undefined) {
         event.preventDefault();
         onNavigate(previousMinute);
       } else if (event.key === "ArrowRight" && nextMinute !== undefined) {
@@ -152,7 +171,7 @@ export function MinuteDetail({ minuteOfDay, onClose, onNavigate }: Props) {
     };
     window.addEventListener("keydown", handleKey);
     return () => window.removeEventListener("keydown", handleKey);
-  }, [isOpen, previousMinute, nextMinute, onNavigate]);
+  }, [isOpen, previousMinute, nextMinute, onClose, onNavigate]);
 
   if (minuteOfDay === null) return null;
 
@@ -351,7 +370,11 @@ export function MinuteDetail({ minuteOfDay, onClose, onNavigate }: Props) {
                   key={entry?.id ?? `empty-${index}`}
                 >
                   {entry ? (
-                    <PhotoPreview photo={entry} active={index === 1} />
+                    <PhotoPreview
+                      photo={entry}
+                      active={index === 1}
+                      blurImages={blurImages}
+                    />
                   ) : index === 1 ? (
                     <p className={styles.missingPhoto}>Loading media…</p>
                   ) : null}

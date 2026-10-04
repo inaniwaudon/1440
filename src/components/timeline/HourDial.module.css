@@ -1,6 +1,6 @@
 .root {
   position: fixed;
-  right: 8px;
+  right: 20px;
   top: 50%;
   transform: translateY(-50%);
   width: 50px;
@@ -18,7 +18,7 @@
   background: var(--accent-glass-dark);
   backdrop-filter: blur(14px);
   box-sizing: border-box;
-  box-shadow: 0 2px 16px var(--scrim-50);
+  box-shadow: var(--shadow-floating);
 }
 
 .clockNumber {
@@ -69,7 +69,7 @@
   border-radius: 50%;
   background: var(--white);
   transform: translate(-50%, -50%);
-  box-shadow: 0 0 0 2px var(--accent-bg-filled);
+  box-shadow: var(--shadow-dial-handle);
   pointer-events: none;
 }
 
@@ -104,7 +104,7 @@
   border-radius: 50%;
   background: var(--scrim-50);
   backdrop-filter: blur(16px);
-  box-shadow: 0 2px 16px var(--scrim-50);
+  box-shadow: var(--shadow-floating);
   position: absolute;
   inset: 0;
   will-change: transform;
@@ -126,6 +126,18 @@
 
 .tickActive {
   z-index: 1;
+}
+
+.majorTickMark {
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  width: 6px;
+  height: 2px;
+  border-radius: 999px;
+  background: var(--accent-ice);
+  opacity: 0.65;
+  pointer-events: none;
 }
 
 .tickInner {

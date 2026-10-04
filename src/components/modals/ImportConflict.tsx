@@ -72,7 +72,7 @@ export function ImportConflictOverlay({ conflict, onResolve }: Props) {
             <div className={styles.preview}>
               <BlobPreview
                 blob={conflict.incoming.thumbnailBlob}
-                alt="新しく読み込むメディア"
+                alt="新しくインポートするメディア"
               />
             </div>
             <p className={styles.fileName} title={conflict.incoming.fileName}>

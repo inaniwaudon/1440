@@ -80,6 +80,11 @@
   display: block;
 }
 
+.cellThumb.blurred {
+  filter: blur(4px);
+  transform: scale(1.12);
+}
+
 .cellLabel {
   position: relative;
   z-index: 1;

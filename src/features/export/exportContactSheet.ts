@@ -26,7 +26,7 @@ export async function exportContactSheet(
   ).filter((entry) => !!entry.photo);
 
   if (entries.length === 0)
-    throw new Error("書き出せる画像または動画がありません");
+    throw new Error("書き出せる写真または動画がありません");
 
   // Keep small exports timeline-like while preventing an excessively tall
   // canvas when a full day contains many entries.
