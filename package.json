@@ -1,14 +1,13 @@
 {
   "name": "1440-app",
   "private": true,
-  "version": "0.0.0",
+  "version": "0.1.0",
   "type": "module",
   "scripts": {
     "dev": "vite",
     "build": "tsc -b && vite build",
     "deploy": "yarn build && wrangler deploy",
-    "format": "biome format --write",
-    "check": "biome check --write",
+    "format": "biome check --write",
     "preview": "vite preview"
   },
   "dependencies": {

@@ -104,7 +104,7 @@ export function FabMenu({ onCamera, onImport, onHelp, onOption }: Props) {
       activeRef.current = null;
       setOpen(false);
       setActive(null);
-      if (selected === "photo") {
+      if (selected === "photo" || selected === null) {
         setShowPhotoActions(true);
       } else {
         setShowPhotoActions(false);

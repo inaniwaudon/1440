@@ -127,6 +127,16 @@ export default function App() {
   );
 
   useEffect(() => {
+    let cancelled = false;
+    db.photos.count().then((count) => {
+      if (!cancelled && count === 0) setHelpOpen(true);
+    });
+    return () => {
+      cancelled = true;
+    };
+  }, []);
+
+  useEffect(() => {
     try {
       localStorage.setItem(OPTIONS_STORAGE_KEY, JSON.stringify(options));
     } catch {
