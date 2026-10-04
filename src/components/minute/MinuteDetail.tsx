@@ -21,6 +21,56 @@ const SWIPE_MIN_DISTANCE = 48;
 const SWIPE_DIRECTION_RATIO = 1.2;
 const SLIDE_EASING = "cubic-bezier(0.16, 1, 0.3, 1)";
 const RETURN_EASING = "cubic-bezier(0.34, 1.3, 0.64, 1)";
+const LONG_PRESS_MS = 500;
+const LONG_PRESS_MOVE_TOLERANCE = 8;
+
+function extensionFor(mimeType: string | undefined): string {
+  if (!mimeType) return "jpg";
+  const subtype = mimeType.split("/")[1]?.split(";")[0];
+  if (!subtype) return "jpg";
+  if (subtype === "jpeg") return "jpg";
+  if (subtype === "quicktime") return "mov";
+  return subtype;
+}
+
+async function sharePhoto(photo: PhotoRecord) {
+  const isVideo = photo.mimeType?.startsWith("video/") && !!photo.videoBlob;
+  const blob = isVideo
+    ? // biome-ignore lint/style/noNonNullAssertion: isVideo guards videoBlob
+      photo.videoBlob!
+    : (photo.previewBlob ?? photo.thumbnailBlob);
+  const mime = blob.type || photo.mimeType || "image/jpeg";
+  const ext = extensionFor(mime);
+  const base =
+    photo.originalFileName?.replace(/\.[^.]+$/, "") ||
+    `photo-${photo.minuteOfDay}`;
+  const fileName = `${base}.${ext}`;
+  const file = new File([blob], fileName, { type: mime });
+
+  const canShareFiles =
+    typeof navigator !== "undefined" &&
+    typeof navigator.share === "function" &&
+    typeof navigator.canShare === "function" &&
+    navigator.canShare({ files: [file] });
+
+  if (canShareFiles) {
+    try {
+      await navigator.share({ files: [file] });
+      return;
+    } catch (error) {
+      if ((error as DOMException)?.name === "AbortError") return;
+    }
+  }
+
+  const url = URL.createObjectURL(blob);
+  const link = document.createElement("a");
+  link.href = url;
+  link.download = fileName;
+  document.body.appendChild(link);
+  link.click();
+  link.remove();
+  setTimeout(() => URL.revokeObjectURL(url), 1000);
+}
 
 function PhotoPreview({
   photo,
@@ -136,6 +186,15 @@ export function MinuteDetail({
   } | null>(null);
   const suppressClickUntilRef = useRef(0);
   const pendingNavigateRef = useRef<number | null>(null);
+  const longPressTimerRef = useRef<number | null>(null);
+  const longPressFiredRef = useRef(false);
+
+  const clearLongPress = () => {
+    if (longPressTimerRef.current !== null) {
+      window.clearTimeout(longPressTimerRef.current);
+      longPressTimerRef.current = null;
+    }
+  };
 
   const occupiedMinutes = useLiveQuery<number[], number[]>(
     async () => {
@@ -276,7 +335,25 @@ export function MinuteDetail({
                 currentX: event.clientX,
                 isHorizontal: false,
               };
-              event.currentTarget.setPointerCapture(event.pointerId);
+              longPressFiredRef.current = false;
+              clearLongPress();
+              const targetPhoto = photo;
+              const target = event.currentTarget;
+              const pointerId = event.pointerId;
+              if (targetPhoto) {
+                longPressTimerRef.current = window.setTimeout(() => {
+                  longPressTimerRef.current = null;
+                  longPressFiredRef.current = true;
+                  swipeRef.current = null;
+                  suppressClickUntilRef.current = Date.now() + 500;
+                  try {
+                    target.releasePointerCapture(pointerId);
+                  } catch {
+                    // ignore
+                  }
+                  void sharePhoto(targetPhoto);
+                }, LONG_PRESS_MS);
+              }
             }}
             onPointerMove={(event) => {
               const swipe = swipeRef.current;
@@ -285,10 +362,21 @@ export function MinuteDetail({
               swipe.currentX = event.clientX;
               const deltaX = event.clientX - swipe.startX;
               const deltaY = event.clientY - swipe.startY;
+              if (
+                longPressTimerRef.current !== null &&
+                Math.hypot(deltaX, deltaY) > LONG_PRESS_MOVE_TOLERANCE
+              ) {
+                clearLongPress();
+              }
               if (!swipe.isHorizontal) {
                 if (Math.abs(deltaX) < 8) return;
                 if (Math.abs(deltaX) <= Math.abs(deltaY)) return;
                 swipe.isHorizontal = true;
+                try {
+                  event.currentTarget.setPointerCapture(event.pointerId);
+                } catch {
+                  // ignore
+                }
               }
 
               const canNavigate =
@@ -302,8 +390,13 @@ export function MinuteDetail({
               suppressClickUntilRef.current = Date.now() + 350;
             }}
             onPointerUp={(event) => {
+              clearLongPress();
               const swipe = swipeRef.current;
               swipeRef.current = null;
+              if (longPressFiredRef.current) {
+                longPressFiredRef.current = false;
+                return;
+              }
               if (!swipe || swipe.pointerId !== event.pointerId) return;
 
               const deltaX = swipe.currentX - swipe.startX;
@@ -376,6 +469,7 @@ export function MinuteDetail({
               exitAnimation.addEventListener("cancel", commit);
             }}
             onPointerCancel={() => {
+              clearLongPress();
               swipeRef.current = null;
               trackRef.current?.style.removeProperty("transform");
             }}

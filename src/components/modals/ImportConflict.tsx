@@ -83,7 +83,7 @@ export function ImportConflictOverlay({ conflict, onResolve }: Props) {
               className={modalStyles.primaryButton}
               onClick={() => onResolve(true)}
             >
-              新規に置換
+              新しく更新
             </button>
           </article>
         </div>

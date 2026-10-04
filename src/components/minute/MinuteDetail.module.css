@@ -54,10 +54,16 @@
   cursor: grabbing;
 }
 
-.previewWrap img,
 .previewWrap video {
   user-select: none;
   pointer-events: none;
+}
+
+.previewWrap img {
+  user-select: auto;
+  -webkit-user-select: auto;
+  -webkit-touch-callout: default;
+  -webkit-user-drag: auto;
 }
 
 .slideTrack {

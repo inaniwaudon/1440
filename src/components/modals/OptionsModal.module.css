@@ -36,6 +36,7 @@
 
 .dangerButton {
   background: var(--danger);
+  margin-top: 16px;
 }
 
 .switchInput {
