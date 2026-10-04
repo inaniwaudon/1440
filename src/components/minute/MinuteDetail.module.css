@@ -154,7 +154,8 @@
 }
 
 .deleteBtn,
-.blurBtn {
+.blurBtn,
+.playBtn {
   position: fixed;
   bottom: max(24px, env(safe-area-inset-bottom));
   z-index: 2;
@@ -179,7 +180,8 @@
 }
 
 .deleteBtn:hover,
-.blurBtn:hover {
+.blurBtn:hover,
+.playBtn:hover {
   opacity: 1;
 }
 
@@ -188,8 +190,17 @@
   background: var(--danger);
 }
 
-.blurBtn {
+.playBtn {
   right: 88px;
+  background: var(--black);
+}
+
+.playBtnActive {
+  background: var(--accent);
+}
+
+.blurBtn {
+  right: 156px;
   background: var(--black);
 }
 
@@ -198,7 +209,8 @@
 }
 
 .deleteBtn:active,
-.blurBtn:active {
+.blurBtn:active,
+.playBtn:active {
   transform: scale(0.92);
 }
 

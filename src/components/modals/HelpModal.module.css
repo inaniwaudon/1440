@@ -42,6 +42,10 @@
   text-underline-offset: 4px;
 }
 
+.linkWrapper {
+  text-align: right;
+}
+
 .link {
   display: inline-flex;
   gap: 6px;

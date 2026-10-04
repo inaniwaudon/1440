@@ -2,7 +2,13 @@ import { useLiveQuery } from "dexie-react-hooks";
 import type { CSSProperties } from "react";
 import { useEffect, useRef, useState } from "react";
 import { flushSync } from "react-dom";
-import { MdBlurOn, MdDeleteOutline } from "react-icons/md";
+import {
+  MdBlurOn,
+  MdDeleteOutline,
+  MdPause,
+  MdPlayArrow,
+  MdReplay,
+} from "react-icons/md";
 import { db } from "../../db/db";
 import type { PhotoRecord } from "../../db/types";
 import { useBodyScrollLock } from "../../hooks/useBodyScrollLock";
@@ -189,6 +195,8 @@ export function MinuteDetail({
   const suppressClickUntilRef = useRef(0);
   const pendingNavigateRef = useRef<number | null>(null);
   const pressStartRef = useRef<{ time: number; moved: boolean } | null>(null);
+  const [isPlaying, setIsPlaying] = useState(false);
+  const playTimerRef = useRef<number | null>(null);
 
   const occupiedMinutes = useLiveQuery<number[], number[]>(
     async () => {
@@ -246,6 +254,35 @@ export function MinuteDetail({
       overlay?.removeEventListener("wheel", blockWheel);
     };
   }, [isOpen]);
+
+  const occupiedRef = useRef(occupiedMinutes);
+  occupiedRef.current = occupiedMinutes;
+  const activeMinuteRef = useRef(activeMinute);
+  activeMinuteRef.current = activeMinute;
+  const onNavigateRef = useRef(onNavigate);
+  onNavigateRef.current = onNavigate;
+
+  useEffect(() => {
+    if (!isPlaying) return;
+    const timer = window.setInterval(() => {
+      const list = occupiedRef.current;
+      const idx = list.indexOf(activeMinuteRef.current);
+      if (idx < 0 || idx >= list.length - 1) {
+        setIsPlaying(false);
+        return;
+      }
+      onNavigateRef.current(list[idx + 1]);
+    }, 100);
+    playTimerRef.current = timer;
+    return () => {
+      window.clearInterval(timer);
+      playTimerRef.current = null;
+    };
+  }, [isPlaying]);
+
+  useEffect(() => {
+    if (!isOpen && isPlaying) setIsPlaying(false);
+  }, [isOpen, isPlaying]);
 
   useEffect(() => {
     if (!isOpen) return;
@@ -521,6 +558,53 @@ export function MinuteDetail({
               <MdBlurOn aria-hidden="true" />
             </button>
           )}
+          {hasPhoto &&
+            (() => {
+              const isLast =
+                currentIndex >= 0 &&
+                currentIndex === occupiedMinutes.length - 1;
+              const mode: "replay" | "pause" | "play" = isPlaying
+                ? "pause"
+                : isLast
+                  ? "replay"
+                  : "play";
+              return (
+                <button
+                  type="button"
+                  className={`${styles.playBtn} ${isPlaying ? styles.playBtnActive : ""}`}
+                  onClick={() => {
+                    if (mode === "pause") {
+                      setIsPlaying(false);
+                      return;
+                    }
+                    if (mode === "replay") {
+                      const first = occupiedMinutes[0];
+                      if (first === undefined) return;
+                      onNavigate(first);
+                      setIsPlaying(true);
+                      return;
+                    }
+                    setIsPlaying(true);
+                  }}
+                  aria-label={
+                    mode === "pause"
+                      ? "再生を停止"
+                      : mode === "replay"
+                        ? "最初から再生"
+                        : "連続再生"
+                  }
+                  aria-pressed={isPlaying}
+                >
+                  {mode === "pause" ? (
+                    <MdPause aria-hidden="true" />
+                  ) : mode === "replay" ? (
+                    <MdReplay aria-hidden="true" />
+                  ) : (
+                    <MdPlayArrow aria-hidden="true" />
+                  )}
+                </button>
+              );
+            })()}
           {hasPhoto && (
             <button
               type="button"

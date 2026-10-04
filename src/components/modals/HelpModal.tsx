@@ -42,7 +42,7 @@ export function HelpModal({ open, onClose }: Props) {
             <li>開発：いなにわうどん（@kyoto_inaniwa）</li>
             <li>原案：椎名（@s7tya）</li>
           </ul>
-          <p>
+          <p className={styles.linkWrapper}>
             <a
               href="https://zenn.dev/inaniwaudon/articles/810235c935299c"
               target="_blank"
