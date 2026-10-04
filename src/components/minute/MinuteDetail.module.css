@@ -78,6 +78,7 @@
   display: flex;
   align-items: center;
   justify-content: center;
+  container-type: size;
 }
 
 .photoTime {
@@ -112,21 +113,20 @@
 .mediaFrame {
   position: relative;
   display: flex;
-  max-width: 90vw;
+  max-width: 100%;
   max-height: 100%;
-  overflow: hidden;
   overflow: clip;
 }
 
 .mediaFrame[style*="aspect-ratio"] {
-  height: 100%;
-  width: auto;
+  width: min(100cqw, calc(100cqh * var(--ar)));
+  height: min(100cqh, calc(100cqw / var(--ar)));
 }
 
 .previewImg {
   width: auto;
   height: auto;
-  max-width: 90vw;
+  max-width: 100%;
   max-height: 100%;
   object-fit: contain;
   display: block;

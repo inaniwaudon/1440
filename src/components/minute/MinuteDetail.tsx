@@ -64,12 +64,15 @@ function PhotoPreview({
       video.pause();
       video.currentTime = 0;
     }
-  }, [active, isVideo, url]);
+  }, [active, isVideo]);
 
   if (!url) return null;
   const capturedDate = formatCapturedDate(photo.capturedAt);
   const frameStyle = aspectRatio
-    ? ({ aspectRatio: String(aspectRatio) } as CSSProperties)
+    ? ({
+        aspectRatio: String(aspectRatio),
+        "--ar": String(aspectRatio),
+      } as CSSProperties)
     : undefined;
 
   return (
