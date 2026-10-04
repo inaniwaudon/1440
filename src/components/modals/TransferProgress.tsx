@@ -126,7 +126,7 @@ export function TransferProgressOverlay({ phase, onClose }: Props) {
 
       {phase.kind === "export-done" && (
         <>
-          <p className={`${styles.counter} ${styles.result}`}>
+          <p className={styles.counter}>
             準備ができました ({phase.files.length} ファイル)
           </p>
           {phase.files.length > 1 &&
@@ -217,7 +217,7 @@ export function TransferProgressOverlay({ phase, onClose }: Props) {
 
       {phase.kind === "import-done" && (
         <>
-          <p className={`${styles.counter} ${styles.result}`}>
+          <p className={styles.counter}>
             読み込み: {phase.result.imported}
             {phase.result.skipped > 0 && (
               <span>&nbsp; スキップ: {phase.result.skipped}</span>

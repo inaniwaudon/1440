@@ -9,7 +9,6 @@
   cursor: pointer;
   touch-action: manipulation;
   color: var(--text-muted);
-  font-size: 11px;
   background-size: cover;
   background-position: center;
   position: relative;

@@ -12,8 +12,8 @@ export default defineConfig({
       registerType: "autoUpdate",
       selfDestroying: true,
       manifest: {
-        name: "Minute Photo",
-        short_name: "Minute",
+        name: "1440",
+        short_name: "1440",
         display: "standalone",
         start_url: "/",
         orientation: "portrait",

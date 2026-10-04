@@ -1,13 +1,9 @@
 .counter {
   margin: 0 4px 12px;
-  font-size: 28px;
+  font-size: 18px;
   font-weight: 700;
   color: var(--white);
   font-variant-numeric: tabular-nums;
-}
-
-.result {
-  font-size: 18px;
 }
 
 .failed {
