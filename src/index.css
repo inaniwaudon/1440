@@ -7,6 +7,15 @@
   margin: 0;
   padding: 0;
   user-select: none;
+  -webkit-user-select: none;
+  -webkit-touch-callout: none;
+}
+
+html,
+body,
+#root {
+  user-select: none;
+  -webkit-user-select: none;
   -webkit-touch-callout: none;
 }
 
