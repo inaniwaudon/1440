@@ -9,6 +9,13 @@
   cursor: pointer;
 }
 
+.actionButton {
+  margin-top: 8px;
+  background: var(--scrim-50);
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
+}
+
 .switchInput {
   position: absolute;
   width: 1px;

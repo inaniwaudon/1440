@@ -76,7 +76,7 @@ export function DebugOverlay() {
             font: "inherit",
           }}
         >
-          {collapsed ? `▸ debug (${entries.length})` : "▾ debug"}
+          {collapsed ? `▸ debug（${entries.length}）` : "▾ debug"}
         </button>
         {!collapsed && (
           <>

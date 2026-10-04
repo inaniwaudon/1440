@@ -47,8 +47,7 @@ export function OptionsModal({
       </label>
       <button
         type="button"
-        className={modalStyles.primaryButton}
-        style={{ marginTop: 8 }}
+        className={`${modalStyles.primaryButton} ${styles.actionButton}`}
         disabled={imageExportProgress !== null}
         onClick={onExportImage}
       >
@@ -59,8 +58,7 @@ export function OptionsModal({
       {exportError && <p className={styles.error}>{exportError}</p>}
       <button
         type="button"
-        className={modalStyles.primaryButton}
-        style={{ marginTop: 8 }}
+        className={`${modalStyles.primaryButton} ${styles.actionButton}`}
         disabled={transferBusy}
         onClick={onExportData}
       >
@@ -68,8 +66,7 @@ export function OptionsModal({
       </button>
       <button
         type="button"
-        className={modalStyles.secondaryButton}
-        style={{ marginTop: 8 }}
+        className={`${modalStyles.primaryButton} ${styles.actionButton}`}
         disabled={transferBusy}
         onClick={onImportData}
       >

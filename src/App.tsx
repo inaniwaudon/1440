@@ -281,8 +281,8 @@ export default function App() {
         const { file, summary } = sorted[i];
         const label =
           summary.kind === "main"
-            ? `画像 (${i + 1}/${sorted.length})`
-            : `動画 (${i + 1}/${sorted.length})`;
+            ? `画像（${i + 1}/${sorted.length}）`
+            : `動画（${i + 1}/${sorted.length}）`;
         setTransferPhase({
           kind: "importing",
           label,

@@ -73,7 +73,7 @@ export function TransferProgressOverlay({ phase, onClose }: Props) {
       case "exporting": {
         const stepSuffix =
           phase.totalSteps > 1
-            ? ` (${phase.step}/${phase.totalSteps} ${phase.label})`
+            ? `（${phase.step}/${phase.totalSteps} ${phase.label}）`
             : "";
         return `書き出し中${stepSuffix}`;
       }
@@ -127,7 +127,7 @@ export function TransferProgressOverlay({ phase, onClose }: Props) {
       {phase.kind === "export-done" && (
         <>
           <p className={styles.counter}>
-            準備ができました ({phase.files.length} ファイル)
+            準備ができました（{phase.files.length} ファイル）
           </p>
           {phase.files.length > 1 &&
             (() => {
@@ -152,7 +152,7 @@ export function TransferProgressOverlay({ phase, onClose }: Props) {
                   onClick={() => sharePhaseFiles(shareFiles)}
                 >
                   <MdShare aria-hidden="true" />
-                  まとめて共有 ({shareFiles.length} 件)
+                  まとめて共有（{shareFiles.length} 件）
                 </button>
               );
             })()}

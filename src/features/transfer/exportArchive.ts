@@ -205,7 +205,7 @@ export async function exportArchive(
             onProgress({
               step: i + 1,
               totalSteps,
-              label: `データ (${i + 1}/${chunks.length})`,
+              label: `データ（${i + 1}/${chunks.length}）`,
               current: p.current,
               total: p.total,
             }),
@@ -231,7 +231,7 @@ export async function exportArchive(
             onProgress({
               step: chunks.length + i + 1,
               totalSteps,
-              label: `動画 (${i + 1}/${videoChunks.length})`,
+              label: `動画（${i + 1}/${videoChunks.length}）`,
               current: p.current,
               total: p.total,
             }),
@@ -272,7 +272,7 @@ export async function exportArchive(
               onProgress({
                 step: i + 1,
                 totalSteps,
-                label: `データ (${i + 1}/${chunks.length})`,
+                label: `データ（${i + 1}/${chunks.length}）`,
                 current,
                 total,
               }),
@@ -316,7 +316,7 @@ export async function exportArchive(
               onProgress({
                 step: chunks.length + i + 1,
                 totalSteps,
-                label: `動画 (${i + 1}/${videoChunks.length})`,
+                label: `動画（${i + 1}/${videoChunks.length}）`,
                 current,
                 total,
               }),
@@ -358,7 +358,7 @@ export async function exportArchive(
         onProgress({
           step: i + 1,
           totalSteps,
-          label: `データ (${i + 1}/${chunks.length})`,
+          label: `データ（${i + 1}/${chunks.length}）`,
           current: p.current,
           total: p.total,
         }),
@@ -382,7 +382,7 @@ export async function exportArchive(
         onProgress({
           step: chunks.length + i + 1,
           totalSteps,
-          label: `動画 (${i + 1}/${videoChunks.length})`,
+          label: `動画（${i + 1}/${videoChunks.length}）`,
           current: p.current,
           total: p.total,
         }),
