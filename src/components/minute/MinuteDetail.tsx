@@ -64,7 +64,6 @@ function PhotoPreview({
           alt="Saved"
           className={styles.previewImg}
           fallbackBlurClassName={styles.blurred}
-          blurPx={12}
           enabled={blurImages}
         />
       )}

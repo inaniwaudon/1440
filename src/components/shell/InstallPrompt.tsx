@@ -32,18 +32,19 @@ export function InstallPrompt() {
 
   return (
     <div className={styles.banner}>
-      <span className={styles.text}>Add this app to your Home Screen</span>
+      <span className={styles.text}>このアプリをホーム画面に追加</span>
       <button
         type="button"
         className={styles.installBtn}
         onClick={handleInstall}
       >
-        Add
+        追加
       </button>
       <button
         type="button"
         className={styles.dismissBtn}
         onClick={() => setDismissed(true)}
+        aria-label="閉じる"
       >
         ✕
       </button>

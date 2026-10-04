@@ -3,6 +3,7 @@ import {
   type CSSProperties,
   type TouchList as ReactTouchList,
   type TouchEvent,
+  useCallback,
   useEffect,
   useRef,
   useState,
@@ -63,69 +64,68 @@ export function Timeline({
     [],
   );
 
-  const changeColumns = (
-    nextColumns: number,
-    focusX: number,
-    focusY: number,
-  ) => {
-    const grid = gridRef.current;
-    if (!grid || nextColumns === gridColumns) return;
+  const changeColumns = useCallback(
+    (nextColumns: number, focusX: number, focusY: number) => {
+      const grid = gridRef.current;
+      if (!grid || nextColumns === gridColumns) return;
 
-    const anchor = document
-      .elementFromPoint(focusX, focusY)
-      ?.closest<HTMLElement>("[data-minute]");
-    const anchorMinute = anchor?.dataset.minute;
-    const anchorTop = anchor?.getBoundingClientRect().top;
-    const oldRects = new Map<string, DOMRect>();
-    grid.querySelectorAll<HTMLElement>("[data-minute]").forEach((cell) => {
-      const rect = cell.getBoundingClientRect();
-      if (rect.bottom >= 0 && rect.top <= window.innerHeight) {
-        oldRects.set(cell.dataset.minute ?? "", rect);
-      }
-    });
-
-    flushSync(() => setGridColumns(nextColumns));
-
-    if (anchorMinute !== undefined && anchorTop !== undefined) {
-      const nextAnchor = grid.querySelector<HTMLElement>(
-        `[data-minute="${anchorMinute}"]`,
-      );
-      if (nextAnchor)
-        grid.scrollTop += nextAnchor.getBoundingClientRect().top - anchorTop;
-    }
-
-    if (window.matchMedia("(prefers-reduced-motion: reduce)").matches) return;
-    grid.querySelectorAll<HTMLElement>("[data-minute]").forEach((cell) => {
-      const before = oldRects.get(cell.dataset.minute ?? "");
-      if (!before) return;
-      const after = cell.getBoundingClientRect();
-      const dx = before.left - after.left;
-      const dy = before.top - after.top;
-      const scale = before.width / after.width;
-      if (
-        Math.abs(dx) < 0.5 &&
-        Math.abs(dy) < 0.5 &&
-        Math.abs(scale - 1) < 0.01
-      )
-        return;
-      cell.getAnimations().forEach((animation) => {
-        animation.cancel();
+      const anchor = document
+        .elementFromPoint(focusX, focusY)
+        ?.closest<HTMLElement>("[data-minute]");
+      const anchorMinute = anchor?.dataset.minute;
+      const anchorTop = anchor?.getBoundingClientRect().top;
+      const oldRects = new Map<string, DOMRect>();
+      grid.querySelectorAll<HTMLElement>("[data-minute]").forEach((cell) => {
+        const rect = cell.getBoundingClientRect();
+        if (rect.bottom >= 0 && rect.top <= window.innerHeight) {
+          oldRects.set(cell.dataset.minute ?? "", rect);
+        }
       });
-      cell.animate(
-        [
-          {
-            transform: `translate(${dx}px, ${dy}px) scale(${scale})`,
-            transformOrigin: "top left",
-          },
-          {
-            transform: "translate(0, 0) scale(1)",
-            transformOrigin: "top left",
-          },
-        ],
-        { duration: 180, easing: "cubic-bezier(0.22, 1, 0.36, 1)" },
-      );
-    });
-  };
+
+      flushSync(() => setGridColumns(nextColumns));
+
+      if (anchorMinute !== undefined && anchorTop !== undefined) {
+        const nextAnchor = grid.querySelector<HTMLElement>(
+          `[data-minute="${anchorMinute}"]`,
+        );
+        if (nextAnchor)
+          grid.scrollTop += nextAnchor.getBoundingClientRect().top - anchorTop;
+      }
+
+      if (window.matchMedia("(prefers-reduced-motion: reduce)").matches) return;
+      grid.querySelectorAll<HTMLElement>("[data-minute]").forEach((cell) => {
+        const before = oldRects.get(cell.dataset.minute ?? "");
+        if (!before) return;
+        const after = cell.getBoundingClientRect();
+        const dx = before.left - after.left;
+        const dy = before.top - after.top;
+        const scale = before.width / after.width;
+        if (
+          Math.abs(dx) < 0.5 &&
+          Math.abs(dy) < 0.5 &&
+          Math.abs(scale - 1) < 0.01
+        )
+          return;
+        cell.getAnimations().forEach((animation) => {
+          animation.cancel();
+        });
+        cell.animate(
+          [
+            {
+              transform: `translate(${dx}px, ${dy}px) scale(${scale})`,
+              transformOrigin: "top left",
+            },
+            {
+              transform: "translate(0, 0) scale(1)",
+              transformOrigin: "top left",
+            },
+          ],
+          { duration: 180, easing: "cubic-bezier(0.22, 1, 0.36, 1)" },
+        );
+      });
+    },
+    [gridColumns],
+  );
 
   useEffect(() => {
     const id = setInterval(
@@ -279,7 +279,7 @@ export function Timeline({
     };
     grid.addEventListener("wheel", onWheel, { passive: false });
     return () => grid.removeEventListener("wheel", onWheel);
-  }, [gridColumns]);
+  }, [gridColumns, changeColumns]);
 
   const gridStyle = {
     "--grid-columns": gridColumns,
@@ -353,7 +353,6 @@ export function Timeline({
                             alt=""
                             className={styles.cellThumb}
                             fallbackBlurClassName={styles.blurred}
-                            blurPx={4}
                             enabled={blurImages}
                           />
                         )}

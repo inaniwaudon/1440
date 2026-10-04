@@ -155,7 +155,8 @@ export async function exportArchive(
   const allPhotoIds = (await db.photos
     .toCollection()
     .primaryKeys()) as string[];
-  if (allPhotoIds.length === 0) throw new Error("エクスポートするデータがありません");
+  if (allPhotoIds.length === 0)
+    throw new Error("エクスポートするデータがありません");
   const allSlots = await db.slots.orderBy("minuteOfDay").toArray();
   const slotByPhotoId = new Map(allSlots.map((s) => [s.photoId, s]));
 

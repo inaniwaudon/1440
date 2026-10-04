@@ -126,12 +126,6 @@
   display: block;
 }
 
-.mediaFrame canvas.previewImg {
-  position: absolute;
-  inset: 0;
-  margin: auto;
-}
-
 .previewImg.blurred {
   filter: blur(12px);
   transform: scale(1.08);

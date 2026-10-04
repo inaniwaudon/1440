@@ -130,7 +130,7 @@ export async function readArchiveMetadata(
   if (videoManifest) {
     if (videoManifest.version > ARCHIVE_VERSION) {
       throw new Error(
-        `このアプリは アーカイブバージョン ${videoManifest.version} に対応していません`,
+        `このアプリケーションは アーカイブバージョン ${videoManifest.version} に対応していません`,
       );
     }
     return { kind: "video", manifest: videoManifest };
@@ -141,7 +141,7 @@ export async function readArchiveMetadata(
   }
   if (mainSummary.manifest.version > ARCHIVE_VERSION) {
     throw new Error(
-      `このアプリは アーカイブバージョン ${mainSummary.manifest.version} に対応していません`,
+      `このアプリケーションは アーカイブバージョン ${mainSummary.manifest.version} に対応していません`,
     );
   }
   return {

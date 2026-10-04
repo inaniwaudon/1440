@@ -17,6 +17,9 @@ type Props = {
   transferBusy: boolean;
   onDeleteAllData: () => void;
   deleteBusy: boolean;
+  storagePersistence: "unsupported" | "checking" | "temporary" | "persistent";
+  storageUsage: string | null;
+  onRequestStoragePersistence: () => void;
 };
 
 export function OptionsModal({
@@ -34,6 +37,9 @@ export function OptionsModal({
   transferBusy,
   onDeleteAllData,
   deleteBusy,
+  storagePersistence,
+  storageUsage,
+  onRequestStoragePersistence,
 }: Props) {
   return (
     <Modal
@@ -53,6 +59,29 @@ export function OptionsModal({
         />
         <span className={styles.switch} aria-hidden="true" />
       </label>
+      <div className={styles.storageRow}>
+        <div>
+          <span className={styles.storageTitle}>データを端末に保持</span>
+          <span className={styles.storageDetail}>
+            {storagePersistence === "persistent"
+              ? `有効${storageUsage ? ` · 使用量 ${storageUsage}` : ""}`
+              : storagePersistence === "temporary"
+                ? `未有効${storageUsage ? ` · 使用量 ${storageUsage}` : ""}`
+                : storagePersistence === "checking"
+                  ? "確認中…"
+                  : "このブラウザでは利用できません"}
+          </span>
+        </div>
+        {storagePersistence === "temporary" && (
+          <button
+            type="button"
+            className={modalStyles.secondaryButton}
+            onClick={onRequestStoragePersistence}
+          >
+            有効にする
+          </button>
+        )}
+      </div>
       <label className={styles.optionRow}>
         <span>顔を検出してぼかす</span>
         <input

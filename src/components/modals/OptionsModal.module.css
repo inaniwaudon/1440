@@ -14,6 +14,26 @@
   backdrop-filter: blur(8px);
 }
 
+.storageRow {
+  min-height: 56px;
+  padding: 4px 8px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.storageTitle,
+.storageDetail {
+  display: block;
+}
+
+.storageDetail {
+  margin-top: 3px;
+  color: var(--text-muted);
+  font-size: 12px;
+}
+
 .dangerButton {
   background: var(--danger);
 }

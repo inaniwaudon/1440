@@ -45,6 +45,17 @@ type StoredOptions = {
   blurImages: boolean;
 };
 
+type StoragePersistence =
+  | "unsupported"
+  | "checking"
+  | "temporary"
+  | "persistent";
+
+function formatBytes(bytes: number): string {
+  if (bytes < 1024 * 1024) return `${Math.ceil(bytes / 1024)} KB`;
+  return `${(bytes / (1024 * 1024)).toFixed(1)} MB`;
+}
+
 const defaultOptions: StoredOptions = {
   showOnlyWithImages: false,
   blurImages: false,
@@ -89,6 +100,9 @@ export default function App() {
   } | null>(null);
   const [exportedImageUrl, setExportedImageUrl] = useState<string | null>(null);
   const [deleteBusy, setDeleteBusy] = useState(false);
+  const [storagePersistence, setStoragePersistence] =
+    useState<StoragePersistence>("checking");
+  const [storageUsage, setStorageUsage] = useState<string | null>(null);
   const exportedDownloadUrlsRef = useRef<string[]>([]);
   const [conflict, setConflict] = useState<{
     details: ImportConflict;
@@ -119,6 +133,41 @@ export default function App() {
       // Keep options usable for this session when storage is unavailable.
     }
   }, [options]);
+
+  useEffect(() => {
+    if (!optionsOpen) return;
+    const storage = navigator.storage;
+    if (!storage?.persisted || !storage.persist) {
+      setStoragePersistence("unsupported");
+      return;
+    }
+
+    let cancelled = false;
+    void Promise.all([storage.persisted(), storage.estimate?.()]).then(
+      ([persistent, estimate]) => {
+        if (cancelled) return;
+        setStoragePersistence(persistent ? "persistent" : "temporary");
+        setStorageUsage(
+          typeof estimate?.usage === "number"
+            ? formatBytes(estimate.usage)
+            : null,
+        );
+      },
+    );
+    return () => {
+      cancelled = true;
+    };
+  }, [optionsOpen]);
+
+  const handleRequestStoragePersistence = async () => {
+    setStoragePersistence("checking");
+    try {
+      const persistent = await navigator.storage.persist();
+      setStoragePersistence(persistent ? "persistent" : "temporary");
+    } catch {
+      setStoragePersistence("temporary");
+    }
+  };
 
   const selectMinute = (minuteOfDay: number, cell: HTMLElement) => {
     const transitionName = `minute-photo-${minuteOfDay}`;
@@ -446,6 +495,9 @@ export default function App() {
         transferBusy={transferPhase !== null}
         onDeleteAllData={handleDeleteAllData}
         deleteBusy={deleteBusy}
+        storagePersistence={storagePersistence}
+        storageUsage={storageUsage}
+        onRequestStoragePersistence={handleRequestStoragePersistence}
       />
 
       <TransferProgressOverlay
