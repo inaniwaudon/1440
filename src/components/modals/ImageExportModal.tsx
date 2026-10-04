@@ -1,5 +1,6 @@
 import { useEffect } from "react";
 import { MdClose } from "react-icons/md";
+import { useBodyScrollLock } from "../../hooks/useBodyScrollLock";
 import styles from "./ImageExportModal.module.css";
 
 type Props = {
@@ -8,6 +9,8 @@ type Props = {
 };
 
 export function ImageExportModal({ url, onClose }: Props) {
+  useBodyScrollLock(url !== null);
+
   useEffect(() => {
     if (!url) return;
     const handleKeyDown = (event: KeyboardEvent) => {

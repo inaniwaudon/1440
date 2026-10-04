@@ -1,4 +1,5 @@
 import { type ReactNode, useEffect } from "react";
+import { useBodyScrollLock } from "../../hooks/useBodyScrollLock";
 import styles from "./Modal.module.css";
 
 type Props = {
@@ -24,6 +25,8 @@ export function Modal({
   labelledBy = "modal-title",
   children,
 }: Props) {
+  useBodyScrollLock(open);
+
   useEffect(() => {
     if (!open || !dismissOnEscape || !onClose) return;
     const handleKeyDown = (event: KeyboardEvent) => {

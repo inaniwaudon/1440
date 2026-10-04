@@ -1,8 +1,8 @@
 import { useEffect, useRef, useState } from "react";
 import {
   MdFolderOpen,
-  MdHelpOutline,
   MdPhotoCamera,
+  MdQuestionMark,
   MdSettings,
 } from "react-icons/md";
 import styles from "./FabMenu.module.css";
@@ -174,7 +174,7 @@ export function FabMenu({ onCamera, onImport, onHelp, onOption }: Props) {
               role="img"
               aria-label="Help"
             >
-              <MdHelpOutline className={styles.itemIcon} aria-hidden="true" />
+              <MdQuestionMark className={styles.itemIcon} aria-hidden="true" />
             </div>
             <div
               className={`${styles.item} ${styles.itemTop} ${active === "photo" ? styles.itemActive : ""}`}

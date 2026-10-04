@@ -34,7 +34,7 @@ export function HelpModal({ open, onClose }: Props) {
           </p>
           <p>
             よりお気に入りの写真に更新しながら、1440
-            分のスロットを埋めていきましょう。
+            分のスロットを埋めていきましょう！
           </p>
           <ul>
             <li>開発：いなにわうどん（@kyoto_inaniwa）</li>

@@ -56,8 +56,8 @@ export function OptionsModal({
         onClick={onExportImage}
       >
         {imageExportProgress
-          ? `画像を書き出しています ${imageExportProgress.current}/${imageExportProgress.total}`
-          : "画像の書き出し"}
+          ? `一覧画像を書き出し中（${imageExportProgress.current}/${imageExportProgress.total}）`
+          : "一覧画像の書き出し"}
       </button>
       {exportError && <p className={styles.error}>{exportError}</p>}
       <button

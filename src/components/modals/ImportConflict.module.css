@@ -5,6 +5,11 @@
   align-items: center;
 }
 
+.option {
+  flex: 1 1 0;
+  min-width: 0;
+}
+
 .badge {
   margin-bottom: 8px;
   color: var(--text-secondary);

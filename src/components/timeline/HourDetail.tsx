@@ -1,4 +1,5 @@
 import { useRef } from "react";
+import { useBodyScrollLock } from "../../hooks/useBodyScrollLock";
 import { toMinuteOfDay } from "../../utils/time";
 import { MinuteCell } from "../minute/MinuteCell";
 import styles from "./HourDetail.module.css";
@@ -17,6 +18,7 @@ export function HourDetail({
   onSelectMinute,
 }: Props) {
   const overlayRef = useRef<HTMLDivElement>(null);
+  useBodyScrollLock(hour !== null);
 
   if (hour === null) return null;
 

@@ -4,6 +4,7 @@ import { flushSync } from "react-dom";
 import { MdDeleteOutline } from "react-icons/md";
 import { db } from "../../db/db";
 import type { PhotoRecord } from "../../db/types";
+import { useBodyScrollLock } from "../../hooks/useBodyScrollLock";
 import { formatCapturedDate, formatMinuteOfDay } from "../../utils/time";
 import styles from "./MinuteDetail.module.css";
 
@@ -126,15 +127,14 @@ export function MinuteDetail({ minuteOfDay, onClose, onNavigate }: Props) {
   const hasPhoto = photo !== undefined;
 
   const isOpen = minuteOfDay !== null;
+  useBodyScrollLock(isOpen);
+
   useEffect(() => {
     if (!isOpen) return;
-    const prev = document.body.style.overflow;
-    document.body.style.overflow = "hidden";
     const overlay = overlayRef.current;
     const blockWheel = (event: WheelEvent) => event.preventDefault();
     overlay?.addEventListener("wheel", blockWheel, { passive: false });
     return () => {
-      document.body.style.overflow = prev;
       overlay?.removeEventListener("wheel", blockWheel);
     };
   }, [isOpen]);
