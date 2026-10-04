@@ -70,8 +70,7 @@ export async function exportContactSheet(
         width,
         height,
       );
-      ctx.globalCompositeOperation = "difference";
-      ctx.fillStyle = "rgba(255, 255, 255, 0.85)";
+      ctx.fillStyle = "#fff";
       ctx.font = "700 24px system-ui, sans-serif";
       ctx.textAlign = "left";
       ctx.textBaseline = "bottom";
