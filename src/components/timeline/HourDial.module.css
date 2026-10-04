@@ -8,7 +8,6 @@
   z-index: 50;
   touch-action: none;
   user-select: none;
-  -webkit-user-select: none;
 }
 
 .dot {
@@ -18,7 +17,6 @@
   border-radius: 50%;
   background: var(--accent-glass-dark);
   backdrop-filter: blur(14px);
-  -webkit-backdrop-filter: blur(14px);
   box-sizing: border-box;
   box-shadow: 0 2px 16px var(--scrim-50);
 }
@@ -106,7 +104,6 @@
   border-radius: 50%;
   background: var(--scrim-50);
   backdrop-filter: blur(16px);
-  -webkit-backdrop-filter: blur(14px);
   box-shadow: 0 2px 16px var(--scrim-50);
   position: absolute;
   inset: 0;

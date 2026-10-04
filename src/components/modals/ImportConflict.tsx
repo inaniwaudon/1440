@@ -46,7 +46,7 @@ export function ImportConflictOverlay({ conflict, onResolve }: Props) {
       {conflict && (
         <div className={styles.comparison}>
           <article className={styles.option}>
-            <span className={styles.badge}>現在</span>
+            <div className={styles.badge}>現在</div>
             <div className={styles.preview}>
               <BlobPreview
                 blob={conflict.existing.thumbnailBlob}
@@ -67,13 +67,8 @@ export function ImportConflictOverlay({ conflict, onResolve }: Props) {
               現在を残す
             </button>
           </article>
-
-          <div className={styles.divider} aria-hidden="true">
-            VS
-          </div>
-
-          <article className={`${styles.option} ${styles.newOption}`}>
-            <span className={`${styles.badge} ${styles.newBadge}`}>新規</span>
+          <article className={styles.option}>
+            <div className={`${styles.badge} ${styles.newBadge}`}>新規</div>
             <div className={styles.preview}>
               <BlobPreview
                 blob={conflict.incoming.thumbnailBlob}

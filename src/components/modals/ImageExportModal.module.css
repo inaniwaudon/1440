@@ -16,6 +16,25 @@
   justify-content: flex-end;
 }
 
+.closeButton {
+  display: grid;
+  width: 40px;
+  height: 40px;
+  padding: 0;
+  place-items: center;
+  border: 0;
+  border-radius: 50%;
+  background: var(--chip);
+  color: var(--white);
+  font-size: 24px;
+  cursor: pointer;
+  touch-action: manipulation;
+}
+
+.closeButton:active {
+  transform: scale(0.96);
+}
+
 .imageWrap {
   flex: 1;
   min-height: 0;
@@ -27,7 +46,6 @@
 .image {
   max-width: 100%;
   max-height: 100%;
-  border-radius: 8px;
   box-shadow: 0 2px 24px var(--scrim-50);
   -webkit-touch-callout: default;
   touch-action: manipulation;

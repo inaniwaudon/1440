@@ -1,0 +1,38 @@
+.guide {
+  padding-top: 8px;
+}
+
+.guide section {
+  padding: 12px 4px;
+  border-bottom: 1px solid var(--chip);
+}
+
+.guide h3 {
+  margin: 0 0 6px;
+  color: var(--white);
+  font-size: 15px;
+}
+
+.guide p,
+.guide ul {
+  margin: 0;
+  line-height: 1.7;
+}
+
+.guide ul {
+  padding-left: 1.4em;
+}
+
+.guide p + p,
+.guide p + ul {
+  margin-top: 8px;
+}
+
+.guide li + li {
+  margin-top: 6px;
+}
+
+.closeButton {
+  margin-top: 16px;
+  background: var(--scrim-50);
+}

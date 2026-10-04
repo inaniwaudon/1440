@@ -1,6 +1,6 @@
 .optionRow {
   min-height: 56px;
-  padding: 10px 8px 10px 10px;
+  padding: 4px 8px;
   display: flex;
   align-items: center;
   justify-content: space-between;
@@ -11,9 +11,11 @@
 
 .actionButton {
   margin-top: 8px;
-  background: var(--scrim-50);
   backdrop-filter: blur(8px);
-  -webkit-backdrop-filter: blur(8px);
+}
+
+.dangerButton {
+  background: var(--danger);
 }
 
 .switchInput {

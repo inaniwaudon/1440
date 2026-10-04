@@ -42,3 +42,10 @@
   max-height: 80px;
   overflow-y: auto;
 }
+
+.exportNote {
+  margin: 16px 4px 12px;
+  color: var(--text-secondary);
+  font-size: 12px;
+  line-height: 1.6;
+}

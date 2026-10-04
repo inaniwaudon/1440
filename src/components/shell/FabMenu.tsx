@@ -1,20 +1,26 @@
 import { useEffect, useRef, useState } from "react";
-import { MdFolderOpen, MdPhotoCamera, MdSettings } from "react-icons/md";
+import {
+  MdFolderOpen,
+  MdHelpOutline,
+  MdPhotoCamera,
+  MdSettings,
+} from "react-icons/md";
 import styles from "./FabMenu.module.css";
 
-type Item = "photo" | "import" | "option";
+type Item = "photo" | "help" | "option";
 type Props = {
   onCamera: (file: File) => void;
   onImport: (files: File[]) => void;
+  onHelp?: () => void;
   onOption?: () => void;
 };
 
 const MIN_DIST = 20;
 
-export function FabMenu({ onCamera, onImport, onOption }: Props) {
+export function FabMenu({ onCamera, onImport, onHelp, onOption }: Props) {
   const [open, setOpen] = useState(false);
   const [active, setActive] = useState<Item | null>(null);
-  const [pending, setPending] = useState<"photo" | "import" | null>(null);
+  const [showPhotoActions, setShowPhotoActions] = useState(false);
   const gestureRef = useRef<HTMLDivElement>(null);
   const cameraInputRef = useRef<HTMLInputElement>(null);
   const importInputRef = useRef<HTMLInputElement>(null);
@@ -38,7 +44,7 @@ export function FabMenu({ onCamera, onImport, onOption }: Props) {
     const candidates: Array<{ item: Item; x: number; y: number }> = [
       { item: "option", x: centerX - radialDistance, y: centerY },
       {
-        item: "import",
+        item: "help",
         x: centerX - diagonalOffset,
         y: centerY - diagonalOffset,
       },
@@ -65,7 +71,7 @@ export function FabMenu({ onCamera, onImport, onOption }: Props) {
     activeRef.current = null;
     setOpen(false);
     setActive(null);
-    setPending(null);
+    setShowPhotoActions(false);
   };
 
   // biome-ignore lint/correctness/useExhaustiveDependencies: handlers read latest state via refs
@@ -98,10 +104,11 @@ export function FabMenu({ onCamera, onImport, onOption }: Props) {
       activeRef.current = null;
       setOpen(false);
       setActive(null);
-      if (selected === "photo" || selected === "import") {
-        setPending(selected);
+      if (selected === "photo") {
+        setShowPhotoActions(true);
       } else {
-        setPending(null);
+        setShowPhotoActions(false);
+        if (selected === "help") onHelp?.();
         if (selected === "option") onOption?.();
       }
     }
@@ -120,7 +127,7 @@ export function FabMenu({ onCamera, onImport, onOption }: Props) {
       el.removeEventListener("pointerup", onPointerUp);
       el.removeEventListener("pointercancel", onPointerCancel);
     };
-  }, [onOption]);
+  }, [onHelp, onOption]);
 
   const handleCameraChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const files = Array.from(e.target.files ?? []);
@@ -134,15 +141,19 @@ export function FabMenu({ onCamera, onImport, onOption }: Props) {
     if (files.length > 0) onImport(files);
   };
 
-  const confirmPending = () => {
-    if (pending === "photo") cameraInputRef.current?.click();
-    if (pending === "import") importInputRef.current?.click();
-    setPending(null);
+  const openCamera = () => {
+    cameraInputRef.current?.click();
+    setShowPhotoActions(false);
+  };
+
+  const openPhotoPicker = () => {
+    importInputRef.current?.click();
+    setShowPhotoActions(false);
   };
 
   return (
     <>
-      {(open || pending) && (
+      {(open || showPhotoActions) && (
         // biome-ignore lint/a11y/noStaticElementInteractions: backdrop click closes menu
         // biome-ignore lint/a11y/useKeyWithClickEvents: menu is dismissed via FAB press
         <div className={styles.backdrop} onClick={close} />
@@ -159,11 +170,11 @@ export function FabMenu({ onCamera, onImport, onOption }: Props) {
               <MdSettings className={styles.itemIcon} aria-hidden="true" />
             </div>
             <div
-              className={`${styles.item} ${styles.itemDiagonal} ${active === "import" ? styles.itemActive : ""}`}
+              className={`${styles.item} ${styles.itemDiagonal} ${active === "help" ? styles.itemActive : ""}`}
               role="img"
-              aria-label="Import"
+              aria-label="Help"
             >
-              <MdFolderOpen className={styles.itemIcon} aria-hidden="true" />
+              <MdHelpOutline className={styles.itemIcon} aria-hidden="true" />
             </div>
             <div
               className={`${styles.item} ${styles.itemTop} ${active === "photo" ? styles.itemActive : ""}`}
@@ -175,24 +186,25 @@ export function FabMenu({ onCamera, onImport, onOption }: Props) {
           </>
         )}
 
-        {pending && (
-          <button
-            type="button"
-            className={styles.confirmButton}
-            onClick={confirmPending}
-          >
-            {pending === "photo" ? (
-              <>
-                <MdPhotoCamera aria-hidden="true" />
-                カメラを起動
-              </>
-            ) : (
-              <>
-                <MdFolderOpen aria-hidden="true" />
-                写真を選択
-              </>
-            )}
-          </button>
+        {showPhotoActions && (
+          <div className={styles.photoActions}>
+            <button
+              type="button"
+              className={styles.actionButton}
+              onClick={openCamera}
+            >
+              <MdPhotoCamera aria-hidden="true" />
+              写真を撮影
+            </button>
+            <button
+              type="button"
+              className={styles.actionButton}
+              onClick={openPhotoPicker}
+            >
+              <MdFolderOpen aria-hidden="true" />
+              写真を選択
+            </button>
+          </div>
         )}
 
         <div

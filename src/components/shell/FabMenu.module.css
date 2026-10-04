@@ -20,7 +20,6 @@
   border-radius: 50%;
   background: var(--accent-glass);
   backdrop-filter: blur(14px);
-  -webkit-backdrop-filter: blur(14px);
   border: none;
   cursor: pointer;
   touch-action: none;
@@ -42,17 +41,23 @@
   pointer-events: none;
 }
 
-.confirmButton {
+.photoActions {
   position: absolute;
   right: 0;
-  top: -180px;
+  top: -148px;
   width: 180px;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.actionButton {
+  width: 100%;
   height: 50px;
   border: 0;
   border-radius: 25px;
   background: var(--accent-glass);
   backdrop-filter: blur(14px);
-  -webkit-backdrop-filter: blur(14px);
   color: var(--white);
   display: flex;
   align-items: center;
@@ -97,7 +102,6 @@
   border-radius: 50%;
   background: var(--glass-dark);
   backdrop-filter: blur(14px);
-  -webkit-backdrop-filter: blur(14px);
   border: none;
   display: flex;
   flex-direction: column;
@@ -132,7 +136,7 @@
   top: -90px;
 }
 
-/* Upper-left: center is 92px from the FAB center at a 45-degree angle. */
+/* Upper-left: between the option and photo items. */
 .itemDiagonal {
   left: -63px;
   top: -63px;

@@ -1,6 +1,6 @@
 import { useEffect } from "react";
+import { MdClose } from "react-icons/md";
 import styles from "./ImageExportModal.module.css";
-import { modalStyles } from "./Modal";
 
 type Props = {
   url: string | null;
@@ -31,17 +31,17 @@ export function ImageExportModal({ url, onClose }: Props) {
       <div className={styles.closeRow}>
         <button
           type="button"
-          className={modalStyles.secondaryButton}
-          style={{ width: "auto", padding: "8px 16px", fontWeight: 600 }}
+          className={styles.closeButton}
           onClick={onClose}
+          aria-label="閉じる"
         >
-          閉じる
+          <MdClose aria-hidden="true" />
         </button>
       </div>
       <div className={styles.imageWrap}>
         <img className={styles.image} src={url} alt="書き出した画像" />
       </div>
-      <p className={styles.hint}>画像を長押しして保存できます</p>
+      <p className={styles.hint}>画像を長押しして保存</p>
     </div>
   );
 }

@@ -71,11 +71,7 @@ export function TransferProgressOverlay({ phase, onClose }: Props) {
   const title = (() => {
     switch (phase.kind) {
       case "exporting": {
-        const stepSuffix =
-          phase.totalSteps > 1
-            ? `（${phase.step}/${phase.totalSteps} ${phase.label}）`
-            : "";
-        return `書き出し中${stepSuffix}`;
+        return `書き出し中（${phase.step}/${phase.totalSteps} ${phase.label}）`;
       }
       case "importing":
         return phase.phase === "scan"
@@ -126,9 +122,6 @@ export function TransferProgressOverlay({ phase, onClose }: Props) {
 
       {phase.kind === "export-done" && (
         <>
-          <p className={styles.counter}>
-            準備ができました（{phase.files.length} ファイル）
-          </p>
           {phase.files.length > 1 &&
             (() => {
               const shareFiles = phase.files
@@ -185,7 +178,7 @@ export function TransferProgressOverlay({ phase, onClose }: Props) {
                 )}
                 {download && (
                   <a
-                    className={modalStyles.secondaryButton}
+                    className={modalStyles.primaryButton}
                     href={download.url}
                     download={download.name}
                     style={{
@@ -204,10 +197,13 @@ export function TransferProgressOverlay({ phase, onClose }: Props) {
               </div>
             );
           })}
+          <p className={styles.exportNote}>
+            データを引き継ぐにはすべての zip
+            ファイルをダウンロードして、新しい端末に読み込む必要があります
+          </p>
           <button
             type="button"
             className={modalStyles.secondaryButton}
-            style={{ marginTop: 12 }}
             onClick={onClose}
           >
             閉じる

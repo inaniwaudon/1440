@@ -21,7 +21,9 @@
   border: 0;
   border-radius: 20px;
   color: var(--white);
-  background: transparent;
+  text-shadow: 0 0px 16px var(--shadow-text);
+  padding: 0 16px;
+  background: var(--scrim-20);
   box-shadow:
     0 0 0 100vmax var(--scrim-70),
     0 2px 32px var(--scrim-50);
@@ -35,7 +37,7 @@
 .header {
   display: flex;
   align-items: center;
-  padding: 18px 18px 0 22px;
+  padding-top: 20px;
 }
 
 .title {
@@ -47,11 +49,11 @@
 }
 
 .title svg {
-  color: var(--accent);
+  color: var(--white);
 }
 
 .content {
-  padding: 6px 12px 12px;
+  padding-bottom: 24px;
   overflow-y: auto;
 }
 
@@ -67,10 +69,11 @@
   font-weight: 700;
   cursor: pointer;
   touch-action: manipulation;
+  backdrop-filter: blur(8px);
 }
 
 .primaryButton {
-  background: var(--accent-bg);
+  background: var(--accent-glass-dark);
 }
 
 .primaryButton:disabled {
@@ -79,7 +82,7 @@
 }
 
 .secondaryButton {
-  background: var(--chip);
+  background: var(--scrim-50);
 }
 
 .primaryButton:active,

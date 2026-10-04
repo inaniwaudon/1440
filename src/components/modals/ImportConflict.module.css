@@ -1,43 +1,24 @@
 .comparison {
-  display: grid;
-  grid-template-columns: minmax(0, 1fr) 34px minmax(0, 1fr);
+  display: flex;
+  gap: 16px;
+  margin-top: 16px;
   align-items: center;
-  padding: 4px;
-}
-
-.option {
-  min-width: 0;
-  padding: 12px;
-  border: 1px solid var(--border-default);
-  border-radius: 16px;
-  background: var(--chip-subtle);
-}
-
-.newOption {
-  border-color: var(--accent-border-translucent);
 }
 
 .badge {
-  display: inline-block;
-  margin-bottom: 9px;
-  padding: 4px 9px;
-  border-radius: 999px;
-  background: var(--bg-switch);
+  margin-bottom: 8px;
   color: var(--text-secondary);
-  font-size: 11px;
+  font-size: 12px;
   font-weight: 700;
 }
 
 .newBadge {
-  background: var(--accent-wash);
   color: var(--accent);
 }
 
 .preview {
   aspect-ratio: 4 / 3;
   overflow: hidden;
-  border-radius: 10px;
-  background: var(--bg-body);
 }
 
 .image {
@@ -48,27 +29,10 @@
 }
 
 .fileName {
-  margin: 10px 2px;
+  margin: 10px 0;
   overflow: hidden;
   color: var(--text-secondary);
   font-size: 12px;
   text-overflow: ellipsis;
   white-space: nowrap;
-}
-
-.divider {
-  color: var(--text-faint);
-  font-size: 10px;
-  font-weight: 800;
-  text-align: center;
-}
-
-@media (max-width: 560px) {
-  .comparison {
-    grid-template-columns: minmax(0, 1fr) 20px minmax(0, 1fr);
-  }
-
-  .option {
-    padding: 8px;
-  }
 }

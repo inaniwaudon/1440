@@ -6,6 +6,7 @@
   "scripts": {
     "dev": "vite",
     "build": "tsc -b && vite build",
+    "deploy": "yarn build && wrangler deploy",
     "format": "biome format --write",
     "check": "biome check --write",
     "preview": "vite preview"
@@ -29,6 +30,7 @@
     "@vitejs/plugin-react": "^6.1.1",
     "typescript": "~6.0.2",
     "vite": "^8.3.0",
-    "vite-plugin-pwa": "^2.0.0"
+    "vite-plugin-pwa": "^2.0.0",
+    "wrangler": "^4.147.0"
   }
 }

@@ -26,7 +26,7 @@
   --danger-text: #f77;
 
   /* Scrims / shadows */
-  --scrim-0: rgba(0, 0, 0, 0);
+  --scrim-20: rgba(0, 0, 0, 0.2);
   --scrim-50: rgba(0, 0, 0, 0.5);
   --scrim-70: rgba(0, 0, 0, 0.7);
   --shadow-text: rgba(0, 0, 0, 0.8);

@@ -13,6 +13,8 @@ type Props = {
   onExportData: () => void;
   onImportData: () => void;
   transferBusy: boolean;
+  onDeleteAllData: () => void;
+  deleteBusy: boolean;
 };
 
 export function OptionsModal({
@@ -26,6 +28,8 @@ export function OptionsModal({
   onExportData,
   onImportData,
   transferBusy,
+  onDeleteAllData,
+  deleteBusy,
 }: Props) {
   return (
     <Modal
@@ -47,18 +51,18 @@ export function OptionsModal({
       </label>
       <button
         type="button"
-        className={`${modalStyles.primaryButton} ${styles.actionButton}`}
+        className={`${modalStyles.secondaryButton} ${styles.actionButton}`}
         disabled={imageExportProgress !== null}
         onClick={onExportImage}
       >
         {imageExportProgress
           ? `画像を書き出しています ${imageExportProgress.current}/${imageExportProgress.total}`
-          : "画像書き出し"}
+          : "画像の書き出し"}
       </button>
       {exportError && <p className={styles.error}>{exportError}</p>}
       <button
         type="button"
-        className={`${modalStyles.primaryButton} ${styles.actionButton}`}
+        className={`${modalStyles.secondaryButton} ${styles.actionButton}`}
         disabled={transferBusy}
         onClick={onExportData}
       >
@@ -66,11 +70,19 @@ export function OptionsModal({
       </button>
       <button
         type="button"
-        className={`${modalStyles.primaryButton} ${styles.actionButton}`}
+        className={`${modalStyles.secondaryButton} ${styles.actionButton}`}
         disabled={transferBusy}
         onClick={onImportData}
       >
         データを読み込み
+      </button>
+      <button
+        type="button"
+        className={`${modalStyles.primaryButton} ${styles.actionButton} ${styles.dangerButton}`}
+        disabled={transferBusy || deleteBusy}
+        onClick={onDeleteAllData}
+      >
+        {deleteBusy ? "削除しています…" : "全データを削除"}
       </button>
     </Modal>
   );

@@ -47,7 +47,6 @@
   contain: layout;
   touch-action: pan-y;
   user-select: none;
-  -webkit-user-select: none;
   cursor: grab;
 }
 
@@ -57,9 +56,7 @@
 
 .previewWrap img,
 .previewWrap video {
-  -webkit-user-drag: none;
   user-select: none;
-  -webkit-user-select: none;
   pointer-events: none;
 }
 

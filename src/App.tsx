@@ -1,6 +1,7 @@
 import { useEffect, useRef, useState } from "react";
 import { flushSync } from "react-dom";
 import { MinuteDetail } from "./components/minute/MinuteDetail";
+import { HelpModal } from "./components/modals/HelpModal";
 import { ImageExportModal } from "./components/modals/ImageExportModal";
 import { ImportConflictOverlay } from "./components/modals/ImportConflict";
 import { ImportProgressOverlay } from "./components/modals/ImportProgress";
@@ -12,6 +13,7 @@ import {
 import { FabMenu } from "./components/shell/FabMenu";
 import { InstallPrompt } from "./components/shell/InstallPrompt";
 import { Timeline } from "./components/timeline/Timeline";
+import { db } from "./db/db";
 import { exportContactSheet } from "./features/export/exportContactSheet";
 import {
   type ImportConflict,
@@ -72,6 +74,7 @@ export default function App() {
     status: "idle",
   });
   const [optionsOpen, setOptionsOpen] = useState(false);
+  const [helpOpen, setHelpOpen] = useState(false);
   const [options, setOptions] = useState<StoredOptions>(loadOptions);
   const [exportError, setExportError] = useState<string | null>(null);
   const [imageExportProgress, setImageExportProgress] = useState<{
@@ -79,6 +82,7 @@ export default function App() {
     total: number;
   } | null>(null);
   const [exportedImageUrl, setExportedImageUrl] = useState<string | null>(null);
+  const [deleteBusy, setDeleteBusy] = useState(false);
   const exportedDownloadUrlsRef = useRef<string[]>([]);
   const [conflict, setConflict] = useState<{
     details: ImportConflict;
@@ -355,6 +359,29 @@ export default function App() {
     }
   };
 
+  const handleDeleteAllData = async () => {
+    const confirmed = window.confirm(
+      "すべての画像と記録を削除します。この操作は取り消せません。",
+    );
+    if (!confirmed) return;
+
+    setDeleteBusy(true);
+    setExportError(null);
+    try {
+      await db.transaction("rw", db.photos, db.slots, async () => {
+        await Promise.all([db.photos.clear(), db.slots.clear()]);
+      });
+      localStorage.removeItem(OPTIONS_STORAGE_KEY);
+      setOptions(defaultOptions);
+      setSelectedMinute(null);
+      setOptionsOpen(false);
+    } catch (error) {
+      setExportError(error instanceof Error ? error.message : String(error));
+    } finally {
+      setDeleteBusy(false);
+    }
+  };
+
   return (
     <>
       <Timeline
@@ -385,9 +412,12 @@ export default function App() {
         <FabMenu
           onCamera={handleCameraFile}
           onImport={handleBulkImport}
+          onHelp={() => setHelpOpen(true)}
           onOption={() => setOptionsOpen(true)}
         />
       )}
+
+      <HelpModal open={helpOpen} onClose={() => setHelpOpen(false)} />
 
       <OptionsModal
         open={optionsOpen}
@@ -402,6 +432,8 @@ export default function App() {
         onExportData={handleExportData}
         onImportData={handleImportDataClick}
         transferBusy={transferPhase !== null}
+        onDeleteAllData={handleDeleteAllData}
+        deleteBusy={deleteBusy}
       />
 
       <TransferProgressOverlay
