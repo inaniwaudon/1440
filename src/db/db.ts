@@ -38,6 +38,39 @@ class AppDB extends Dexie {
               .map((photo) => photo.id),
           );
       });
+
+    this.version(3)
+      .stores({
+        photos: "id, minuteOfDay, capturedAt, importedAt",
+        slots: "minuteOfDay, photoId",
+      })
+      .upgrade(async (tx) => {
+        const photos = (await tx.table("photos").toArray()) as PhotoRecord[];
+        const needsBackfill = photos.filter(
+          (photo) =>
+            (photo.originalWidth === undefined ||
+              photo.originalHeight === undefined) &&
+            !!(photo.previewBlob ?? photo.thumbnailBlob),
+        );
+        for (const photo of needsBackfill) {
+          try {
+            const bitmap = await createImageBitmap(
+              photo.previewBlob ?? photo.thumbnailBlob,
+            );
+            try {
+              photo.originalWidth = bitmap.width;
+              photo.originalHeight = bitmap.height;
+            } finally {
+              bitmap.close();
+            }
+          } catch {
+            // Blob unreadable — leave unset; UI already handles the optional case.
+          }
+        }
+        if (needsBackfill.length > 0) {
+          await tx.table("photos").bulkPut(needsBackfill);
+        }
+      });
   }
 }
 

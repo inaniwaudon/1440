@@ -12,6 +12,7 @@ const CACHE_NAME = `${CACHE_PREFIX}${fingerprint.toString(36)}`;
 const precachedUrls = manifest.map(
   ({ url }) => new URL(url, self.registration.scope),
 );
+const precachedKeys = new Set(precachedUrls.map((url) => url.href));
 
 self.addEventListener("install", (event) => {
   event.waitUntil(
@@ -47,36 +48,59 @@ self.addEventListener("activate", (event) => {
   );
 });
 
+function isHashedAsset(url) {
+  return /\/assets\/.+-[A-Za-z0-9_-]{8,}\.[A-Za-z0-9]+$/.test(url.pathname);
+}
+
+async function cacheFirst(request) {
+  const cached = await caches.match(request);
+  if (cached) return cached;
+  const response = await fetch(request);
+  if (response.ok) {
+    const cache = await caches.open(CACHE_NAME);
+    cache.put(request, response.clone()).catch(() => undefined);
+  }
+  return response;
+}
+
+async function networkFirst(request, { fallback } = {}) {
+  try {
+    const response = await fetch(request);
+    if (response.ok && precachedKeys.has(new URL(request.url).href)) {
+      const cache = await caches.open(CACHE_NAME);
+      cache.put(request, response.clone()).catch(() => undefined);
+    }
+    return response;
+  } catch (err) {
+    const cached = await caches.match(request);
+    if (cached) return cached;
+    if (fallback) {
+      const fallbackResponse = await caches.match(fallback);
+      if (fallbackResponse) return fallbackResponse;
+    }
+    throw err;
+  }
+}
+
 self.addEventListener("fetch", (event) => {
   const { request } = event;
   if (request.method !== "GET") return;
+  const url = new URL(request.url);
+  if (url.origin !== self.location.origin) return;
 
-  event.respondWith(
-    fetch(new Request(request, { cache: "no-store" }))
-      .then((response) => {
-        const url = new URL(request.url);
-        if (url.origin === self.location.origin && response.ok) {
-          event.waitUntil(
-            caches
-              .open(CACHE_NAME)
-              .then((cache) => cache.put(request, response.clone()))
-              .catch(() => undefined),
-          );
-        }
-        return response;
-      })
-      .catch(async () => {
-        const cached = await caches.match(request);
-        if (cached) return cached;
+  if (request.mode === "navigate") {
+    event.respondWith(
+      networkFirst(request, {
+        fallback: new URL("index.html", self.registration.scope),
+      }).catch(() => Response.error()),
+    );
+    return;
+  }
 
-        if (request.mode === "navigate") {
-          const appShell = await caches.match(
-            new URL("index.html", self.registration.scope),
-          );
-          if (appShell) return appShell;
-        }
+  if (isHashedAsset(url) || precachedKeys.has(url.href)) {
+    event.respondWith(cacheFirst(request).catch(() => Response.error()));
+    return;
+  }
 
-        return Response.error();
-      }),
-  );
+  event.respondWith(networkFirst(request).catch(() => Response.error()));
 });

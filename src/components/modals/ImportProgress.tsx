@@ -65,9 +65,14 @@ export function ImportProgressOverlay({ progress, result, onClose }: Props) {
             )}
           </p>
           {result.errors.length > 0 && (
-            <p className={styles.errorDetail}>
-              {result.errors[0].file}: {String(result.errors[0].error)}
-            </p>
+            <ul className={styles.errorList}>
+              {result.errors.map((e) => (
+                <li key={`${e.file}:${e.error}`}>
+                  <span className={styles.errorFile}>{e.file}</span>
+                  <span className={styles.errorMessage}>{e.error}</span>
+                </li>
+              ))}
+            </ul>
           )}
           <button
             type="button"

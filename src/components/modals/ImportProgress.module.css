@@ -34,13 +34,32 @@
   text-overflow: ellipsis;
 }
 
-.errorDetail {
-  margin: 10px 4px;
+.errorList {
+  list-style: none;
+  margin: 10px 0 0;
+  padding: 8px;
   font-size: 11px;
   color: var(--danger-text);
-  word-break: break-all;
-  max-height: 80px;
+  background: color-mix(in srgb, var(--danger-text) 10%, transparent);
+  border-radius: 6px;
+  max-height: 160px;
   overflow-y: auto;
+  display: grid;
+  gap: 6px;
+}
+
+.errorList li {
+  display: grid;
+  gap: 2px;
+  word-break: break-all;
+}
+
+.errorFile {
+  font-weight: 600;
+}
+
+.errorMessage {
+  opacity: 0.85;
 }
 
 .exportNote {

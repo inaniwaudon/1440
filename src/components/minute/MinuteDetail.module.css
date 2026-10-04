@@ -89,7 +89,7 @@
   justify-content: center;
   color: var(--white);
   opacity: 0.6;
-  font-size: clamp(42px, 14vw, 88px);
+  font-size: 40px;
   font-weight: 800;
   line-height: 1;
   font-variant-numeric: tabular-nums;
@@ -102,7 +102,7 @@
   bottom: 10px;
   z-index: 2;
   color: var(--white);
-  font-size: 13px;
+  font-size: 12px;
   font-weight: 650;
   font-variant-numeric: tabular-nums;
   line-height: 1.2;

@@ -340,10 +340,6 @@ export async function exportArchive(
       }
       return { kind: "files", files };
     } catch (err) {
-      console.warn(
-        "[exportArchive] worker/OPFS path failed, falling back",
-        err,
-      );
       throw new Error(
         `[fallback] Worker/OPFS failed: ${
           err instanceof Error ? err.message : String(err)

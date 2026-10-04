@@ -14,18 +14,22 @@ async function resizeToBlob(
     bitmap = await createImageBitmap(file);
   }
 
-  const { width, height } = bitmap;
-  const scale = Math.min(1, maxSide / Math.max(width, height));
-  const outW = Math.max(1, Math.round(width * scale));
-  const outH = Math.max(1, Math.round(height * scale));
+  let canvas: HTMLCanvasElement;
+  try {
+    const { width, height } = bitmap;
+    const scale = Math.min(1, maxSide / Math.max(width, height));
+    const outW = Math.max(1, Math.round(width * scale));
+    const outH = Math.max(1, Math.round(height * scale));
 
-  const canvas = document.createElement("canvas");
-  canvas.width = outW;
-  canvas.height = outH;
-  // biome-ignore lint/style/noNonNullAssertion: 2d context is always available for a fresh canvas
-  const ctx = canvas.getContext("2d")!;
-  ctx.drawImage(bitmap, 0, 0, outW, outH);
-  bitmap.close();
+    canvas = document.createElement("canvas");
+    canvas.width = outW;
+    canvas.height = outH;
+    // biome-ignore lint/style/noNonNullAssertion: 2d context is always available for a fresh canvas
+    const ctx = canvas.getContext("2d")!;
+    ctx.drawImage(bitmap, 0, 0, outW, outH);
+  } finally {
+    bitmap.close();
+  }
 
   return new Promise<Blob>((resolve, reject) => {
     canvas.toBlob(
