@@ -27,7 +27,7 @@ export function getFaceDetector() {
   return detectorPromise;
 }
 
-export async function detectFaceInBlob(blob: Blob): Promise<boolean> {
+async function detectFaceInBlob(blob: Blob): Promise<boolean> {
   const bitmap = await createImageBitmap(blob);
   try {
     const detector = await getFaceDetector();

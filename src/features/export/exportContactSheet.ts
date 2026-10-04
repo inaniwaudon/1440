@@ -1,4 +1,5 @@
 import { db } from "../../db/db";
+import { formatMinuteOfDay } from "../../utils/time";
 
 const CELL_SIZE = 240;
 
@@ -74,10 +75,8 @@ export async function exportContactSheet(
       ctx.font = "700 24px system-ui, sans-serif";
       ctx.textAlign = "left";
       ctx.textBaseline = "bottom";
-      const hour = Math.floor(slot.minuteOfDay / 60);
-      const minute = slot.minuteOfDay % 60;
       ctx.fillText(
-        `${String(hour).padStart(2, "0")}:${String(minute).padStart(2, "0")}`,
+        formatMinuteOfDay(slot.minuteOfDay),
         x + 12,
         y + CELL_SIZE - 10,
       );
