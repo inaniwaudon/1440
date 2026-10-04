@@ -171,10 +171,16 @@
   align-items: center;
   justify-content: center;
   box-shadow: var(--shadow-lg);
-  opacity: 0.72;
+  opacity: 0.8;
   transition:
     transform 120ms ease,
-    background 120ms ease;
+    background 120ms ease,
+    opacity 200ms ease;
+}
+
+.deleteBtn:hover,
+.blurBtn:hover {
+  opacity: 1;
 }
 
 .deleteBtn {

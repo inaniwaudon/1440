@@ -68,6 +68,12 @@
   cursor: pointer;
   touch-action: manipulation;
   backdrop-filter: blur(8px);
+  transition: opacity 200ms;
+}
+
+.primaryButton:hover,
+.secondaryButton:hover {
+  opacity: 0.8;
 }
 
 .primaryButton {

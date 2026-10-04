@@ -29,6 +29,11 @@
   font-size: 24px;
   cursor: pointer;
   touch-action: manipulation;
+  transition: opacity 200ms;
+}
+
+.closeButton:hover {
+  opacity: 0.8;
 }
 
 .closeButton:active {

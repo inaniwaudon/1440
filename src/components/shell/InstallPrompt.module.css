@@ -48,6 +48,11 @@
   padding: 6px 14px;
   cursor: pointer;
   touch-action: manipulation;
+  transition: opacity 200ms;
+}
+
+.installBtn:hover {
+  opacity: 0.8;
 }
 
 .dismissBtn {
@@ -58,4 +63,9 @@
   cursor: pointer;
   padding: 4px;
   touch-action: manipulation;
+  transition: opacity 200ms;
+}
+
+.dismissBtn:hover {
+  opacity: 0.8;
 }

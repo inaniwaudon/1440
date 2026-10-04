@@ -29,8 +29,13 @@
   box-shadow: var(--shadow-accent);
   transition:
     transform 0.18s,
-    background 0.18s,
-    box-shadow 0.18s;
+    background 200ms,
+    box-shadow 0.18s,
+    opacity 200ms;
+}
+
+.fab:hover {
+  opacity: 0.8;
 }
 
 .hiddenInput {
@@ -44,7 +49,7 @@
 .photoActions {
   position: absolute;
   right: 0;
-  top: -148px;
+  top: -150px;
   width: 180px;
   display: flex;
   flex-direction: column;
@@ -69,6 +74,11 @@
   cursor: pointer;
   box-shadow: var(--shadow-accent);
   animation: popIn 200ms cubic-bezier(0.34, 1.56, 0.64, 1) forwards;
+  transition: filter 200ms;
+}
+
+.actionButton:hover {
+  filter: brightness(1.2);
 }
 
 .fabOpen {
@@ -112,7 +122,11 @@
   cursor: pointer;
   touch-action: manipulation;
   animation: popIn 200ms cubic-bezier(0.34, 1.56, 0.64, 1) forwards;
-  transition: background 100ms;
+  transition: background 200ms;
+}
+
+.item:hover {
+  background: var(--accent-glass-dark);
 }
 
 .item:active {
