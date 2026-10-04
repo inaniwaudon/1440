@@ -25,9 +25,6 @@
   --danger: #d83232;
   --danger-text: #f77;
 
-  /* Warning */
-  --warning: #ffcf6a;
-
   /* Scrims / shadows */
   --scrim-0: rgba(0, 0, 0, 0);
   --scrim-50: rgba(0, 0, 0, 0.5);
@@ -38,7 +35,6 @@
   --chip-subtle: rgba(255, 255, 255, 0.04);
   --chip: rgba(255, 255, 255, 0.1);
   --text-translucent: rgba(255, 255, 255, 0.6);
-  --glass-indicator: rgba(25, 25, 25, 0.92);
   --glass-dark: rgba(30, 30, 30, 0.72);
 
   /* Accent translucent */

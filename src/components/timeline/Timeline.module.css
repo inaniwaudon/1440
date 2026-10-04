@@ -5,36 +5,6 @@
   overflow: hidden;
 }
 
-.header {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  padding: max(10px, env(safe-area-inset-top)) 12px 8px;
-  flex-shrink: 0;
-  border-bottom: 1px solid var(--bg-elevated);
-}
-
-.stats {
-  font-size: 12px;
-  color: var(--text-faint);
-  margin: 0;
-}
-
-.importBtn {
-  background: var(--accent-bg);
-  border: 1px solid var(--accent-bg-filled);
-  border-radius: 8px;
-  color: var(--accent);
-  font-size: 13px;
-  font-weight: 600;
-  padding: 6px 14px;
-  cursor: pointer;
-  touch-action: manipulation;
-}
-.importBtn:active {
-  opacity: 0.7;
-}
-
 .body {
   flex: 1;
   min-height: 0;
@@ -122,46 +92,9 @@
 
 .cellFilled {
   background: var(--accent-bg);
-  color: var(--accent);
 }
 
 .cellNow {
   background: var(--danger);
-  color: var(--danger-text);
-}
-
-/* ── Right nav bar ── */
-.hourNav {
-  width: 56px;
-  flex-shrink: 0;
-  display: flex;
-  flex-direction: column;
-  border-left: 1px solid var(--bg-elevated);
-  touch-action: none;
-  user-select: none;
-  cursor: pointer;
-  padding-bottom: env(safe-area-inset-bottom);
-}
-
-.navItem {
-  flex: 1;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  font-size: 11px;
-  font-weight: 600;
-  color: var(--border-default);
-  font-variant-numeric: tabular-nums;
-  transition:
-    color 0.1s,
-    background 0.1s;
-}
-
-.navActive {
-  color: var(--text-secondary);
-  background: var(--bg-elevated);
-}
-
-.navNow {
   color: var(--danger-text);
 }

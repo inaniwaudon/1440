@@ -15,7 +15,6 @@ body {
   background: var(--bg-body);
   color: var(--white);
   font-family: "Helvetica Neue", Helvetica, Arial, sans-serif;
-  margin: 0;
   overscroll-behavior: none;
   touch-action: pan-x pan-y;
   -webkit-tap-highlight-color: transparent;

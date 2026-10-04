@@ -31,45 +31,9 @@
   }
 }
 
-.closeBtn {
-  background: var(--bg-pressed);
-  border: none;
-  border-radius: 50%;
-  width: 30px;
-  height: 30px;
-  color: var(--text-muted);
-  font-size: 14px;
-  cursor: pointer;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  touch-action: manipulation;
-}
-
-.empty {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  gap: 16px;
-  padding: 36px 20px;
-}
-
-.emptyText {
-  color: var(--text-faint);
-  font-size: 16px;
-}
-
 .content {
   width: 100%;
   height: 100%;
-}
-
-.sectionLabel {
-  font-size: 10px;
-  font-weight: 700;
-  color: var(--text-faint);
-  margin: 0;
-  text-transform: uppercase;
 }
 
 .previewWrap {
@@ -167,29 +131,6 @@
 .missingPhoto {
   color: var(--text-faint);
   font-size: 13px;
-}
-
-.sourceNote {
-  font-size: 11px;
-  color: var(--text-faint);
-  margin-top: -8px;
-}
-
-.actionBtn {
-  width: 100%;
-  padding: 15px;
-  background: var(--bg-elevated);
-  border: 1px solid var(--bg-pressed);
-  border-radius: 12px;
-  color: var(--text-secondary);
-  font-size: 15px;
-  cursor: pointer;
-  touch-action: manipulation;
-  transition: background 0.1s;
-}
-
-.actionBtn:active {
-  background: var(--bg-pressed);
 }
 
 .deleteBtn {
