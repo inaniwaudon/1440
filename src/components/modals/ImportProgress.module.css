@@ -6,6 +6,10 @@
   font-variant-numeric: tabular-nums;
 }
 
+.result {
+  font-size: 18px;
+}
+
 .failed {
   color: var(--danger-text);
 }

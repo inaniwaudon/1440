@@ -72,7 +72,7 @@
   left: 6px;
   font-size: 10px;
   font-weight: 700;
-  color: var(--border-default);
+  color: #fff;
   font-variant-numeric: tabular-nums;
   pointer-events: none;
   z-index: 1;
@@ -99,52 +99,6 @@
   font-weight: 800;
   color: var(--border-default);
   font-variant-numeric: tabular-nums;
-}
-
-.columnIndicator {
-  position: fixed;
-  left: 50%;
-  bottom: max(28px, env(safe-area-inset-bottom));
-  z-index: 45;
-  transform: translateX(-50%);
-  padding: 9px 14px;
-  border: 1px solid var(--bg-switch);
-  border-radius: 999px;
-  background: var(--glass-indicator);
-  box-shadow: 0 6px 24px var(--scrim-50);
-  color: var(--white);
-  font-size: 13px;
-  font-weight: 700;
-  font-variant-numeric: tabular-nums;
-  pointer-events: none;
-  animation: columnIndicatorIn 180ms cubic-bezier(0.22, 1, 0.36, 1) both;
-  will-change: transform, opacity;
-}
-
-.columnIndicatorSettling {
-  animation: columnIndicatorOut 260ms cubic-bezier(0.4, 0, 1, 1) both;
-}
-
-@keyframes columnIndicatorIn {
-  from {
-    opacity: 0;
-    transform: translateX(-50%) translateY(10px) scale(0.9);
-  }
-  to {
-    opacity: 1;
-    transform: translateX(-50%) translateY(0) scale(1);
-  }
-}
-
-@keyframes columnIndicatorOut {
-  from {
-    opacity: 1;
-    transform: translateX(-50%) translateY(0) scale(1);
-  }
-  to {
-    opacity: 0;
-    transform: translateX(-50%) translateY(6px) scale(0.96);
-  }
 }
 
 .cellThumb {
@@ -174,13 +128,6 @@
 .cellNow {
   background: var(--danger);
   color: var(--danger-text);
-}
-
-@media (prefers-reduced-motion: reduce) {
-  .columnIndicator,
-  .columnIndicatorSettling {
-    animation-duration: 1ms;
-  }
 }
 
 /* ── Right nav bar ── */

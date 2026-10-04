@@ -31,8 +31,44 @@ export async function* generateVideoEntries(
       photo = undefined;
       continue;
     }
-    const path = `videos/${id}.${videoExtension(photo.mimeType)}`;
-    entries.push({ photoId: id, path, mimeType: photo.mimeType });
+    const basePath = `videos/${id}`;
+    const path = `${basePath}/video.${videoExtension(photo.mimeType)}`;
+    const thumbnailPath = `${basePath}/thumbnail.bin`;
+    const previewPath = photo.previewBlob
+      ? `${basePath}/preview.bin`
+      : undefined;
+    const slot = await db.slots.get(photo.minuteOfDay);
+    entries.push({
+      photoId: id,
+      path,
+      mimeType: photo.mimeType,
+      photo: {
+        id: photo.id,
+        capturedAt: photo.capturedAt,
+        minuteOfDay: photo.minuteOfDay,
+        originalFileName: photo.originalFileName,
+        mimeType: photo.mimeType,
+        originalWidth: photo.originalWidth,
+        originalHeight: photo.originalHeight,
+        importedAt: photo.importedAt,
+        capturedAtSource: photo.capturedAtSource,
+        thumbnail: thumbnailPath,
+        preview: previewPath,
+        video: path,
+      },
+      slot:
+        slot?.photoId === id
+          ? slot
+          : { minuteOfDay: photo.minuteOfDay, photoId: id },
+    });
+    yield {
+      name: thumbnailPath,
+      lastModified: now,
+      input: photo.thumbnailBlob,
+    };
+    if (previewPath && photo.previewBlob) {
+      yield { name: previewPath, lastModified: now, input: photo.previewBlob };
+    }
     yield { name: path, lastModified: now, input: photo.videoBlob };
     photo = undefined;
   }

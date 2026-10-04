@@ -3,10 +3,14 @@ import { defineConfig } from "vite";
 import { VitePWA } from "vite-plugin-pwa";
 
 export default defineConfig({
+  server: {
+    host: true,
+  },
   plugins: [
     react(),
     VitePWA({
       registerType: "autoUpdate",
+      selfDestroying: true,
       manifest: {
         name: "Minute Photo",
         short_name: "Minute",

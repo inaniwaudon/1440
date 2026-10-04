@@ -12,6 +12,7 @@ export function HourScrubber({ selectedHour, nowHour, onChange }: Props) {
 
   const hourFromClientY = (clientY: number): number => {
     const rect = ref.current?.getBoundingClientRect();
+    if (!rect) return 0;
     const y = Math.max(0, Math.min(clientY - rect.top, rect.height - 1));
     return Math.floor((y / rect.height) * 24);
   };

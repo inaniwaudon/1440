@@ -31,7 +31,7 @@ export function OptionsModal({
     <Modal
       open={open}
       onClose={onClose}
-      title="Options"
+      title="オプション"
       icon={<MdSettings aria-hidden="true" />}
       labelledBy="options-title"
     >

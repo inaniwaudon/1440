@@ -4,22 +4,35 @@ import {
   MdShare,
   MdSwapHoriz,
 } from "react-icons/md";
+import type { ExportedFile } from "../../features/transfer/exportArchive";
 import type { ImportArchiveResult } from "../../features/transfer/importArchive";
 import styles from "./ImportProgress.module.css";
 import { Modal, modalStyles } from "./Modal";
 
+export type ExportDownloadRef = { url: string; name: string };
+
 export type TransferPhase =
-  | { kind: "exporting"; current: number; total: number }
+  | {
+      kind: "exporting";
+      step: number;
+      totalSteps: number;
+      label: string;
+      current: number;
+      total: number;
+    }
   | {
       kind: "importing";
+      label: string;
       current: number;
       total: number;
       phase: "scan" | "write";
     }
   | {
       kind: "export-done";
-      download?: { url: string; name: string };
-      shareFile?: File;
+      files: Array<{
+        file: ExportedFile;
+        download?: ExportDownloadRef;
+      }>;
     }
   | { kind: "import-done"; result: ImportArchiveResult };
 
@@ -39,16 +52,35 @@ async function sharePhaseFile(file: File) {
   }
 }
 
+async function sharePhaseFiles(files: File[]) {
+  if (files.length === 0) return;
+  if (navigator.canShare?.({ files })) {
+    try {
+      await navigator.share({ files, title: `${files.length} archives` });
+    } catch (err) {
+      if (err instanceof DOMException && err.name === "AbortError") return;
+      throw err;
+    }
+  }
+}
+
 export function TransferProgressOverlay({ phase, onClose }: Props) {
   if (!phase) return null;
 
   const isDone = phase.kind === "export-done" || phase.kind === "import-done";
   const title = (() => {
     switch (phase.kind) {
-      case "exporting":
-        return "書き出し中";
+      case "exporting": {
+        const stepSuffix =
+          phase.totalSteps > 1
+            ? ` (${phase.step}/${phase.totalSteps} ${phase.label})`
+            : "";
+        return `書き出し中${stepSuffix}`;
+      }
       case "importing":
-        return phase.phase === "scan" ? "読み取り中" : "読み込み中";
+        return phase.phase === "scan"
+          ? `読み取り中 ${phase.label}`
+          : `読み込み中 ${phase.label}`;
       case "export-done":
         return "書き出し完了";
       case "import-done":
@@ -92,12 +124,21 @@ export function TransferProgressOverlay({ phase, onClose }: Props) {
         </>
       ) : null}
 
-      {phase.kind === "export-done" &&
-        (phase.download || phase.shareFile ? (
-          <>
-            <p className={styles.counter}>準備ができました</p>
-            {phase.shareFile &&
-              navigator.canShare?.({ files: [phase.shareFile] }) && (
+      {phase.kind === "export-done" && (
+        <>
+          <p className={`${styles.counter} ${styles.result}`}>
+            準備ができました ({phase.files.length} ファイル)
+          </p>
+          {phase.files.length > 1 &&
+            (() => {
+              const shareFiles = phase.files
+                .map((f) => f.file.shareFile)
+                .filter((f): f is File => !!f);
+              const canShareAll =
+                shareFiles.length === phase.files.length &&
+                !!navigator.canShare?.({ files: shareFiles });
+              if (!canShareAll) return null;
+              return (
                 <button
                   type="button"
                   className={modalStyles.primaryButton}
@@ -106,59 +147,77 @@ export function TransferProgressOverlay({ phase, onClose }: Props) {
                     alignItems: "center",
                     justifyContent: "center",
                     gap: 8,
-                    marginTop: 8,
+                    marginBottom: 4,
                   }}
-                  // biome-ignore lint/style/noNonNullAssertion: shareFile existence checked above
-                  onClick={() => sharePhaseFile(phase.shareFile!)}
+                  onClick={() => sharePhaseFiles(shareFiles)}
                 >
                   <MdShare aria-hidden="true" />
-                  共有・保存
+                  まとめて共有 ({shareFiles.length} 件)
                 </button>
-              )}
-            {phase.download && (
-              <a
-                className={modalStyles.secondaryButton}
-                href={phase.download.url}
-                download={phase.download.name}
-                style={{
-                  display: "inline-flex",
-                  alignItems: "center",
-                  justifyContent: "center",
-                  gap: 8,
-                  textDecoration: "none",
-                  marginTop: 8,
-                }}
-              >
-                <MdDownload aria-hidden="true" />
-                ダウンロード
-              </a>
-            )}
-            <button
-              type="button"
-              className={modalStyles.secondaryButton}
-              style={{ marginTop: 8 }}
-              onClick={onClose}
-            >
-              閉じる
-            </button>
-          </>
-        ) : (
-          <>
-            <p className={styles.counter}>保存しました</p>
-            <button
-              type="button"
-              className={modalStyles.primaryButton}
-              style={{ marginTop: 8 }}
-              onClick={onClose}
-            >
-              閉じる
-            </button>
-          </>
-        ))}
+              );
+            })()}
+          {phase.files.map(({ file, download }) => {
+            const canShare = file.shareFile
+              ? !!navigator.canShare?.({ files: [file.shareFile] })
+              : false;
+            const label = file.kind === "video" ? "動画" : "画像";
+            return (
+              <div key={file.name} style={{ marginTop: 12 }}>
+                <p style={{ margin: "0 4px 6px", fontSize: 12, opacity: 0.8 }}>
+                  {label}: {file.name}
+                </p>
+                {canShare && file.shareFile && (
+                  <button
+                    type="button"
+                    className={modalStyles.primaryButton}
+                    style={{
+                      display: "inline-flex",
+                      alignItems: "center",
+                      justifyContent: "center",
+                      gap: 8,
+                    }}
+                    // biome-ignore lint/style/noNonNullAssertion: checked
+                    onClick={() => sharePhaseFile(file.shareFile!)}
+                  >
+                    <MdShare aria-hidden="true" />
+                    共有・保存
+                  </button>
+                )}
+                {download && (
+                  <a
+                    className={modalStyles.secondaryButton}
+                    href={download.url}
+                    download={download.name}
+                    style={{
+                      display: "inline-flex",
+                      alignItems: "center",
+                      justifyContent: "center",
+                      gap: 8,
+                      textDecoration: "none",
+                      marginTop: 8,
+                    }}
+                  >
+                    <MdDownload aria-hidden="true" />
+                    ダウンロード
+                  </a>
+                )}
+              </div>
+            );
+          })}
+          <button
+            type="button"
+            className={modalStyles.secondaryButton}
+            style={{ marginTop: 12 }}
+            onClick={onClose}
+          >
+            閉じる
+          </button>
+        </>
+      )}
 
       {phase.kind === "import-done" && (
         <>
-          <p className={styles.counter}>
+          <p className={`${styles.counter} ${styles.result}`}>
             読み込み: {phase.result.imported}
             {phase.result.skipped > 0 && (
               <span>&nbsp; スキップ: {phase.result.skipped}</span>

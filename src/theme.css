@@ -31,6 +31,7 @@
   /* Scrims / shadows */
   --scrim-0: rgba(0, 0, 0, 0);
   --scrim-50: rgba(0, 0, 0, 0.5);
+  --scrim-70: rgba(0, 0, 0, 0.7);
   --shadow-text: rgba(0, 0, 0, 0.8);
 
   /* Glass / translucent fills */
@@ -46,6 +47,5 @@
   --accent-glow: rgba(74, 158, 255, 0.4);
   --accent-border-translucent: rgba(74, 158, 255, 0.55);
   --accent-glass: rgba(74, 158, 255, 0.72);
-  --accent-glass-light: rgba(106, 174, 255, 0.45);
   --accent-glass-dark: rgba(26, 58, 96, 0.78);
 }

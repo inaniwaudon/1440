@@ -1,10 +1,16 @@
 import { downloadZip } from "client-zip";
-import { db } from "../../db/db";
+import type { SlotRecord } from "../../db/types";
 import { generateEntries, type ZipEntry } from "./generateEntries";
 import { generateVideoEntries } from "./generateVideoEntries";
 
 export type ExportWorkerInMsg =
-  | { type: "start"; filename: string; kind: "main" }
+  | {
+      type: "start";
+      filename: string;
+      kind: "main";
+      photoIds: string[];
+      slots: SlotRecord[];
+    }
   | { type: "start"; filename: string; kind: "video"; videoPhotoIds: string[] };
 
 export type ExportWorkerOutMsg =
@@ -51,13 +57,9 @@ ctx.onmessage = async (event: MessageEvent<ExportWorkerInMsg>) => {
 
       let stream: AsyncGenerator<ZipEntry>;
       if (msg.kind === "main") {
-        const photoIds = (await db.photos
-          .toCollection()
-          .primaryKeys()) as string[];
-        if (photoIds.length === 0)
+        if (msg.photoIds.length === 0)
           throw new Error("書き出すデータがありません");
-        const slots = await db.slots.orderBy("minuteOfDay").toArray();
-        stream = generateEntries(photoIds, slots, (p) => {
+        stream = generateEntries(msg.photoIds, msg.slots, (p) => {
           post({ type: "progress", current: p.current, total: p.total });
         });
       } else {

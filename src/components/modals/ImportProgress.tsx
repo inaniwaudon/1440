@@ -53,7 +53,7 @@ export function ImportProgressOverlay({ progress, result, onClose }: Props) {
         </>
       ) : (
         <>
-          <p className={styles.counter}>
+          <p className={`${styles.counter} ${styles.result}`}>
             Imported: {result.succeeded}
             {result.skipped > 0 && (
               <span>&nbsp; Skipped: {result.skipped}</span>

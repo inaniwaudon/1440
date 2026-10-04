@@ -20,7 +20,6 @@
   backdrop-filter: blur(14px);
   -webkit-backdrop-filter: blur(14px);
   box-sizing: border-box;
-  border: 1px solid var(--accent-glass-light);
   box-shadow: 0 2px 16px var(--scrim-50);
 }
 

@@ -125,6 +125,35 @@ export function MinuteDetail({ minuteOfDay, onClose, onNavigate }: Props) {
   const nextPhoto = photos.find((entry) => entry.minuteOfDay === nextMinute);
   const hasPhoto = photo !== undefined;
 
+  const isOpen = minuteOfDay !== null;
+  useEffect(() => {
+    if (!isOpen) return;
+    const prev = document.body.style.overflow;
+    document.body.style.overflow = "hidden";
+    const overlay = overlayRef.current;
+    const blockWheel = (event: WheelEvent) => event.preventDefault();
+    overlay?.addEventListener("wheel", blockWheel, { passive: false });
+    return () => {
+      document.body.style.overflow = prev;
+      overlay?.removeEventListener("wheel", blockWheel);
+    };
+  }, [isOpen]);
+
+  useEffect(() => {
+    if (!isOpen) return;
+    const handleKey = (event: KeyboardEvent) => {
+      if (event.key === "ArrowLeft" && previousMinute !== undefined) {
+        event.preventDefault();
+        onNavigate(previousMinute);
+      } else if (event.key === "ArrowRight" && nextMinute !== undefined) {
+        event.preventDefault();
+        onNavigate(nextMinute);
+      }
+    };
+    window.addEventListener("keydown", handleKey);
+    return () => window.removeEventListener("keydown", handleKey);
+  }, [isOpen, previousMinute, nextMinute, onNavigate]);
+
   if (minuteOfDay === null) return null;
 
   const handleClose = () => {
@@ -144,6 +173,7 @@ export function MinuteDetail({ minuteOfDay, onClose, onNavigate }: Props) {
         await db.slots.delete(minuteOfDay);
       }
     });
+    onClose();
   };
 
   return (
@@ -284,6 +314,7 @@ export function MinuteDetail({ minuteOfDay, onClose, onNavigate }: Props) {
               swipeRef.current = null;
               trackRef.current?.style.removeProperty("transform");
             }}
+            onDragStart={(event) => event.preventDefault()}
             onClick={(e) => {
               if (Date.now() < suppressClickUntilRef.current) return;
               const image = trackRef.current?.children[1]?.querySelector("img");

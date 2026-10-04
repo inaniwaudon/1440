@@ -43,41 +43,19 @@ export function Timeline({ onSelectMinute, showOnlyWithImages }: Props) {
   );
   const [activeHour, setActiveHour] = useState(0);
   const [gridColumns, setGridColumns] = useState(INITIAL_GRID_COLUMNS);
-  const [pinchFeedback, setPinchFeedback] = useState<
-    "hidden" | "active" | "settling"
-  >("hidden");
   const gridRef = useRef<HTMLDivElement>(null);
   const blockRefs = useRef<(HTMLDivElement | null)[]>(Array(24).fill(null));
   const pinchRef = useRef<{ distance: number; columns: number } | null>(null);
-  const feedbackTimerRef = useRef<number | null>(null);
   const wheelRef = useRef({ delta: 0, timer: null as number | null });
   const suppressClickUntilRef = useRef(0);
 
   useEffect(
     () => () => {
-      if (feedbackTimerRef.current !== null)
-        window.clearTimeout(feedbackTimerRef.current);
       if (wheelRef.current.timer !== null)
         window.clearTimeout(wheelRef.current.timer);
     },
     [],
   );
-
-  const showPinchFeedback = () => {
-    if (feedbackTimerRef.current !== null)
-      window.clearTimeout(feedbackTimerRef.current);
-    setPinchFeedback("active");
-  };
-
-  const settlePinchFeedback = () => {
-    setPinchFeedback("settling");
-    if (feedbackTimerRef.current !== null)
-      window.clearTimeout(feedbackTimerRef.current);
-    feedbackTimerRef.current = window.setTimeout(() => {
-      setPinchFeedback("hidden");
-      feedbackTimerRef.current = null;
-    }, 260);
-  };
 
   const changeColumns = (
     nextColumns: number,
@@ -244,7 +222,6 @@ export function Timeline({ onSelectMinute, showOnlyWithImages }: Props) {
       distance: touchDistance(event.touches),
       columns: gridColumns,
     };
-    showPinchFeedback();
   };
 
   const handleTouchMove = (event: TouchEvent<HTMLDivElement>) => {
@@ -269,31 +246,34 @@ export function Timeline({ onSelectMinute, showOnlyWithImages }: Props) {
     if (!pinchRef.current || event.touches.length >= 2) return;
     pinchRef.current = null;
     suppressClickUntilRef.current = Date.now() + 350;
-    settlePinchFeedback();
   };
 
-  const handleWheel = (event: React.WheelEvent<HTMLDivElement>) => {
-    if (!event.ctrlKey) return;
-    event.preventDefault();
-    wheelRef.current.delta += event.deltaY;
-    if (Math.abs(wheelRef.current.delta) < 18) return;
-    const direction = wheelRef.current.delta > 0 ? 1 : -1;
-    wheelRef.current.delta = 0;
-    const nextColumns = Math.max(
-      MIN_GRID_COLUMNS,
-      Math.min(MAX_GRID_COLUMNS, gridColumns + direction),
-    );
-    if (nextColumns === gridColumns) return;
-    showPinchFeedback();
-    changeColumns(nextColumns, event.clientX, event.clientY);
-    if (wheelRef.current.timer !== null)
-      window.clearTimeout(wheelRef.current.timer);
-    wheelRef.current.timer = window.setTimeout(() => {
-      settlePinchFeedback();
-      wheelRef.current.timer = null;
+  useEffect(() => {
+    const grid = gridRef.current;
+    if (!grid) return;
+    const onWheel = (event: WheelEvent) => {
+      if (!event.ctrlKey) return;
+      event.preventDefault();
+      wheelRef.current.delta += event.deltaY;
+      if (Math.abs(wheelRef.current.delta) < 18) return;
+      const direction = wheelRef.current.delta > 0 ? 1 : -1;
       wheelRef.current.delta = 0;
-    }, 140);
-  };
+      const nextColumns = Math.max(
+        MIN_GRID_COLUMNS,
+        Math.min(MAX_GRID_COLUMNS, gridColumns + direction),
+      );
+      if (nextColumns === gridColumns) return;
+      changeColumns(nextColumns, event.clientX, event.clientY);
+      if (wheelRef.current.timer !== null)
+        window.clearTimeout(wheelRef.current.timer);
+      wheelRef.current.timer = window.setTimeout(() => {
+        wheelRef.current.timer = null;
+        wheelRef.current.delta = 0;
+      }, 140);
+    };
+    grid.addEventListener("wheel", onWheel, { passive: false });
+    return () => grid.removeEventListener("wheel", onWheel);
+  }, [gridColumns]);
 
   const gridStyle = {
     "--grid-columns": gridColumns,
@@ -310,7 +290,6 @@ export function Timeline({ onSelectMinute, showOnlyWithImages }: Props) {
           onTouchMove={handleTouchMove}
           onTouchEnd={handleTouchEnd}
           onTouchCancel={handleTouchEnd}
-          onWheel={handleWheel}
         >
           {visibleHours.length === 0 && showOnlyWithImages && (
             <p className={styles.empty}>画像が追加されている時刻はありません</p>
@@ -380,14 +359,6 @@ export function Timeline({ onSelectMinute, showOnlyWithImages }: Props) {
           ))}
         </div>
 
-        {pinchFeedback !== "hidden" && (
-          <output
-            className={`${styles.columnIndicator} ${pinchFeedback === "settling" ? styles.columnIndicatorSettling : ""}`}
-            aria-live="polite"
-          >
-            横 {gridColumns} マス
-          </output>
-        )}
       </div>
 
       <HourDial activeHour={activeHour} onScrub={scrollToHour} />

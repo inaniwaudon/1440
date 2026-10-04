@@ -57,7 +57,7 @@ export async function createThumbnail(file: File): Promise<Blob> {
 }
 
 export async function createPreview(file: File): Promise<Blob> {
-  return resizeToBlob(file, 2000, 0.85);
+  return resizeToBlob(file, 1400, 0.85);
 }
 
 export async function createVideoThumbnail(file: File): Promise<Blob> {

@@ -1,6 +1,6 @@
 import type { PhotoRecord, SlotRecord } from "../../db/types";
 
-export const ARCHIVE_VERSION = 1;
+export const ARCHIVE_VERSION = 2;
 
 export type ArchiveManifest = {
   version: number;
@@ -23,6 +23,9 @@ export type VideoArchiveEntry = {
   photoId: string;
   path: string;
   mimeType?: string;
+  // Added in archive v2 so every video ZIP can be restored on its own.
+  photo?: ArchivePhotoMeta;
+  slot?: SlotRecord;
 };
 
 export type VideoArchiveManifest = {

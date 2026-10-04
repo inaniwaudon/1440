@@ -5,7 +5,6 @@ import { ImageExportModal } from "./components/modals/ImageExportModal";
 import { ImportConflictOverlay } from "./components/modals/ImportConflict";
 import { ImportProgressOverlay } from "./components/modals/ImportProgress";
 import { OptionsModal } from "./components/modals/OptionsModal";
-import { TransferModal } from "./components/modals/TransferModal";
 import {
   type TransferPhase,
   TransferProgressOverlay,
@@ -13,7 +12,6 @@ import {
 import { FabMenu } from "./components/shell/FabMenu";
 import { InstallPrompt } from "./components/shell/InstallPrompt";
 import { Timeline } from "./components/timeline/Timeline";
-import { db } from "./db/db";
 import { exportContactSheet } from "./features/export/exportContactSheet";
 import {
   type ImportConflict,
@@ -27,9 +25,9 @@ import {
   exportArchive,
 } from "./features/transfer/exportArchive";
 import {
-  type ArchiveSummary,
-  type ImportMode,
+  type AnyArchiveSummary,
   importArchive,
+  importVideoArchive,
   readArchiveMetadata,
 } from "./features/transfer/importArchive";
 
@@ -38,7 +36,7 @@ type ImportState =
   | { status: "importing"; progress: ImportProgress }
   | { status: "done"; result: ImportResult };
 
-const OPTIONS_STORAGE_KEY = "setlog-options";
+const OPTIONS_STORAGE_KEY = "1440-options";
 
 type StoredOptions = {
   showOnlyWithImages: boolean;
@@ -81,6 +79,7 @@ export default function App() {
     total: number;
   } | null>(null);
   const [exportedImageUrl, setExportedImageUrl] = useState<string | null>(null);
+  const exportedDownloadUrlsRef = useRef<string[]>([]);
   const [conflict, setConflict] = useState<{
     details: ImportConflict;
     resolve: (replace: boolean) => void;
@@ -88,11 +87,6 @@ export default function App() {
   const [transferPhase, setTransferPhase] = useState<TransferPhase | null>(
     null,
   );
-  const [transferConfirm, setTransferConfirm] = useState<{
-    file: File;
-    summary: ArchiveSummary;
-    existingPhotoCount: number;
-  } | null>(null);
   const importFileInputRef = useRef<HTMLInputElement | null>(null);
   const exportedDownloadUrlRef = useRef<string | null>(null);
 
@@ -101,6 +95,9 @@ export default function App() {
       if (exportedDownloadUrlRef.current) {
         URL.revokeObjectURL(exportedDownloadUrlRef.current);
       }
+      for (const url of exportedDownloadUrlsRef.current)
+        URL.revokeObjectURL(url);
+      exportedDownloadUrlsRef.current = [];
     },
     [],
   );
@@ -191,28 +188,38 @@ export default function App() {
 
   const handleExportData = async () => {
     setExportError(null);
-    setTransferPhase({ kind: "exporting", current: 0, total: 0 });
+    setTransferPhase({
+      kind: "exporting",
+      step: 1,
+      totalSteps: 1,
+      label: "画像",
+      current: 0,
+      total: 0,
+    });
     try {
       const destination = await exportArchive((p) => {
         setTransferPhase({
           kind: "exporting",
+          step: p.step,
+          totalSteps: p.totalSteps,
+          label: p.label,
           current: p.current,
           total: p.total,
         });
       });
       if (destination.kind === "saved") {
-        setTransferPhase({ kind: "export-done" });
+        setTransferPhase({ kind: "export-done", files: [] });
       } else {
-        if (exportedDownloadUrlRef.current) {
-          URL.revokeObjectURL(exportedDownloadUrlRef.current);
+        for (const url of exportedDownloadUrlsRef.current) {
+          URL.revokeObjectURL(url);
         }
-        const url = URL.createObjectURL(destination.blob);
-        exportedDownloadUrlRef.current = url;
-        setTransferPhase({
-          kind: "export-done",
-          download: { url, name: destination.name },
-          shareFile: destination.shareFile,
+        exportedDownloadUrlsRef.current = [];
+        const files = destination.files.map((file) => {
+          const url = URL.createObjectURL(file.blob);
+          exportedDownloadUrlsRef.current.push(url);
+          return { file, download: { url, name: file.name } };
         });
+        setTransferPhase({ kind: "export-done", files });
       }
     } catch (err) {
       if (err instanceof DOMException && err.name === "AbortError") {
@@ -231,47 +238,87 @@ export default function App() {
   const handleImportFile = async (
     event: React.ChangeEvent<HTMLInputElement>,
   ) => {
-    const file = event.target.files?.[0];
+    const fileList = event.target.files;
+    const files = fileList ? Array.from(fileList) : [];
     event.target.value = "";
-    if (!file) return;
+    if (files.length === 0) return;
     setExportError(null);
     setTransferPhase({
       kind: "importing",
+      label: `${files.length} 件を読み取り中`,
       current: 0,
-      total: 0,
+      total: files.length,
       phase: "scan",
     });
     try {
-      const summary = await readArchiveMetadata(file);
-      const existingPhotoCount = await db.photos.count();
-      setTransferPhase(null);
-      setTransferConfirm({ file, summary, existingPhotoCount });
-    } catch (err) {
-      setExportError(err instanceof Error ? err.message : String(err));
-      setTransferPhase(null);
-    }
-  };
-
-  const handleImportConfirm = async (mode: ImportMode) => {
-    if (!transferConfirm) return;
-    const { file, summary } = transferConfirm;
-    setTransferConfirm(null);
-    setTransferPhase({
-      kind: "importing",
-      current: 0,
-      total: summary.photos.length,
-      phase: "write",
-    });
-    try {
-      const result = await importArchive(file, summary, mode, (p) => {
+      const entries: Array<{ file: File; summary: AnyArchiveSummary }> = [];
+      for (let i = 0; i < files.length; i++) {
         setTransferPhase({
           kind: "importing",
-          current: p.current,
-          total: p.total,
-          phase: p.phase,
+          label: `${files[i].name}`,
+          current: i,
+          total: files.length,
+          phase: "scan",
         });
-      });
-      setTransferPhase({ kind: "import-done", result });
+        const summary = await readArchiveMetadata(files[i]);
+        entries.push({ file: files[i], summary });
+      }
+
+      const combined = {
+        imported: 0,
+        skipped: 0,
+        failed: 0,
+        errors: [] as Array<{ id: string; error: string }>,
+      };
+
+      // Main archives first so video archives can attach to existing records.
+      const sorted = [
+        ...entries.filter((e) => e.summary.kind === "main"),
+        ...entries.filter((e) => e.summary.kind === "video"),
+      ];
+
+      for (let i = 0; i < sorted.length; i++) {
+        const { file, summary } = sorted[i];
+        const label =
+          summary.kind === "main"
+            ? `画像 (${i + 1}/${sorted.length})`
+            : `動画 (${i + 1}/${sorted.length})`;
+        setTransferPhase({
+          kind: "importing",
+          label,
+          current: 0,
+          total:
+            summary.kind === "main"
+              ? summary.photos.length
+              : summary.manifest.videos.length,
+          phase: "write",
+        });
+        const result =
+          summary.kind === "main"
+            ? await importArchive(file, summary, (p) => {
+                setTransferPhase({
+                  kind: "importing",
+                  label,
+                  current: p.current,
+                  total: p.total,
+                  phase: p.phase,
+                });
+              })
+            : await importVideoArchive(file, summary, (p) => {
+                setTransferPhase({
+                  kind: "importing",
+                  label,
+                  current: p.current,
+                  total: p.total,
+                  phase: p.phase,
+                });
+              });
+        combined.imported += result.imported;
+        combined.skipped += result.skipped;
+        combined.failed += result.failed;
+        combined.errors.push(...result.errors);
+      }
+      setTransferPhase({ kind: "import-done", result: combined });
     } catch (err) {
       setExportError(err instanceof Error ? err.message : String(err));
       setTransferPhase(null);
@@ -284,6 +331,8 @@ export default function App() {
       URL.revokeObjectURL(exportedDownloadUrlRef.current);
       exportedDownloadUrlRef.current = null;
     }
+    for (const url of exportedDownloadUrlsRef.current) URL.revokeObjectURL(url);
+    exportedDownloadUrlsRef.current = [];
     cleanupExportedArchive().catch(() => {});
   };
 
@@ -352,14 +401,7 @@ export default function App() {
         imageExportProgress={imageExportProgress}
         onExportData={handleExportData}
         onImportData={handleImportDataClick}
-        transferBusy={transferPhase !== null || transferConfirm !== null}
-      />
-
-      <TransferModal
-        summary={transferConfirm?.summary ?? null}
-        existingPhotoCount={transferConfirm?.existingPhotoCount ?? 0}
-        onCancel={() => setTransferConfirm(null)}
-        onConfirm={handleImportConfirm}
+        transferBusy={transferPhase !== null}
       />
 
       <TransferProgressOverlay
@@ -371,6 +413,7 @@ export default function App() {
         ref={importFileInputRef}
         type="file"
         accept=".zip,application/zip"
+        multiple
         style={{ display: "none" }}
         onChange={handleImportFile}
       />

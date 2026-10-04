@@ -73,27 +73,25 @@ export function FabMenu({ onCamera, onImport, onOption }: Props) {
     // biome-ignore lint/style/noNonNullAssertion: gestureRef is attached by this component
     const el = gestureRef.current!;
 
-    function onTouchStart(e: TouchEvent) {
-      const t = e.touches[0];
-      originRef.current = { x: t.clientX, y: t.clientY };
+    function onPointerDown(e: PointerEvent) {
+      originRef.current = { x: e.clientX, y: e.clientY };
       selectItem(null);
       openRef.current = true;
       setOpen(true);
+      el.setPointerCapture(e.pointerId);
     }
 
-    function onTouchMove(e: TouchEvent) {
-      const t = e.touches[0];
+    function onPointerMove(e: PointerEvent) {
       if (!openRef.current) return;
-      selectItem(getItem(t.clientX, t.clientY));
+      selectItem(getItem(e.clientX, e.clientY));
     }
 
-    function onTouchEnd(e: TouchEvent) {
+    function onPointerUp(e: PointerEvent) {
       if (!openRef.current) return;
 
-      // touchmove is not guaranteed to fire at the finger's final position.
-      // Re-evaluate from touchend so quick slide-and-release gestures work.
-      const t = e.changedTouches[0];
-      if (t) selectItem(getItem(t.clientX, t.clientY));
+      // pointermove is not guaranteed to fire at the final position.
+      // Re-evaluate from pointerup so quick slide-and-release gestures work.
+      selectItem(getItem(e.clientX, e.clientY));
 
       const selected = activeRef.current;
       openRef.current = false;
@@ -108,19 +106,19 @@ export function FabMenu({ onCamera, onImport, onOption }: Props) {
       }
     }
 
-    function onTouchCancel() {
+    function onPointerCancel() {
       close();
     }
 
-    el.addEventListener("touchstart", onTouchStart, { passive: true });
-    el.addEventListener("touchmove", onTouchMove, { passive: true });
-    el.addEventListener("touchend", onTouchEnd);
-    el.addEventListener("touchcancel", onTouchCancel);
+    el.addEventListener("pointerdown", onPointerDown);
+    el.addEventListener("pointermove", onPointerMove);
+    el.addEventListener("pointerup", onPointerUp);
+    el.addEventListener("pointercancel", onPointerCancel);
     return () => {
-      el.removeEventListener("touchstart", onTouchStart);
-      el.removeEventListener("touchmove", onTouchMove);
-      el.removeEventListener("touchend", onTouchEnd);
-      el.removeEventListener("touchcancel", onTouchCancel);
+      el.removeEventListener("pointerdown", onPointerDown);
+      el.removeEventListener("pointermove", onPointerMove);
+      el.removeEventListener("pointerup", onPointerUp);
+      el.removeEventListener("pointercancel", onPointerCancel);
     };
   }, [onOption]);
 

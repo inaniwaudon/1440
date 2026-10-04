@@ -6,6 +6,7 @@ import {
   createVideoThumbnail,
 } from "../../utils/image";
 import { getMinuteOfDayFromDate } from "../../utils/time";
+import { compressVideo } from "../../utils/video";
 import { parsePhotoMetadata } from "./parsePhotoMetadata";
 
 export type ImportProgress = {
@@ -50,9 +51,12 @@ async function savePhoto(
 ): Promise<boolean> {
   const existingSlot = await db.slots.get(meta.minuteOfDay);
   const isVideo = file.type.startsWith("video/");
-  const [thumbnailBlob, previewBlob] = isVideo
-    ? [await createVideoThumbnail(file), undefined]
-    : await Promise.all([createThumbnail(file), createPreview(file)]);
+  const [thumbnailBlob, previewBlob, videoBlob] = isVideo
+    ? [await createVideoThumbnail(file), undefined, await compressVideo(file)]
+    : [
+        ...(await Promise.all([createThumbnail(file), createPreview(file)])),
+        undefined,
+      ];
 
   if (existingSlot?.photoId) {
     const existing = await db.photos.get(existingSlot.photoId);
@@ -86,10 +90,10 @@ async function savePhoto(
     minuteOfDay: meta.minuteOfDay,
     thumbnailBlob,
     previewBlob,
-    videoBlob: isVideo ? file : undefined,
+    videoBlob: isVideo ? videoBlob : undefined,
     originalFileName: file.name,
     mimeType: isVideo
-      ? file.type || "video/*"
+      ? videoBlob?.type || file.type || "video/*"
       : previewBlob?.type || "image/webp",
     importedAt: new Date().toISOString(),
     capturedAtSource: meta.capturedAtSource,
