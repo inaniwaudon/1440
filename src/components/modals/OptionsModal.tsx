@@ -61,12 +61,12 @@ export function OptionsModal({
       </label>
       <div className={styles.storageRow}>
         <div>
-          <span className={styles.storageTitle}>データを端末に保持</span>
+          <span className={styles.storageTitle}>データの自動削除を防ぐ</span>
           <span className={styles.storageDetail}>
             {storagePersistence === "persistent"
-              ? `有効${storageUsage ? ` · 使用量 ${storageUsage}` : ""}`
+              ? `保護中${storageUsage ? ` · 使用量 ${storageUsage}` : ""}`
               : storagePersistence === "temporary"
-                ? `未有効${storageUsage ? ` · 使用量 ${storageUsage}` : ""}`
+                ? `未保護${storageUsage ? ` · 使用量 ${storageUsage}` : ""}`
                 : storagePersistence === "checking"
                   ? "確認中…"
                   : "このブラウザでは利用できません"}

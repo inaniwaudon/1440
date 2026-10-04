@@ -10,7 +10,7 @@
 }
 
 .actionButton {
-  margin-top: 8px;
+  margin-top: 12px;
   backdrop-filter: blur(8px);
 }
 
@@ -82,7 +82,7 @@
 }
 
 .error {
-  margin: 10px 4px 0;
+  margin: 8px 4px 0 4px;
   color: var(--danger-text);
   font-size: 12px;
   line-height: 1.45;

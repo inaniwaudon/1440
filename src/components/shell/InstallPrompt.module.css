@@ -1,16 +1,16 @@
 .banner {
   position: fixed;
-  bottom: calc(16px + env(safe-area-inset-bottom));
-  left: 16px;
-  right: 16px;
-  background: var(--accent-bg);
-  border: 1px solid var(--accent-bg-filled);
+  bottom: calc(20px + env(safe-area-inset-bottom));
+  left: 20px;
+  right: 20px;
+  background: var(--scrim-70);
   border-radius: 12px;
-  padding: 12px 16px;
+  padding: 16px 20px;
   display: flex;
   align-items: center;
   gap: 12px;
   z-index: 50;
+  box-shadow: var(--shadow-lg);
   animation: slideUp 300ms ease-out;
 }
 
@@ -28,7 +28,14 @@
 .text {
   flex: 1;
   font-size: 13px;
-  color: var(--accent-ice);
+  color: var(--white);
+  line-height: 1.7;
+}
+
+.shareIcon {
+  font-size: 1.1em;
+  vertical-align: -0.1em;
+  margin: 0 2px;
 }
 
 .installBtn {
@@ -46,7 +53,7 @@
 .dismissBtn {
   background: none;
   border: none;
-  color: var(--accent);
+  color: var(--white);
   font-size: 16px;
   cursor: pointer;
   padding: 4px;

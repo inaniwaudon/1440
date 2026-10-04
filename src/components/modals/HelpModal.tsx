@@ -26,7 +26,8 @@ export function HelpModal({ open, onClose }: Props) {
     >
       <div className={styles.guide}>
         <section>
-          <h3>{photoCount > 0 ? photoCount : "???"} 枚 / 1440 枚</h3>
+          <h2>{photoCount > 0 ? photoCount : "???"} 枚 / 1440 枚</h2>
+          <h3>1440 分にお気に入りの一枚を記録</h3>
           <p>
             60分 × 24時間 = <b>1440 分</b>のスロットが用意されています。1
             分につき残せる写真は、<b>その時刻に撮られた 1 枚だけ</b>

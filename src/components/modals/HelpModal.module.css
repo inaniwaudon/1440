@@ -3,14 +3,18 @@
 }
 
 .guide section {
-  padding: 12px 4px;
+  padding: 16px 4px;
   border-bottom: 1px solid var(--chip);
+}
+
+.guide h2 {
+  margin: 0 0 6px;
+  font-size: 24px;
 }
 
 .guide h3 {
   margin: 0 0 6px;
-  color: var(--white);
-  font-size: 15px;
+  font-size: 16px;
 }
 
 .guide p,
