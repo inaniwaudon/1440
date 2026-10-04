@@ -48,6 +48,9 @@
   max-height: 100%;
   box-shadow: var(--shadow-lg);
   -webkit-touch-callout: default;
+  -webkit-user-select: auto;
+  user-select: auto;
+  -webkit-user-drag: auto;
   touch-action: manipulation;
 }
 

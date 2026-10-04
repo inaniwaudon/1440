@@ -186,15 +186,7 @@ export function MinuteDetail({
   } | null>(null);
   const suppressClickUntilRef = useRef(0);
   const pendingNavigateRef = useRef<number | null>(null);
-  const longPressTimerRef = useRef<number | null>(null);
-  const longPressFiredRef = useRef(false);
-
-  const clearLongPress = () => {
-    if (longPressTimerRef.current !== null) {
-      window.clearTimeout(longPressTimerRef.current);
-      longPressTimerRef.current = null;
-    }
-  };
+  const pressStartRef = useRef<{ time: number; moved: boolean } | null>(null);
 
   const occupiedMinutes = useLiveQuery<number[], number[]>(
     async () => {
@@ -335,25 +327,7 @@ export function MinuteDetail({
                 currentX: event.clientX,
                 isHorizontal: false,
               };
-              longPressFiredRef.current = false;
-              clearLongPress();
-              const targetPhoto = photo;
-              const target = event.currentTarget;
-              const pointerId = event.pointerId;
-              if (targetPhoto) {
-                longPressTimerRef.current = window.setTimeout(() => {
-                  longPressTimerRef.current = null;
-                  longPressFiredRef.current = true;
-                  swipeRef.current = null;
-                  suppressClickUntilRef.current = Date.now() + 500;
-                  try {
-                    target.releasePointerCapture(pointerId);
-                  } catch {
-                    // ignore
-                  }
-                  void sharePhoto(targetPhoto);
-                }, LONG_PRESS_MS);
-              }
+              pressStartRef.current = { time: Date.now(), moved: false };
             }}
             onPointerMove={(event) => {
               const swipe = swipeRef.current;
@@ -363,10 +337,11 @@ export function MinuteDetail({
               const deltaX = event.clientX - swipe.startX;
               const deltaY = event.clientY - swipe.startY;
               if (
-                longPressTimerRef.current !== null &&
+                pressStartRef.current &&
+                !pressStartRef.current.moved &&
                 Math.hypot(deltaX, deltaY) > LONG_PRESS_MOVE_TOLERANCE
               ) {
-                clearLongPress();
+                pressStartRef.current.moved = true;
               }
               if (!swipe.isHorizontal) {
                 if (Math.abs(deltaX) < 8) return;
@@ -390,11 +365,18 @@ export function MinuteDetail({
               suppressClickUntilRef.current = Date.now() + 350;
             }}
             onPointerUp={(event) => {
-              clearLongPress();
+              const press = pressStartRef.current;
+              pressStartRef.current = null;
               const swipe = swipeRef.current;
               swipeRef.current = null;
-              if (longPressFiredRef.current) {
-                longPressFiredRef.current = false;
+              if (
+                press &&
+                !press.moved &&
+                Date.now() - press.time >= LONG_PRESS_MS &&
+                photo
+              ) {
+                suppressClickUntilRef.current = Date.now() + 500;
+                void sharePhoto(photo);
                 return;
               }
               if (!swipe || swipe.pointerId !== event.pointerId) return;
@@ -469,7 +451,7 @@ export function MinuteDetail({
               exitAnimation.addEventListener("cancel", commit);
             }}
             onPointerCancel={() => {
-              clearLongPress();
+              pressStartRef.current = null;
               swipeRef.current = null;
               trackRef.current?.style.removeProperty("transform");
             }}

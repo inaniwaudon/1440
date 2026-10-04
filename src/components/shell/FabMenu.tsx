@@ -26,6 +26,7 @@ export function FabMenu({ onCamera, onImport, onHelp, onOption }: Props) {
   const importInputRef = useRef<HTMLInputElement>(null);
   const openRef = useRef(false);
   const activeRef = useRef<Item | null>(null);
+  const hadActiveRef = useRef(false);
   const originRef = useRef({ x: 0, y: 0 });
 
   function getItem(x: number, y: number): Item | null {
@@ -63,12 +64,14 @@ export function FabMenu({ onCamera, onImport, onHelp, onOption }: Props) {
 
   function selectItem(item: Item | null) {
     activeRef.current = item;
+    if (item !== null) hadActiveRef.current = true;
     setActive(item);
   }
 
   const close = () => {
     openRef.current = false;
     activeRef.current = null;
+    hadActiveRef.current = false;
     setOpen(false);
     setActive(null);
     setShowPhotoActions(false);
@@ -81,6 +84,7 @@ export function FabMenu({ onCamera, onImport, onHelp, onOption }: Props) {
 
     function onPointerDown(e: PointerEvent) {
       originRef.current = { x: e.clientX, y: e.clientY };
+      hadActiveRef.current = false;
       selectItem(null);
       openRef.current = true;
       setOpen(true);
@@ -100,11 +104,13 @@ export function FabMenu({ onCamera, onImport, onHelp, onOption }: Props) {
       selectItem(getItem(e.clientX, e.clientY));
 
       const selected = activeRef.current;
+      const hadActive = hadActiveRef.current;
       openRef.current = false;
       activeRef.current = null;
+      hadActiveRef.current = false;
       setOpen(false);
       setActive(null);
-      if (selected === "photo" || selected === null) {
+      if (selected === "photo" || (selected === null && !hadActive)) {
         setShowPhotoActions(true);
       } else {
         setShowPhotoActions(false);
