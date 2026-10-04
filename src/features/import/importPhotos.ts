@@ -23,7 +23,7 @@ export type ImportResult = {
   errors: Array<{ file: string; error: string }>;
 };
 
-export type ImportCandidate = {
+type ImportCandidate = {
   fileName: string;
   mimeType: string;
   capturedAt: string | null;

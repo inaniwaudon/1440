@@ -12,6 +12,7 @@
   },
   "dependencies": {
     "@mediapipe/tasks-vision": "^1.0.1",
+    "@zip.js/zip.js": "^2.23.0",
     "client-zip": "^2.5.1",
     "dexie": "^4.4.6",
     "dexie-react-hooks": "^4.4.0",

@@ -1,4 +1,11 @@
-import { Unzip, type UnzipFile, UnzipInflate } from "fflate";
+import {
+  BlobReader,
+  BlobWriter,
+  type Entry,
+  type FileEntry,
+  TextWriter,
+  ZipReader,
+} from "@zip.js/zip.js";
 import { db } from "../../db/db";
 import type { PhotoRecord, SlotRecord } from "../../db/types";
 import {
@@ -43,122 +50,132 @@ const METADATA_FILES = new Set([
   "slots.json",
   "video-manifest.json",
 ]);
-const REQUIRED_METADATA = ["manifest", "photos", "slots"] as const;
 
-function concat(chunks: Uint8Array[], total: number): Uint8Array {
-  const out = new Uint8Array(total);
-  let offset = 0;
-  for (const chunk of chunks) {
-    out.set(chunk, offset);
-    offset += chunk.length;
+function asFile(entry: Entry): FileEntry {
+  if (entry.directory) throw new Error("ZIP エントリを読み込めませんでした");
+  return entry as FileEntry;
+}
+
+async function readJsonEntry<T>(
+  entry: Entry,
+  validate: (value: unknown) => value is T,
+): Promise<T> {
+  const text = await asFile(entry).getData(new TextWriter());
+  let parsed: unknown;
+  try {
+    parsed = JSON.parse(text);
+  } catch {
+    throw new Error(`${entry.filename} は有効な JSON ではありません`);
   }
-  return out;
+  if (!validate(parsed)) {
+    throw new Error(`${entry.filename} の形式が不正です`);
+  }
+  return parsed;
+}
+
+function isObject(value: unknown): value is Record<string, unknown> {
+  return typeof value === "object" && value !== null && !Array.isArray(value);
+}
+
+function isArchiveManifest(value: unknown): value is ArchiveManifest {
+  return (
+    isObject(value) &&
+    typeof value.version === "number" &&
+    typeof value.exportedAt === "string" &&
+    typeof value.photoCount === "number"
+  );
+}
+
+function isVideoArchiveManifest(value: unknown): value is VideoArchiveManifest {
+  return (
+    isObject(value) &&
+    typeof value.version === "number" &&
+    typeof value.exportedAt === "string" &&
+    Array.isArray(value.videos) &&
+    value.videos.every(
+      (v) =>
+        isObject(v) &&
+        typeof v.photoId === "string" &&
+        typeof v.path === "string",
+    )
+  );
+}
+
+function isArchivePhotoMetaArray(value: unknown): value is ArchivePhotoMeta[] {
+  return (
+    Array.isArray(value) &&
+    value.every(
+      (p) =>
+        isObject(p) &&
+        typeof p.id === "string" &&
+        typeof p.minuteOfDay === "number" &&
+        typeof p.thumbnail === "string",
+    )
+  );
+}
+
+function isSlotRecordArray(value: unknown): value is SlotRecord[] {
+  return (
+    Array.isArray(value) &&
+    value.every(
+      (s) =>
+        isObject(s) &&
+        typeof s.minuteOfDay === "number" &&
+        typeof s.photoId === "string",
+    )
+  );
+}
+
+async function readBlobEntry(entry: Entry, type: string): Promise<Blob> {
+  return await asFile(entry).getData(new BlobWriter(type));
 }
 
 export async function readArchiveMetadata(
   file: File,
 ): Promise<AnyArchiveSummary> {
-  const mainSummary: Partial<ArchiveSummary> = {};
-  let videoManifest: VideoArchiveManifest | undefined;
-  let done = false;
+  const reader = new ZipReader(new BlobReader(file));
+  try {
+    const entries = await reader.getEntries();
+    const byName = new Map<string, Entry>();
+    for (const entry of entries) {
+      if (METADATA_FILES.has(entry.filename)) byName.set(entry.filename, entry);
+    }
 
-  await new Promise<void>((resolve, reject) => {
-    const unzip = new Unzip();
-    unzip.register(UnzipInflate);
-    unzip.onfile = (entry: UnzipFile) => {
-      if (!METADATA_FILES.has(entry.name)) return;
-      const chunks: Uint8Array[] = [];
-      let size = 0;
-      entry.ondata = (err, chunk, final) => {
-        if (err) {
-          reject(err);
-          return;
-        }
-        if (chunk) {
-          chunks.push(chunk);
-          size += chunk.length;
-        }
-        if (final) {
-          try {
-            const text = new TextDecoder().decode(concat(chunks, size));
-            const parsed = JSON.parse(text);
-            if (entry.name === "manifest.json") mainSummary.manifest = parsed;
-            else if (entry.name === "photos.json") mainSummary.photos = parsed;
-            else if (entry.name === "slots.json") mainSummary.slots = parsed;
-            else if (entry.name === "video-manifest.json")
-              videoManifest = parsed;
-            if (videoManifest) {
-              done = true;
-              resolve();
-              return;
-            }
-            if (REQUIRED_METADATA.every((key) => mainSummary[key])) {
-              done = true;
-              resolve();
-            }
-          } catch (parseErr) {
-            reject(parseErr);
-          }
-        }
-      };
-      entry.start();
-    };
-
-    (async () => {
-      const reader = file.stream().getReader();
-      try {
-        while (!done) {
-          const { value, done: streamDone } = await reader.read();
-          if (streamDone) {
-            unzip.push(new Uint8Array(0), true);
-            if (!done)
-              reject(
-                new Error("アーカイブに必要なメタデータが含まれていません"),
-              );
-            return;
-          }
-          unzip.push(value, false);
-        }
-      } catch (err) {
-        reject(err);
-      } finally {
-        reader.cancel().catch(() => {});
+    const videoManifestEntry = byName.get("video-manifest.json");
+    if (videoManifestEntry) {
+      const manifest = await readJsonEntry(
+        videoManifestEntry,
+        isVideoArchiveManifest,
+      );
+      if (manifest.version > ARCHIVE_VERSION) {
+        throw new Error(
+          `このアプリケーションは アーカイブバージョン ${manifest.version} に対応していません`,
+        );
       }
-    })();
-  });
+      return { kind: "video", manifest };
+    }
 
-  if (videoManifest) {
-    if (videoManifest.version > ARCHIVE_VERSION) {
+    const manifestEntry = byName.get("manifest.json");
+    const photosEntry = byName.get("photos.json");
+    const slotsEntry = byName.get("slots.json");
+    if (!manifestEntry || !photosEntry || !slotsEntry) {
+      throw new Error("アーカイブに必要なメタデータが含まれていません");
+    }
+    const [manifest, photos, slots] = await Promise.all([
+      readJsonEntry(manifestEntry, isArchiveManifest),
+      readJsonEntry(photosEntry, isArchivePhotoMetaArray),
+      readJsonEntry(slotsEntry, isSlotRecordArray),
+    ]);
+    if (manifest.version > ARCHIVE_VERSION) {
       throw new Error(
-        `このアプリケーションは アーカイブバージョン ${videoManifest.version} に対応していません`,
+        `このアプリケーションは アーカイブバージョン ${manifest.version} に対応していません`,
       );
     }
-    return { kind: "video", manifest: videoManifest };
+    return { kind: "main", manifest, photos, slots };
+  } finally {
+    await reader.close();
   }
-
-  if (!mainSummary.manifest || !mainSummary.photos || !mainSummary.slots) {
-    throw new Error("アーカイブに必要なメタデータが含まれていません");
-  }
-  if (mainSummary.manifest.version > ARCHIVE_VERSION) {
-    throw new Error(
-      `このアプリケーションは アーカイブバージョン ${mainSummary.manifest.version} に対応していません`,
-    );
-  }
-  return {
-    kind: "main",
-    manifest: mainSummary.manifest,
-    photos: mainSummary.photos,
-    slots: mainSummary.slots,
-  };
 }
-
-type PendingPhoto = {
-  meta: ArchivePhotoMeta;
-  thumbnail?: Blob;
-  preview?: Blob;
-  // Parts that must still arrive before the record can be flushed to the DB.
-  pending: Set<"thumbnail" | "preview">;
-};
 
 export async function importArchive(
   file: File,
@@ -172,204 +189,101 @@ export async function importArchive(
     errors: [],
   };
 
-  const metaByPath = new Map<string, ArchivePhotoMeta>();
-  for (const meta of summary.photos) {
-    metaByPath.set(meta.thumbnail, meta);
-    if (meta.preview) metaByPath.set(meta.preview, meta);
-  }
-
-  const pending = new Map<string, PendingPhoto>();
-  const existingSlots = new Map<number, string>();
-  for (const slot of await db.slots.toArray()) {
-    existingSlots.set(slot.minuteOfDay, slot.photoId);
-  }
   const slotsByPhotoId = new Map<string, SlotRecord>();
-  for (const slot of summary.slots) {
-    slotsByPhotoId.set(slot.photoId, slot);
-  }
+  for (const slot of summary.slots) slotsByPhotoId.set(slot.photoId, slot);
 
   const total = summary.photos.length;
   onProgress({ current: 0, total, phase: "write" });
 
-  const expectedParts = (meta: ArchivePhotoMeta): PendingPhoto["pending"] => {
-    const set = new Set<"thumbnail" | "preview">(["thumbnail"]);
-    if (meta.preview) set.add("preview");
-    return set;
-  };
+  const reader = new ZipReader(new BlobReader(file));
+  try {
+    const entries = await reader.getEntries();
+    const entryByName = new Map<string, Entry>();
+    for (const entry of entries) entryByName.set(entry.filename, entry);
 
-  const flushPhoto = async (ph: PendingPhoto) => {
-    const slot = slotsByPhotoId.get(ph.meta.id);
-    if (!slot) {
-      result.skipped++;
-      return;
-    }
-    if (!ph.thumbnail) {
-      result.failed++;
-      result.errors.push({ id: ph.meta.id, error: "サムネイルが欠けています" });
-      return;
-    }
-    const thumbnail = ph.thumbnail;
-    try {
-      const hasDetectedFace = ph.meta.hasDetectedFace ?? false;
-      await db.transaction("rw", db.photos, db.slots, async () => {
-        // Preserve any existing video on the same photo id so a later video
-        // archive import can still attach, and so a re-import of only the
-        // main archive doesn't discard the video.
-        const existing = await db.photos.get(ph.meta.id);
-        const record: PhotoRecord = {
-          id: ph.meta.id,
-          capturedAt: ph.meta.capturedAt,
-          minuteOfDay: ph.meta.minuteOfDay,
-          thumbnailBlob: thumbnail,
-          previewBlob: ph.preview,
-          videoBlob: existing?.videoBlob,
-          originalFileName: ph.meta.originalFileName,
-          mimeType: ph.meta.mimeType,
-          originalWidth: ph.meta.originalWidth,
-          originalHeight: ph.meta.originalHeight,
-          hasDetectedFace,
-          blurOverride: ph.meta.blurOverride,
-          importedAt: ph.meta.importedAt,
-          capturedAtSource: ph.meta.capturedAtSource,
-        };
-        await db.photos.where("minuteOfDay").equals(slot.minuteOfDay).delete();
-        await db.photos.put(record);
-        await db.slots.put({
-          minuteOfDay: slot.minuteOfDay,
-          photoId: ph.meta.id,
-        });
-      });
-      existingSlots.set(slot.minuteOfDay, ph.meta.id);
-      result.imported++;
-    } catch (err) {
-      result.failed++;
-      result.errors.push({
-        id: ph.meta.id,
-        error: err instanceof Error ? err.message : String(err),
-      });
-    }
-  };
-
-  // Serialize DB writes so IndexedDB transactions don't contend; `queue` chains
-  // writes while the ZIP stream keeps flowing.
-  let queue: Promise<void> = Promise.resolve();
-  const enqueueWrite = (ph: PendingPhoto) => {
-    queue = queue
-      .then(() => flushPhoto(ph))
-      .then(() => {
+    for (const meta of summary.photos) {
+      const slot = slotsByPhotoId.get(meta.id);
+      if (!slot) {
+        result.skipped++;
         onProgress({
           current: result.imported + result.skipped + result.failed,
           total,
           phase: "write",
         });
-      });
-  };
-
-  const resolveMetaForEntry = (
-    name: string,
-  ): {
-    meta: ArchivePhotoMeta;
-    kind: "thumbnail" | "preview";
-  } | null => {
-    const direct = metaByPath.get(name);
-    if (direct) {
-      if (name === direct.thumbnail) return { meta: direct, kind: "thumbnail" };
-      if (name === direct.preview) return { meta: direct, kind: "preview" };
-    }
-    return null;
-  };
-
-  const handleEntry = (entry: UnzipFile) => {
-    if (METADATA_FILES.has(entry.name)) return;
-    const resolved = resolveMetaForEntry(entry.name);
-    if (!resolved) return;
-
-    let ph = pending.get(resolved.meta.id);
-    if (!ph) {
-      ph = {
-        meta: resolved.meta,
-        pending: expectedParts(resolved.meta),
-      };
-      pending.set(resolved.meta.id, ph);
-    }
-
-    const chunks: Uint8Array[] = [];
-    let size = 0;
-    entry.ondata = (err, chunk, final) => {
-      if (err) {
-        result.failed++;
-        result.errors.push({ id: resolved.meta.id, error: err.message });
-        return;
+        continue;
       }
-      if (chunk && chunk.length > 0) {
-        // fflate reuses its internal buffer, so copy before holding onto it.
-        chunks.push(new Uint8Array(chunk));
-        size += chunk.length;
-      }
-      if (final) {
-        const bytes = concat(chunks, size);
-        const type = resolved.meta.mimeType ?? "image/webp";
-        const blob = new Blob([bytes.buffer as ArrayBuffer], { type });
-        if (!ph) return;
-        if (resolved.kind === "thumbnail") ph.thumbnail = blob;
-        else ph.preview = blob;
-        ph.pending.delete(resolved.kind);
-        if (ph.pending.size === 0) {
-          pending.delete(resolved.meta.id);
-          enqueueWrite(ph);
-        }
-      }
-    };
-    entry.start();
-  };
 
-  await new Promise<void>((resolve, reject) => {
-    const unzip = new Unzip();
-    unzip.register(UnzipInflate);
-    unzip.onfile = handleEntry;
-
-    (async () => {
-      const reader = file.stream().getReader();
       try {
-        for (;;) {
-          const { value, done } = await reader.read();
-          if (done) {
-            unzip.push(new Uint8Array(0), true);
-            resolve();
-            return;
-          }
-          unzip.push(value, false);
-          // Yield to the event loop so the UI stays responsive during large archives.
-          await new Promise((r) => setTimeout(r, 0));
-        }
-      } catch (err) {
-        reject(err);
-      } finally {
-        reader.cancel().catch(() => {});
-      }
-    })();
-  });
+        const thumbnailEntry = entryByName.get(meta.thumbnail);
+        if (!thumbnailEntry) throw new Error("サムネイルが欠けています");
+        // Thumbnails/previews are always WebP regardless of the original
+        // photo's mimeType; tagging them with e.g. "video/mp4" would break
+        // <img> rendering.
+        const thumbnail = await readBlobEntry(thumbnailEntry, "image/webp");
 
-  // Flush any photos that were buffered but never completed (shouldn't happen for well-formed archives).
-  for (const ph of pending.values()) {
-    if (ph.pending.size > 0) {
-      result.failed++;
-      result.errors.push({
-        id: ph.meta.id,
-        error: "アーカイブ内のファイルが不足しています",
+        let preview: Blob | undefined;
+        if (meta.preview) {
+          const previewEntry = entryByName.get(meta.preview);
+          if (previewEntry)
+            preview = await readBlobEntry(previewEntry, "image/webp");
+        }
+
+        const hasDetectedFace = meta.hasDetectedFace ?? false;
+        await db.transaction("rw", db.photos, db.slots, async () => {
+          // Preserve any existing video on the same photo id so a later video
+          // archive import can still attach, and so a re-import of only the
+          // main archive doesn't discard the video.
+          const existing = await db.photos.get(meta.id);
+          const record: PhotoRecord = {
+            id: meta.id,
+            capturedAt: meta.capturedAt,
+            minuteOfDay: meta.minuteOfDay,
+            thumbnailBlob: thumbnail,
+            previewBlob: preview,
+            videoBlob: existing?.videoBlob,
+            originalFileName: meta.originalFileName,
+            mimeType: meta.mimeType,
+            originalWidth: meta.originalWidth,
+            originalHeight: meta.originalHeight,
+            hasDetectedFace,
+            blurOverride: meta.blurOverride,
+            importedAt: meta.importedAt,
+            capturedAtSource: meta.capturedAtSource,
+          };
+          await db.photos
+            .where("minuteOfDay")
+            .equals(slot.minuteOfDay)
+            .delete();
+          await db.photos.put(record);
+          await db.slots.put({
+            minuteOfDay: slot.minuteOfDay,
+            photoId: meta.id,
+          });
+        });
+        result.imported++;
+      } catch (err) {
+        result.failed++;
+        result.errors.push({
+          id: meta.id,
+          error: err instanceof Error ? err.message : String(err),
+        });
+      }
+
+      onProgress({
+        current: result.imported + result.skipped + result.failed,
+        total,
+        phase: "write",
       });
     }
+  } finally {
+    await reader.close();
   }
-  pending.clear();
-
-  await queue;
 
   onProgress({
     current: result.imported + result.skipped + result.failed,
     total,
     phase: "write",
   });
-
   return result;
 }
 
@@ -385,186 +299,105 @@ export async function importVideoArchive(
     errors: [],
   };
 
-  type VideoPart = "thumbnail" | "preview" | "video";
-  type PendingVideo = {
-    entry: VideoArchiveEntry;
-    thumbnail?: Blob;
-    preview?: Blob;
-    video?: Blob;
-    pending: Set<VideoPart>;
-  };
-  const partByPath = new Map<
-    string,
-    { entry: VideoArchiveEntry; kind: VideoPart }
-  >();
-  const pending = new Map<string, PendingVideo>();
-  for (const entry of summary.manifest.videos) {
-    partByPath.set(entry.path, { entry, kind: "video" });
-    if (entry.photo) {
-      partByPath.set(entry.photo.thumbnail, { entry, kind: "thumbnail" });
-      if (entry.photo.preview) {
-        partByPath.set(entry.photo.preview, { entry, kind: "preview" });
-      }
-    }
-    const expected = new Set<VideoPart>(["video"]);
-    if (entry.photo) {
-      expected.add("thumbnail");
-      if (entry.photo.preview) expected.add("preview");
-    }
-    pending.set(entry.photoId, { entry, pending: expected });
-  }
   const total = summary.manifest.videos.length;
   onProgress({ current: 0, total, phase: "write" });
 
-  const writeVideo = async (item: PendingVideo): Promise<void> => {
-    const { entry } = item;
-    try {
-      const existing = await db.photos.get(entry.photoId);
-      if (!item.video) throw new Error("動画ファイルが欠けています");
+  const reader = new ZipReader(new BlobReader(file));
+  try {
+    const entries = await reader.getEntries();
+    const entryByName = new Map<string, Entry>();
+    for (const entry of entries) entryByName.set(entry.filename, entry);
 
-      if (!entry.photo || !entry.slot || !item.thumbnail) {
-        // Legacy video archives can only be attached to an already restored
-        // main record because they did not carry standalone photo metadata.
-        if (existing) {
-          await db.photos.put({
-            ...existing,
-            videoBlob: item.video,
-            mimeType: entry.mimeType ?? existing.mimeType,
-          });
-          result.imported++;
-          return;
-        }
-        result.skipped++;
-        return;
+    for (const entry of summary.manifest.videos) {
+      try {
+        await writeVideo(entry, entryByName, result);
+      } catch (err) {
+        result.failed++;
+        result.errors.push({
+          id: entry.photoId,
+          error: err instanceof Error ? err.message : String(err),
+        });
       }
-
-      const meta = entry.photo;
-      const slot = entry.slot;
-      const hasDetectedFace = meta.hasDetectedFace ?? false;
-      const record: PhotoRecord = {
-        id: meta.id,
-        capturedAt: meta.capturedAt,
-        minuteOfDay: meta.minuteOfDay,
-        thumbnailBlob: item.thumbnail,
-        previewBlob: item.preview,
-        videoBlob: item.video,
-        originalFileName: meta.originalFileName,
-        mimeType: entry.mimeType ?? meta.mimeType,
-        originalWidth: meta.originalWidth,
-        originalHeight: meta.originalHeight,
-        hasDetectedFace,
-        blurOverride: meta.blurOverride,
-        importedAt: meta.importedAt,
-        capturedAtSource: meta.capturedAtSource,
-      };
-      await db.transaction("rw", db.photos, db.slots, async () => {
-        await db.photos.where("minuteOfDay").equals(slot.minuteOfDay).delete();
-        await db.photos.put(record);
-        await db.slots.put(slot);
-      });
-      result.imported++;
-    } catch (err) {
-      result.failed++;
-      result.errors.push({
-        id: entry.photoId,
-        error: err instanceof Error ? err.message : String(err),
+      onProgress({
+        current: result.imported + result.skipped + result.failed,
+        total,
+        phase: "write",
       });
     }
-  };
-
-  let queue: Promise<void> = Promise.resolve();
-  const enqueue = (item: PendingVideo) => {
-    queue = queue
-      .then(() => writeVideo(item))
-      .then(() => {
-        onProgress({
-          current: result.imported + result.skipped + result.failed,
-          total,
-          phase: "write",
-        });
-      });
-  };
-
-  await new Promise<void>((resolve, reject) => {
-    const unzip = new Unzip();
-    unzip.register(UnzipInflate);
-    unzip.onfile = (entry: UnzipFile) => {
-      if (METADATA_FILES.has(entry.name)) return;
-      const resolved = partByPath.get(entry.name);
-      if (!resolved) return;
-
-      const chunks: Uint8Array[] = [];
-      let size = 0;
-      entry.ondata = (err, chunk, final) => {
-        if (err) {
-          result.failed++;
-          result.errors.push({
-            id: resolved.entry.photoId,
-            error: err.message,
-          });
-          return;
-        }
-        if (chunk && chunk.length > 0) {
-          chunks.push(new Uint8Array(chunk));
-          size += chunk.length;
-        }
-        if (final) {
-          const bytes = concat(chunks, size);
-          const item = pending.get(resolved.entry.photoId);
-          if (!item) return;
-          const blob = new Blob([bytes.buffer as ArrayBuffer], {
-            type:
-              resolved.kind === "video"
-                ? (resolved.entry.mimeType ?? "video/*")
-                : "image/webp",
-          });
-          if (resolved.kind === "thumbnail") item.thumbnail = blob;
-          else if (resolved.kind === "preview") item.preview = blob;
-          else item.video = blob;
-          item.pending.delete(resolved.kind);
-          if (item.pending.size === 0) {
-            pending.delete(resolved.entry.photoId);
-            enqueue(item);
-          }
-        }
-      };
-      entry.start();
-    };
-
-    (async () => {
-      const reader = file.stream().getReader();
-      try {
-        for (;;) {
-          const { value, done } = await reader.read();
-          if (done) {
-            unzip.push(new Uint8Array(0), true);
-            resolve();
-            return;
-          }
-          unzip.push(value, false);
-          await new Promise((r) => setTimeout(r, 0));
-        }
-      } catch (err) {
-        reject(err);
-      } finally {
-        reader.cancel().catch(() => {});
-      }
-    })();
-  });
-
-  for (const item of pending.values()) {
-    result.failed++;
-    result.errors.push({
-      id: item.entry.photoId,
-      error: "動画アーカイブ内のファイルが不足しています",
-    });
+  } finally {
+    await reader.close();
   }
-  pending.clear();
-  await queue;
+
   onProgress({
     current: result.imported + result.skipped + result.failed,
     total,
     phase: "write",
   });
   return result;
+}
+
+async function writeVideo(
+  entry: VideoArchiveEntry,
+  entryByName: Map<string, Entry>,
+  result: ImportArchiveResult,
+): Promise<void> {
+  const videoEntry = entryByName.get(entry.path);
+  if (!videoEntry) throw new Error("動画ファイルが欠けています");
+  const videoType = entry.mimeType ?? "video/mp4";
+  const video = await readBlobEntry(videoEntry, videoType);
+
+  const existing = await db.photos.get(entry.photoId);
+
+  if (!entry.photo || !entry.slot) {
+    // Legacy video archives can only be attached to an already restored
+    // main record because they did not carry standalone photo metadata.
+    if (existing) {
+      await db.photos.put({
+        ...existing,
+        videoBlob: video,
+        mimeType: entry.mimeType ?? existing.mimeType,
+      });
+      result.imported++;
+      return;
+    }
+    result.skipped++;
+    return;
+  }
+
+  const meta = entry.photo;
+  const slot = entry.slot;
+
+  const thumbnailEntry = entryByName.get(entry.photo.thumbnail);
+  if (!thumbnailEntry) throw new Error("サムネイルが欠けています");
+  const thumbnail = await readBlobEntry(thumbnailEntry, "image/webp");
+
+  let preview: Blob | undefined;
+  if (entry.photo.preview) {
+    const previewEntry = entryByName.get(entry.photo.preview);
+    if (previewEntry) preview = await readBlobEntry(previewEntry, "image/webp");
+  }
+
+  const hasDetectedFace = meta.hasDetectedFace ?? false;
+  const record: PhotoRecord = {
+    id: meta.id,
+    capturedAt: meta.capturedAt,
+    minuteOfDay: meta.minuteOfDay,
+    thumbnailBlob: thumbnail,
+    previewBlob: preview,
+    videoBlob: video,
+    originalFileName: meta.originalFileName,
+    mimeType: entry.mimeType ?? meta.mimeType,
+    originalWidth: meta.originalWidth,
+    originalHeight: meta.originalHeight,
+    hasDetectedFace,
+    blurOverride: meta.blurOverride,
+    importedAt: meta.importedAt,
+    capturedAtSource: meta.capturedAtSource,
+  };
+  await db.transaction("rw", db.photos, db.slots, async () => {
+    await db.photos.where("minuteOfDay").equals(slot.minuteOfDay).delete();
+    await db.photos.put(record);
+    await db.slots.put(slot);
+  });
+  result.imported++;
 }

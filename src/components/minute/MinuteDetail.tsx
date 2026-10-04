@@ -24,6 +24,16 @@ const RETURN_EASING = "cubic-bezier(0.34, 1.3, 0.64, 1)";
 const LONG_PRESS_MS = 500;
 const LONG_PRESS_MOVE_TOLERANCE = 8;
 
+function getMediaBlob(photo: PhotoRecord): { blob: Blob; isVideo: boolean } {
+  if (photo.mimeType?.startsWith("video/") && photo.videoBlob) {
+    return { blob: photo.videoBlob, isVideo: true };
+  }
+  return {
+    blob: photo.previewBlob ?? photo.thumbnailBlob,
+    isVideo: false,
+  };
+}
+
 function extensionFor(mimeType: string | undefined): string {
   if (!mimeType) return "jpg";
   const subtype = mimeType.split("/")[1]?.split(";")[0];
@@ -34,11 +44,7 @@ function extensionFor(mimeType: string | undefined): string {
 }
 
 async function sharePhoto(photo: PhotoRecord) {
-  const isVideo = photo.mimeType?.startsWith("video/") && !!photo.videoBlob;
-  const blob = isVideo
-    ? // biome-ignore lint/style/noNonNullAssertion: isVideo guards videoBlob
-      photo.videoBlob!
-    : (photo.previewBlob ?? photo.thumbnailBlob);
+  const { blob } = getMediaBlob(photo);
   const mime = blob.type || photo.mimeType || "image/jpeg";
   const ext = extensionFor(mime);
   const base =
@@ -84,12 +90,8 @@ function PhotoPreview({
   const [url, setUrl] = useState<string | null>(null);
   const [aspectRatio, setAspectRatio] = useState<number | null>(null);
   const videoRef = useRef<HTMLVideoElement>(null);
-  const isVideo = photo.mimeType?.startsWith("video/") && !!photo.videoBlob;
+  const { blob: mediaBlob, isVideo } = getMediaBlob(photo);
   const shouldBlur = photo.blurOverride ?? photo.hasDetectedFace === true;
-  const mediaBlob = isVideo
-    ? // biome-ignore lint/style/noNonNullAssertion: isVideo guards videoBlob
-      photo.videoBlob!
-    : (photo.previewBlob ?? photo.thumbnailBlob);
   const mediaBlobRef = useRef(mediaBlob);
   mediaBlobRef.current = mediaBlob;
   const mediaKey = `${photo.id}:${isVideo ? "video" : "image"}`;
@@ -270,17 +272,14 @@ export function MinuteDetail({
   };
 
   const handleDeletePhoto = async () => {
+    if (!photo) return;
     if (!window.confirm("この写真を削除しますか？")) {
       return;
     }
 
     await db.transaction("rw", db.photos, db.slots, async () => {
-      if (photo) {
-        await db.photos.delete(photo.id);
-      }
-      if (photo) {
-        await db.slots.delete(minuteOfDay);
-      }
+      await db.photos.delete(photo.id);
+      await db.slots.delete(minuteOfDay);
     });
     onClose();
   };

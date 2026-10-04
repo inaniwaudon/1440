@@ -59,7 +59,7 @@ export function OptionsModal({
         />
         <span className={styles.switch} aria-hidden="true" />
       </label>
-      <div className={styles.storageRow}>
+      <label className={styles.optionRow}>
         <div>
           <span className={styles.storageTitle}>データの自動削除を防ぐ</span>
           <span className={styles.storageDetail}>
@@ -72,16 +72,19 @@ export function OptionsModal({
                   : "このブラウザでは利用できません"}
           </span>
         </div>
-        {storagePersistence === "temporary" && (
-          <button
-            type="button"
-            className={modalStyles.secondaryButton}
-            onClick={onRequestStoragePersistence}
-          >
-            有効にする
-          </button>
-        )}
-      </div>
+        <input
+          className={styles.switchInput}
+          type="checkbox"
+          checked={storagePersistence === "persistent"}
+          disabled={storagePersistence !== "temporary"}
+          onChange={(event) => {
+            if (event.target.checked) {
+              onRequestStoragePersistence();
+            }
+          }}
+        />
+        <span className={styles.switch} aria-hidden="true" />
+      </label>
       <label className={styles.optionRow}>
         <span>顔を検出してぼかす</span>
         <input

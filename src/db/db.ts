@@ -22,11 +22,15 @@ class AppDB extends Dexie {
           minuteOfDay: number;
           bestPhotoId?: string;
         }>;
+        const photos = (await tx.table("photos").toArray()) as PhotoRecord[];
+        const existingPhotoIds = new Set(photos.map((p) => p.id));
+        // Drop slots that reference a missing photo to avoid dangling pointers.
         const migrated = slots.flatMap(({ minuteOfDay, bestPhotoId }) =>
-          bestPhotoId ? [{ minuteOfDay, photoId: bestPhotoId }] : [],
+          bestPhotoId && existingPhotoIds.has(bestPhotoId)
+            ? [{ minuteOfDay, photoId: bestPhotoId }]
+            : [],
         );
         const retainedPhotoIds = new Set(migrated.map((slot) => slot.photoId));
-        const photos = (await tx.table("photos").toArray()) as PhotoRecord[];
 
         await tx.table("slots").clear();
         await tx.table("slots").bulkPut(migrated);

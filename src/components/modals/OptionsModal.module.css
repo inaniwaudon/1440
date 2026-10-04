@@ -14,15 +14,6 @@
   backdrop-filter: blur(8px);
 }
 
-.storageRow {
-  min-height: 56px;
-  padding: 4px 8px;
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 12px;
-}
-
 .storageTitle,
 .storageDetail {
   display: block;
@@ -80,6 +71,11 @@
 .switchInput:focus-visible + .switch {
   outline: 2px solid var(--white);
   outline-offset: 3px;
+}
+
+.switchInput:disabled + .switch {
+  opacity: 0.5;
+  cursor: not-allowed;
 }
 
 .error {

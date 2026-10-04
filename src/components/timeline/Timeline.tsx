@@ -139,13 +139,12 @@ export function Timeline({
   const thumbnails = useLiveQuery(
     async () => {
       const slots = await db.slots.filter((s) => !!s.photoId).toArray();
+      const photos = await db.photos.bulkGet(slots.map((s) => s.photoId));
       const map = new Map<number, PhotoRecord>();
-      await Promise.all(
-        slots.map(async (slot) => {
-          const photo = await db.photos.get(slot.photoId);
-          if (photo) map.set(slot.minuteOfDay, photo);
-        }),
-      );
+      slots.forEach((slot, i) => {
+        const photo = photos[i];
+        if (photo) map.set(slot.minuteOfDay, photo);
+      });
       return map;
     },
     [],

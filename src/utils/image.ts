@@ -9,7 +9,7 @@ async function resizeToBlob(
     // Not supported in all environments — fall back without it.
     bitmap = await createImageBitmap(file, {
       imageOrientation: "from-image",
-    } as ImageBitmapOptions);
+    });
   } catch {
     bitmap = await createImageBitmap(file);
   }
