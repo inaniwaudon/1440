@@ -54,14 +54,19 @@ export function ImportProgressOverlay({ progress, result, onClose }: Props) {
       ) : (
         <>
           <p className={styles.counter}>
-            Imported: {result.succeeded}
-            {result.skipped > 0 && (
-              <span>&nbsp; Skipped: {result.skipped}</span>
-            )}
-            {result.failed > 0 && (
-              <span className={styles.failed}>
-                &nbsp; Failed: {result.failed}
-              </span>
+            {result.succeeded} 枚を取り込み
+            {(result.skipped > 0 || result.failed > 0) && (
+              <>
+                <br />
+                （
+                {[
+                  result.skipped > 0 && `スキップ ${result.skipped} 枚`,
+                  result.failed > 0 && `エラー ${result.failed} 枚`,
+                ]
+                  .filter(Boolean)
+                  .join("、")}
+                ）
+              </>
             )}
           </p>
           {result.errors.length > 0 && (

@@ -13,7 +13,7 @@
   background-position: center;
   position: relative;
   overflow: hidden;
-  transition: background-color 0.1s;
+  transition: background-color 100ms;
 }
 
 .cell:active {

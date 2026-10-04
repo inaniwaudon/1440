@@ -1,5 +1,5 @@
 import { useLiveQuery } from "dexie-react-hooks";
-import { MdHelpOutline } from "react-icons/md";
+import { MdArrowForward, MdHelpOutline } from "react-icons/md";
 import { db } from "../../db/db";
 import styles from "./HelpModal.module.css";
 import { Modal, modalStyles } from "./Modal";
@@ -42,6 +42,17 @@ export function HelpModal({ open, onClose }: Props) {
             <li>開発：いなにわうどん（@kyoto_inaniwa）</li>
             <li>原案：椎名（@s7tya）</li>
           </ul>
+          <p>
+            <a
+              href="https://zenn.dev/inaniwaudon/articles/810235c935299c"
+              target="_blank"
+              rel="noopener"
+              className={styles.link}
+            >
+              <MdArrowForward aria-hidden="true" />
+              紹介記事を読む
+            </a>
+          </p>
         </section>
 
         <section>

@@ -22,7 +22,7 @@
   height: 100%;
   background: var(--accent);
   border-radius: 3px;
-  transition: width 0.2s linear;
+  transition: width 200ms linear;
 }
 
 .fileName {

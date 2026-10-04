@@ -28,12 +28,40 @@
 }
 
 .guide p + p,
-.guide p + ul {
+.guide p + ul,
+.guide ul + p {
   margin-top: 8px;
 }
 
 .guide li + li {
   margin-top: 6px;
+}
+
+.guide a {
+  color: inherit;
+  text-underline-offset: 4px;
+}
+
+.link {
+  display: inline-flex;
+  gap: 6px;
+  align-items: center;
+  text-decoration: none;
+}
+
+.link svg {
+  box-sizing: content-box;
+  padding: 3px;
+  border: 1px solid currentColor;
+  border-radius: 50%;
+  transition:
+    color 200ms,
+    background-color 200ms;
+}
+
+.link:hover svg {
+  color: #000;
+  background-color: #fff;
 }
 
 .closeButton {

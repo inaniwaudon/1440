@@ -218,7 +218,7 @@ export function Timeline({
     (
       exact ?? (nearestHour === null ? null : blockRefs.current[nearestHour])
     )?.scrollIntoView({
-      behavior: "smooth",
+      behavior: "auto",
       block: "start",
     });
   };

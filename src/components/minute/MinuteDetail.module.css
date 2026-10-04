@@ -6,7 +6,7 @@
   display: flex;
   align-items: center;
   justify-content: center;
-  padding: max(20px, env(safe-area-inset-top)) 20px
+  padding: max(20px, env(safe-area-inset-top)) 0
     max(20px, env(safe-area-inset-bottom));
   animation: fadeIn 220ms ease-out;
 }
@@ -119,14 +119,14 @@
 .mediaFrame {
   position: relative;
   display: flex;
-  max-width: 100%;
+  max-width: calc(100% - 40px);
   max-height: 100%;
   overflow: clip;
 }
 
 .mediaFrame[style*="aspect-ratio"] {
-  width: min(100cqw, calc(100cqh * var(--ar)));
-  height: min(100cqh, calc(100cqw / var(--ar)));
+  width: min(calc(100cqw - 40px), calc(100cqh * var(--ar)));
+  height: min(100cqh, calc((100cqw - 40px) / var(--ar)));
 }
 
 .previewImg {

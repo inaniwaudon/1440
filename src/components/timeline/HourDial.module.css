@@ -84,7 +84,7 @@
   right: calc(var(--dial-size) / -2 - 58px);
   transform: translateY(-50%);
   transform-origin: 50% 50%;
-  animation: dialOpen 0.2s cubic-bezier(0.2, 0.8, 0.3, 1);
+  animation: dialOpen 200ms cubic-bezier(0.2, 0.8, 0.3, 1);
 }
 
 @keyframes dialOpen {
