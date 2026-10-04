@@ -55,6 +55,8 @@ export async function* generateEntries(
       mimeType: photo.mimeType,
       originalWidth: photo.originalWidth,
       originalHeight: photo.originalHeight,
+      hasDetectedFace: photo.hasDetectedFace,
+      blurOverride: photo.blurOverride,
       importedAt: photo.importedAt,
       capturedAtSource: photo.capturedAtSource,
       thumbnail: thumbnailPath,

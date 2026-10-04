@@ -1,7 +1,8 @@
 import { useLiveQuery } from "dexie-react-hooks";
+import type { CSSProperties } from "react";
 import { useEffect, useRef, useState } from "react";
 import { flushSync } from "react-dom";
-import { MdDeleteOutline } from "react-icons/md";
+import { MdBlurOn, MdDeleteOutline } from "react-icons/md";
 import { db } from "../../db/db";
 import type { PhotoRecord } from "../../db/types";
 import { useBodyScrollLock } from "../../hooks/useBodyScrollLock";
@@ -31,32 +32,64 @@ function PhotoPreview({
   blurImages: boolean;
 }) {
   const [url, setUrl] = useState<string | null>(null);
+  const [aspectRatio, setAspectRatio] = useState<number | null>(null);
+  const videoRef = useRef<HTMLVideoElement>(null);
   const isVideo = photo.mimeType?.startsWith("video/") && !!photo.videoBlob;
+  const shouldBlur = photo.blurOverride ?? photo.hasDetectedFace === true;
+  const mediaBlob = isVideo
+    ? // biome-ignore lint/style/noNonNullAssertion: isVideo guards videoBlob
+      photo.videoBlob!
+    : (photo.previewBlob ?? photo.thumbnailBlob);
+  const mediaBlobRef = useRef(mediaBlob);
+  mediaBlobRef.current = mediaBlob;
+  const mediaKey = `${photo.id}:${isVideo ? "video" : "image"}`;
 
   useEffect(() => {
-    const blob = isVideo
-      ? // biome-ignore lint/style/noNonNullAssertion: isVideo guards videoBlob
-        photo.videoBlob!
-      : (photo.previewBlob ?? photo.thumbnailBlob);
-    const u = URL.createObjectURL(blob);
+    // Metadata updates can rematerialize the same IndexedDB Blob as a new
+    // object. Keep its URL stable unless the actual media identity changes.
+    if (!mediaKey) return;
+    const u = URL.createObjectURL(mediaBlobRef.current);
     setUrl(u);
+    setAspectRatio(null);
     return () => URL.revokeObjectURL(u);
-  }, [isVideo, photo.videoBlob, photo.previewBlob, photo.thumbnailBlob]);
+  }, [mediaKey]);
+
+  useEffect(() => {
+    const video = videoRef.current;
+    if (!isVideo || !video) return;
+    if (active) {
+      const p = video.play();
+      if (p && typeof p.catch === "function") p.catch(() => undefined);
+    } else {
+      video.pause();
+      video.currentTime = 0;
+    }
+  }, [active, isVideo, url]);
 
   if (!url) return null;
   const capturedDate = formatCapturedDate(photo.capturedAt);
+  const frameStyle = aspectRatio
+    ? ({ aspectRatio: String(aspectRatio) } as CSSProperties)
+    : undefined;
 
   return (
-    <div className={styles.mediaFrame}>
+    <div className={styles.mediaFrame} style={frameStyle}>
       {isVideo ? (
         <video
+          ref={videoRef}
           src={url}
           autoPlay={active}
           loop
           muted
           playsInline
           preload="auto"
-          className={`${styles.previewImg} ${blurImages ? styles.blurred : ""}`}
+          className={`${styles.previewImg} ${blurImages && shouldBlur ? styles.blurred : ""}`}
+          onLoadedMetadata={(e) => {
+            const v = e.currentTarget;
+            if (v.videoWidth && v.videoHeight) {
+              setAspectRatio(v.videoWidth / v.videoHeight);
+            }
+          }}
         />
       ) : (
         <FaceBlurImage
@@ -65,6 +98,10 @@ function PhotoPreview({
           className={styles.previewImg}
           fallbackBlurClassName={styles.blurred}
           enabled={blurImages}
+          photo={photo}
+          onNaturalSize={(w, h) => {
+            if (w && h) setAspectRatio(w / h);
+          }}
         />
       )}
       {capturedDate && (
@@ -192,6 +229,13 @@ export function MinuteDetail({
       }
     });
     onClose();
+  };
+
+  const handleBlurToggle = async () => {
+    if (!photo) return;
+    const currentlyBlurred =
+      photo.blurOverride ?? photo.hasDetectedFace === true;
+    await db.photos.update(photo.id, { blurOverride: !currentlyBlurred });
   };
 
   return (
@@ -386,6 +430,19 @@ export function MinuteDetail({
               ))}
             </div>
           </div>
+          {hasPhoto && blurImages && (
+            <button
+              type="button"
+              className={`${styles.blurBtn} ${(photo.blurOverride ?? photo.hasDetectedFace === true) ? styles.blurBtnActive : ""}`}
+              onClick={handleBlurToggle}
+              aria-label="ぼかしを切り替える"
+              aria-pressed={
+                photo.blurOverride ?? photo.hasDetectedFace === true
+              }
+            >
+              <MdBlurOn aria-hidden="true" />
+            </button>
+          )}
           {hasPhoto && (
             <button
               type="button"

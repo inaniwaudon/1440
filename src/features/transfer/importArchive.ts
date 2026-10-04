@@ -210,6 +210,7 @@ export async function importArchive(
     }
     const thumbnail = ph.thumbnail;
     try {
+      const hasDetectedFace = ph.meta.hasDetectedFace ?? false;
       await db.transaction("rw", db.photos, db.slots, async () => {
         // Preserve any existing video on the same photo id so a later video
         // archive import can still attach, and so a re-import of only the
@@ -226,6 +227,8 @@ export async function importArchive(
           mimeType: ph.meta.mimeType,
           originalWidth: ph.meta.originalWidth,
           originalHeight: ph.meta.originalHeight,
+          hasDetectedFace,
+          blurOverride: ph.meta.blurOverride,
           importedAt: ph.meta.importedAt,
           capturedAtSource: ph.meta.capturedAtSource,
         };
@@ -437,6 +440,7 @@ export async function importVideoArchive(
 
       const meta = entry.photo;
       const slot = entry.slot;
+      const hasDetectedFace = meta.hasDetectedFace ?? false;
       const record: PhotoRecord = {
         id: meta.id,
         capturedAt: meta.capturedAt,
@@ -448,6 +452,8 @@ export async function importVideoArchive(
         mimeType: entry.mimeType ?? meta.mimeType,
         originalWidth: meta.originalWidth,
         originalHeight: meta.originalHeight,
+        hasDetectedFace,
+        blurOverride: meta.blurOverride,
         importedAt: meta.importedAt,
         capturedAtSource: meta.capturedAtSource,
       };

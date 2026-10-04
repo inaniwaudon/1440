@@ -26,3 +26,22 @@ export function getFaceDetector() {
 
   return detectorPromise;
 }
+
+export async function detectFaceInBlob(blob: Blob): Promise<boolean> {
+  const bitmap = await createImageBitmap(blob);
+  try {
+    const detector = await getFaceDetector();
+    return detector.detect(bitmap).detections.length > 0;
+  } finally {
+    bitmap.close();
+  }
+}
+
+export async function shouldBlurForFaces(blob: Blob): Promise<boolean> {
+  try {
+    return await detectFaceInBlob(blob);
+  } catch {
+    // A failed one-time check must not expose a face by accident.
+    return true;
+  }
+}

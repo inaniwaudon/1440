@@ -7,6 +7,7 @@ import {
 } from "../../utils/image";
 import { getMinuteOfDayFromDate } from "../../utils/time";
 import { compressVideo } from "../../utils/video";
+import { shouldBlurForFaces } from "../privacy/faceDetector";
 import { parsePhotoMetadata } from "./parsePhotoMetadata";
 
 export type ImportProgress = {
@@ -84,6 +85,7 @@ async function savePhoto(
     Array.from(crypto.getRandomValues(new Uint8Array(16)), (b) =>
       b.toString(16).padStart(2, "0"),
     ).join("");
+  const hasDetectedFace = await shouldBlurForFaces(thumbnailBlob);
   const record: PhotoRecord = {
     id,
     capturedAt: meta.capturedAt,
@@ -95,6 +97,7 @@ async function savePhoto(
     mimeType: isVideo
       ? videoBlob?.type || file.type || "video/*"
       : previewBlob?.type || "image/webp",
+    hasDetectedFace,
     importedAt: new Date().toISOString(),
     capturedAtSource: meta.capturedAtSource,
   };

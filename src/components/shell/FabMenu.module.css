@@ -26,7 +26,7 @@
   display: flex;
   align-items: center;
   justify-content: center;
-  box-shadow: var(--shadow-accent-button);
+  box-shadow: var(--shadow-accent);
   transition:
     transform 0.18s,
     background 0.18s,
@@ -67,13 +67,13 @@
   font-size: 15px;
   font-weight: 700;
   cursor: pointer;
-  box-shadow: var(--shadow-accent-item);
+  box-shadow: var(--shadow-accent);
   animation: popIn 0.2s cubic-bezier(0.34, 1.56, 0.64, 1) forwards;
 }
 
 .fabOpen {
   background: var(--glass-dark);
-  box-shadow: var(--shadow-accent-ring);
+  outline: 8px solid var(--accent-ring);
   transform: scale(1.08);
 }
 

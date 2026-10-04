@@ -115,6 +115,12 @@
   max-width: 90vw;
   max-height: 100%;
   overflow: hidden;
+  overflow: clip;
+}
+
+.mediaFrame[style*="aspect-ratio"] {
+  height: 100%;
+  width: auto;
 }
 
 .previewImg {
@@ -124,6 +130,11 @@
   max-height: 100%;
   object-fit: contain;
   display: block;
+}
+
+.mediaFrame[style*="aspect-ratio"] > .previewImg {
+  width: 100%;
+  height: 100%;
 }
 
 .previewImg.blurred {
@@ -136,9 +147,9 @@
   font-size: 13px;
 }
 
-.deleteBtn {
+.deleteBtn,
+.blurBtn {
   position: fixed;
-  right: 20px;
   bottom: max(24px, env(safe-area-inset-bottom));
   z-index: 2;
   width: 56px;
@@ -146,7 +157,6 @@
   padding: 0;
   border: none;
   border-radius: 50%;
-  background: var(--danger);
   color: var(--white);
   font-size: 26px;
   cursor: pointer;
@@ -154,13 +164,32 @@
   display: flex;
   align-items: center;
   justify-content: center;
-  box-shadow: var(--shadow-action);
+  box-shadow: var(--shadow-lg);
+  opacity: 0.72;
   transition:
     transform 120ms ease,
     background 120ms ease;
 }
 
-.deleteBtn:active {
+.deleteBtn {
+  right: 20px;
+  background: var(--danger);
+}
+
+.blurBtn {
+  right: 88px;
+  background: var(--black);
+}
+
+.blurBtnActive {
+  background: var(--accent);
+}
+
+.deleteBtn:active,
+.blurBtn:active {
   transform: scale(0.92);
+}
+
+.deleteBtn:active {
   background: var(--danger);
 }

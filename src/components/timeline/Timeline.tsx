@@ -10,6 +10,7 @@ import {
 } from "react";
 import { flushSync } from "react-dom";
 import { db } from "../../db/db";
+import type { PhotoRecord } from "../../db/types";
 import { getMinuteOfDayFromDate, toMinuteOfDay } from "../../utils/time";
 import { FaceBlurImage } from "../media/FaceBlurImage";
 import { HourDial } from "./HourDial";
@@ -138,39 +139,41 @@ export function Timeline({
   const thumbnails = useLiveQuery(
     async () => {
       const slots = await db.slots.filter((s) => !!s.photoId).toArray();
-      const map = new Map<number, Blob>();
+      const map = new Map<number, PhotoRecord>();
       await Promise.all(
         slots.map(async (slot) => {
           const photo = await db.photos.get(slot.photoId);
-          if (photo) map.set(slot.minuteOfDay, photo.thumbnailBlob);
+          if (photo) map.set(slot.minuteOfDay, photo);
         }),
       );
       return map;
     },
     [],
-    new Map<number, Blob>(),
+    new Map<number, PhotoRecord>(),
   );
 
-  const [thumbs, setThumbs] = useState(new Map<number, string>());
-  const blobUrlCache = useRef(new Map<Blob, string>());
+  const [thumbs, setThumbs] = useState(
+    new Map<number, { url: string; photo: PhotoRecord }>(),
+  );
+  const blobUrlCache = useRef(new Map<string, string>());
   useEffect(() => {
     const cache = blobUrlCache.current;
-    const nextThumbs = new Map<number, string>();
-    const retained = new Set<Blob>();
-    thumbnails.forEach((blob, min) => {
-      retained.add(blob);
-      let url = cache.get(blob);
+    const nextThumbs = new Map<number, { url: string; photo: PhotoRecord }>();
+    const retained = new Set<string>();
+    thumbnails.forEach((photo, min) => {
+      retained.add(photo.id);
+      let url = cache.get(photo.id);
       if (!url) {
-        url = URL.createObjectURL(blob);
-        cache.set(blob, url);
+        url = URL.createObjectURL(photo.thumbnailBlob);
+        cache.set(photo.id, url);
       }
-      nextThumbs.set(min, url);
+      nextThumbs.set(min, { url, photo });
     });
     setThumbs(nextThumbs);
-    cache.forEach((url, blob) => {
-      if (!retained.has(blob)) {
+    cache.forEach((url, photoId) => {
+      if (!retained.has(photoId)) {
         URL.revokeObjectURL(url);
-        cache.delete(blob);
+        cache.delete(photoId);
       }
     });
   }, [thumbnails]);
@@ -349,11 +352,12 @@ export function Timeline({
                       >
                         {thumb && (
                           <FaceBlurImage
-                            src={thumb}
+                            src={thumb.url}
                             alt=""
                             className={styles.cellThumb}
                             fallbackBlurClassName={styles.blurred}
                             enabled={blurImages}
+                            photo={thumb.photo}
                           />
                         )}
                         <span className={styles.cellLabel}>

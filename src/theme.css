@@ -46,13 +46,9 @@
   --accent-glass-dark: rgba(26, 58, 96, 0.78);
 
   /* Box shadows */
-  --shadow-control: 0 1px 4px var(--scrim-50);
-  --shadow-floating: 0 2px 16px var(--scrim-50);
-  --shadow-preview: 0 2px 24px var(--scrim-50);
-  --shadow-action: 0 6px 24px var(--scrim-50);
+  --shadow-sm: 0 1px 4px var(--scrim-50);
+  --shadow-md: 0 2px 16px var(--scrim-50);
+  --shadow-lg: 0 4px 24px var(--scrim-50);
+  --shadow-accent: 0 4px 16px var(--accent-glow);
   --shadow-modal: 0 0 0 100vmax var(--scrim-70), 0 2px 32px var(--scrim-50);
-  --shadow-accent-button: 0 4px 16px var(--accent-glow);
-  --shadow-accent-item: 0 4px 18px var(--accent-glow);
-  --shadow-accent-ring: 0 0 0 8px var(--accent-ring);
-  --shadow-dial-handle: 0 0 0 2px var(--accent-bg-filled);
 }

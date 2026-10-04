@@ -52,18 +52,6 @@ async function sharePhaseFile(file: File) {
   }
 }
 
-async function sharePhaseFiles(files: File[]) {
-  if (files.length === 0) return;
-  if (navigator.canShare?.({ files })) {
-    try {
-      await navigator.share({ files, title: `${files.length} archives` });
-    } catch (err) {
-      if (err instanceof DOMException && err.name === "AbortError") return;
-      throw err;
-    }
-  }
-}
-
 export function TransferProgressOverlay({ phase, onClose }: Props) {
   if (!phase) return null;
 
@@ -122,33 +110,6 @@ export function TransferProgressOverlay({ phase, onClose }: Props) {
 
       {phase.kind === "export-done" && (
         <>
-          {phase.files.length > 1 &&
-            (() => {
-              const shareFiles = phase.files
-                .map((f) => f.file.shareFile)
-                .filter((f): f is File => !!f);
-              const canShareAll =
-                shareFiles.length === phase.files.length &&
-                !!navigator.canShare?.({ files: shareFiles });
-              if (!canShareAll) return null;
-              return (
-                <button
-                  type="button"
-                  className={modalStyles.primaryButton}
-                  style={{
-                    display: "inline-flex",
-                    alignItems: "center",
-                    justifyContent: "center",
-                    gap: 8,
-                    marginBottom: 4,
-                  }}
-                  onClick={() => sharePhaseFiles(shareFiles)}
-                >
-                  <MdShare aria-hidden="true" />
-                  まとめて共有（{shareFiles.length} 件）
-                </button>
-              );
-            })()}
           {phase.files.map(({ file, download }) => {
             const canShare = file.shareFile
               ? !!navigator.canShare?.({ files: [file.shareFile] })

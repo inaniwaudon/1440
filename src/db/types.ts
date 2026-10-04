@@ -11,6 +11,8 @@ export type PhotoRecord = {
   mimeType?: string;
   originalWidth?: number;
   originalHeight?: number;
+  hasDetectedFace?: boolean;
+  blurOverride?: boolean;
   importedAt: string;
   capturedAtSource:
     | "DateTimeOriginal"
