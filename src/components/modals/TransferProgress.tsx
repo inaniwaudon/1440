@@ -31,14 +31,31 @@ type Props = {
   onClose: () => void;
 };
 
+function downloadFile(file: File) {
+  const url = URL.createObjectURL(file);
+  const a = document.createElement("a");
+  a.href = url;
+  a.download = file.name;
+  document.body.appendChild(a);
+  a.click();
+  a.remove();
+  setTimeout(() => URL.revokeObjectURL(url), 10000);
+}
+
 async function sharePhaseFile(file: File) {
-  if (navigator.canShare?.({ files: [file] })) {
-    try {
-      await navigator.share({ files: [file], title: file.name });
-    } catch (err) {
-      if (err instanceof DOMException && err.name === "AbortError") return;
-      throw err;
-    }
+  const canShare =
+    typeof navigator.share === "function" &&
+    (navigator.canShare?.({ files: [file] }) ?? true);
+  if (!canShare) {
+    downloadFile(file);
+    return;
+  }
+  try {
+    await navigator.share({ files: [file], title: file.name });
+  } catch (err) {
+    if (err instanceof DOMException && err.name === "AbortError") return;
+    // PWA standalone 等で share が失敗するケースのフォールバック
+    downloadFile(file);
   }
 }
 

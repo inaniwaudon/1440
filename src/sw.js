@@ -52,6 +52,13 @@ function isHashedAsset(url) {
   return /\/assets\/.+-[A-Za-z0-9_-]{8,}\.[A-Za-z0-9]+$/.test(url.pathname);
 }
 
+function isRuntimeCacheable(url) {
+  return (
+    url.pathname.startsWith("/mediapipe/") ||
+    url.pathname.startsWith("/models/")
+  );
+}
+
 async function cacheFirst(request) {
   const cached = await caches.match(request);
   if (cached) return cached;
@@ -97,7 +104,11 @@ self.addEventListener("fetch", (event) => {
     return;
   }
 
-  if (isHashedAsset(url) || precachedKeys.has(url.href)) {
+  if (
+    isHashedAsset(url) ||
+    precachedKeys.has(url.href) ||
+    isRuntimeCacheable(url)
+  ) {
     event.respondWith(cacheFirst(request).catch(() => Response.error()));
     return;
   }
