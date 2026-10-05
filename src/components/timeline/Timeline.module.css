@@ -84,7 +84,7 @@
 }
 
 .cellThumb.blurred {
-  filter: blur(4px);
+  filter: blur(0.5vw);
   transform: scale(1.12);
 }
 
