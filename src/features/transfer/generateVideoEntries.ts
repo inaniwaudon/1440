@@ -7,9 +7,10 @@ import {
 } from "./archive";
 import type { ExportProgress, ZipEntry } from "./generateEntries";
 
+// ジェネレータ関数はアロー関数で表現できないため function 宣言を使用する
 export async function* generateVideoEntries(
   photoIds: string[],
-  onProgress: (p: ExportProgress) => void,
+  onProgress: (progress: ExportProgress) => void,
 ): AsyncGenerator<ZipEntry> {
   const now = new Date();
   const entries: VideoArchiveEntry[] = [];

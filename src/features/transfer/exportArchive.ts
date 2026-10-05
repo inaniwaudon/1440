@@ -23,7 +23,7 @@ export type ExportDestination =
   | { kind: "files"; files: ExportedFile[] }
   | { kind: "saved" };
 
-function timestamp(): string {
+const timestamp = (): string => {
   const now = new Date();
   const yyyy = now.getFullYear();
   const mm = String(now.getMonth() + 1).padStart(2, "0");
@@ -31,46 +31,56 @@ function timestamp(): string {
   const hh = String(now.getHours()).padStart(2, "0");
   const mi = String(now.getMinutes()).padStart(2, "0");
   return `${yyyy}${mm}${dd}-${hh}${mi}`;
-}
+};
 
-export function suggestedArchiveName(): string {
+export const suggestedArchiveName = (): string => {
   return `1440-${timestamp()}.zip`;
-}
+};
 
 // モバイル端末での保存・共有を容易にするため、各アーカイブのサイズを一定以下に保つ。
 // 非圧縮時の Blob サイズを基準にすることで、ZIP サイズの保守的な見積もりとなる。
 export const ARCHIVE_SIZE_LIMIT = 250 * 1024 * 1024;
 
-function chunkArchiveName(
+const chunkArchiveName = (
   stamp: string,
   part: number,
   totalParts: number,
-): string {
-  if (totalParts === 1) return `1440-${stamp}.zip`;
+): string => {
+  if (totalParts === 1) {
+    return `1440-${stamp}.zip`;
+  }
   const padded = String(part).padStart(2, "0");
   return `1440-${stamp}-${padded}.zip`;
-}
+};
 
-function videoArchiveName(
+const videoArchiveName = (
   stamp: string,
   part: number,
   totalParts: number,
-): string {
-  if (totalParts === 1) return `1440-${stamp}-video.zip`;
+): string => {
+  if (totalParts === 1) {
+    return `1440-${stamp}-video.zip`;
+  }
   const width = Math.max(2, String(totalParts).length);
   return `1440-${stamp}-video-${String(part).padStart(width, "0")}.zip`;
-}
+};
 
-async function cleanupOpfsExports(keep?: Set<string>): Promise<void> {
+const cleanupOpfsExports = async (keep?: Set<string>): Promise<void> => {
   try {
     const root = await navigator.storage?.getDirectory?.();
-    if (!root) return;
+    if (!root) {
+      return;
+    }
     const iterable = root as unknown as {
       entries: () => AsyncIterable<[string, unknown]>;
     };
     for await (const [name] of iterable.entries()) {
-      if (typeof name !== "string") continue;
-      if (keep?.has(name)) continue;
+      if (typeof name !== "string") {
+        continue;
+      }
+      if (keep?.has(name)) {
+        continue;
+      }
       if (name.startsWith("1440-") && name.endsWith(".zip")) {
         await root.removeEntry(name).catch(() => {});
       }
@@ -81,16 +91,16 @@ async function cleanupOpfsExports(keep?: Set<string>): Promise<void> {
   } catch {
     // 無視
   }
-}
+};
 
-export async function cleanupExportedArchive(): Promise<void> {
+export const cleanupExportedArchive = async (): Promise<void> => {
   await cleanupOpfsExports();
-}
+};
 
-async function runExportInWorker(
+const runExportInWorker = async (
   msg: ExportWorkerInMsg,
   onProgress: (current: number, total: number) => void,
-): Promise<void> {
+): Promise<void> => {
   const worker = new Worker(new URL("./exportWorker.ts", import.meta.url), {
     type: "module",
   });
@@ -112,25 +122,27 @@ async function runExportInWorker(
   } finally {
     worker.terminate();
   }
-}
+};
 
-async function readOpfsFile(filename: string): Promise<File> {
+const readOpfsFile = async (filename: string): Promise<File> => {
   const root = await navigator.storage.getDirectory();
   const handle = await root.getFileHandle(filename);
   return await handle.getFile();
-}
+};
 
-async function chunkPhotoIdsBySize(
+const chunkPhotoIdsBySize = async (
   photoIds: string[],
   kind: "main" | "video",
-): Promise<string[][]> {
+): Promise<string[][]> => {
   const chunks: string[][] = [];
   let current: string[] = [];
   let currentSize = 0;
 
   for (const id of photoIds) {
     const photo = await db.photos.get(id);
-    if (!photo || (kind === "video" && !photo.videoBlob)) continue;
+    if (!photo || (kind === "video" && !photo.videoBlob)) {
+      continue;
+    }
     const size =
       photo.thumbnailBlob.size +
       (photo.previewBlob?.size ?? 0) +
@@ -143,22 +155,25 @@ async function chunkPhotoIdsBySize(
     current.push(id);
     currentSize += size;
   }
-  if (current.length > 0) chunks.push(current);
+  if (current.length > 0) {
+    chunks.push(current);
+  }
   return chunks;
-}
+};
 
-export async function exportArchive(
-  onProgress: (p: ExportProgress) => void,
-): Promise<ExportDestination> {
+export const exportArchive = async (
+  onProgress: (progress: ExportProgress) => void,
+): Promise<ExportDestination> => {
   const stamp = timestamp();
 
   const allPhotoIds = (await db.photos
     .toCollection()
     .primaryKeys()) as string[];
-  if (allPhotoIds.length === 0)
+  if (allPhotoIds.length === 0) {
     throw new Error("エクスポートするデータがありません");
+  }
   const allSlots = await db.slots.orderBy("minuteOfDay").toArray();
-  const slotByPhotoId = new Map(allSlots.map((s) => [s.photoId, s]));
+  const slotByPhotoId = new Map(allSlots.map((slot) => [slot.photoId, slot]));
 
   const chunks = await chunkPhotoIdsBySize(allPhotoIds, "main");
   const videoChunks = await chunkPhotoIdsBySize(allPhotoIds, "video");
@@ -173,7 +188,7 @@ export async function exportArchive(
   const chunkSlots = chunks.map((ids) =>
     ids
       .map((id) => slotByPhotoId.get(id))
-      .filter((s): s is NonNullable<typeof s> => !!s),
+      .filter((slot): slot is NonNullable<typeof slot> => !!slot),
   );
 
   // File System Access API に対応するデスクトップ環境では、各保存先を選択してストリーム書き込みする
@@ -202,18 +217,19 @@ export async function exportArchive(
           ],
         });
         const response = downloadZip(
-          generateEntries(chunks[i], chunkSlots[i], (p) =>
+          generateEntries(chunks[i], chunkSlots[i], (progress) =>
             onProgress({
               step: i + 1,
               totalSteps,
               label: "写真",
-              current: p.current,
-              total: p.total,
+              current: progress.current,
+              total: progress.total,
             }),
           ),
         );
-        if (!response.body)
+        if (!response.body) {
           throw new Error("ZIP ストリームを作成できませんでした");
+        }
         const writable = await handle.createWritable();
         await response.body.pipeTo(writable);
       }
@@ -228,24 +244,27 @@ export async function exportArchive(
           ],
         });
         const response = downloadZip(
-          generateVideoEntries(videoChunks[i], (p) =>
+          generateVideoEntries(videoChunks[i], (progress) =>
             onProgress({
               step: chunks.length + i + 1,
               totalSteps,
               label: "動画",
-              current: p.current,
-              total: p.total,
+              current: progress.current,
+              total: progress.total,
             }),
           ),
         );
-        if (!response.body)
+        if (!response.body) {
           throw new Error("ZIP ストリームを作成できませんでした");
+        }
         const writable = await handle.createWritable();
         await response.body.pipeTo(writable);
       }
       return { kind: "saved" };
     } catch (err) {
-      if (err instanceof DOMException && err.name === "AbortError") throw err;
+      if (err instanceof DOMException && err.name === "AbortError") {
+        throw err;
+      }
     }
   }
 
@@ -302,7 +321,7 @@ export async function exportArchive(
         }
         // 次の Worker を起動する前にブラウザに一息入れさせる。
         // iOS Safari は OPFS をフラッシュするためにイベントループを 1 ターン要することがある。
-        await new Promise((r) => setTimeout(r, 50));
+        await new Promise((resolve) => setTimeout(resolve, 50));
       }
       for (let i = 0; i < videoChunks.length; i++) {
         try {
@@ -336,7 +355,7 @@ export async function exportArchive(
             }`,
           );
         }
-        await new Promise((r) => setTimeout(r, 50));
+        await new Promise((resolve) => setTimeout(resolve, 50));
       }
       return { kind: "files", files };
     } catch (err) {
@@ -351,13 +370,13 @@ export async function exportArchive(
   const files: ExportedFile[] = [];
   for (let i = 0; i < chunks.length; i++) {
     const response = downloadZip(
-      generateEntries(chunks[i], chunkSlots[i], (p) =>
+      generateEntries(chunks[i], chunkSlots[i], (progress) =>
         onProgress({
           step: i + 1,
           totalSteps,
           label: "写真",
-          current: p.current,
-          total: p.total,
+          current: progress.current,
+          total: progress.total,
         }),
       ),
     );
@@ -371,17 +390,17 @@ export async function exportArchive(
       shareFile,
       kind: "main",
     });
-    await new Promise((r) => setTimeout(r, 50));
+    await new Promise((resolve) => setTimeout(resolve, 50));
   }
   for (let i = 0; i < videoChunks.length; i++) {
     const response = downloadZip(
-      generateVideoEntries(videoChunks[i], (p) =>
+      generateVideoEntries(videoChunks[i], (progress) =>
         onProgress({
           step: chunks.length + i + 1,
           totalSteps,
           label: "動画",
-          current: p.current,
-          total: p.total,
+          current: progress.current,
+          total: progress.total,
         }),
       ),
     );
@@ -395,7 +414,7 @@ export async function exportArchive(
       shareFile,
       kind: "video",
     });
-    await new Promise((r) => setTimeout(r, 50));
+    await new Promise((resolve) => setTimeout(resolve, 50));
   }
   return { kind: "files", files };
-}
+};

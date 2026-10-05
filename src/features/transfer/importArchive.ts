@@ -51,15 +51,17 @@ const METADATA_FILES = new Set([
   "video-manifest.json",
 ]);
 
-function asFile(entry: Entry): FileEntry {
-  if (entry.directory) throw new Error("ZIP エントリを読み込めませんでした");
+const asFile = (entry: Entry): FileEntry => {
+  if (entry.directory) {
+    throw new Error("ZIP エントリを読み込めませんでした");
+  }
   return entry as FileEntry;
-}
+};
 
-async function readJsonEntry<T>(
+const readJsonEntry = async <T>(
   entry: Entry,
   validate: (value: unknown) => value is T,
-): Promise<T> {
+): Promise<T> => {
   const text = await asFile(entry).getData(new TextWriter());
   let parsed: unknown;
   try {
@@ -71,74 +73,80 @@ async function readJsonEntry<T>(
     throw new Error(`${entry.filename} の形式が不正です`);
   }
   return parsed;
-}
+};
 
-function isObject(value: unknown): value is Record<string, unknown> {
+const isObject = (value: unknown): value is Record<string, unknown> => {
   return typeof value === "object" && value !== null && !Array.isArray(value);
-}
+};
 
-function isArchiveManifest(value: unknown): value is ArchiveManifest {
+const isArchiveManifest = (value: unknown): value is ArchiveManifest => {
   return (
     isObject(value) &&
     typeof value.version === "number" &&
     typeof value.exportedAt === "string" &&
     typeof value.photoCount === "number"
   );
-}
+};
 
-function isVideoArchiveManifest(value: unknown): value is VideoArchiveManifest {
+const isVideoArchiveManifest = (
+  value: unknown,
+): value is VideoArchiveManifest => {
   return (
     isObject(value) &&
     typeof value.version === "number" &&
     typeof value.exportedAt === "string" &&
     Array.isArray(value.videos) &&
     value.videos.every(
-      (v) =>
-        isObject(v) &&
-        typeof v.photoId === "string" &&
-        typeof v.path === "string",
+      (entry) =>
+        isObject(entry) &&
+        typeof entry.photoId === "string" &&
+        typeof entry.path === "string",
     )
   );
-}
+};
 
-function isArchivePhotoMetaArray(value: unknown): value is ArchivePhotoMeta[] {
+const isArchivePhotoMetaArray = (
+  value: unknown,
+): value is ArchivePhotoMeta[] => {
   return (
     Array.isArray(value) &&
     value.every(
-      (p) =>
-        isObject(p) &&
-        typeof p.id === "string" &&
-        typeof p.minuteOfDay === "number" &&
-        typeof p.thumbnail === "string",
+      (photo) =>
+        isObject(photo) &&
+        typeof photo.id === "string" &&
+        typeof photo.minuteOfDay === "number" &&
+        typeof photo.thumbnail === "string",
     )
   );
-}
+};
 
-function isSlotRecordArray(value: unknown): value is SlotRecord[] {
+const isSlotRecordArray = (value: unknown): value is SlotRecord[] => {
   return (
     Array.isArray(value) &&
     value.every(
-      (s) =>
-        isObject(s) &&
-        typeof s.minuteOfDay === "number" &&
-        typeof s.photoId === "string",
+      (slot) =>
+        isObject(slot) &&
+        typeof slot.minuteOfDay === "number" &&
+        typeof slot.photoId === "string",
     )
   );
-}
+};
 
-async function readBlobEntry(entry: Entry, type: string): Promise<Blob> {
+const readBlobEntry = async (entry: Entry, type: string): Promise<Blob> => {
   return await asFile(entry).getData(new BlobWriter(type));
-}
+};
 
-export async function readArchiveMetadata(
+export const readArchiveMetadata = async (
   file: File,
-): Promise<AnyArchiveSummary> {
+): Promise<AnyArchiveSummary> => {
   const reader = new ZipReader(new BlobReader(file));
   try {
     const entries = await reader.getEntries();
     const byName = new Map<string, Entry>();
     for (const entry of entries) {
-      if (METADATA_FILES.has(entry.filename)) byName.set(entry.filename, entry);
+      if (METADATA_FILES.has(entry.filename)) {
+        byName.set(entry.filename, entry);
+      }
     }
 
     const videoManifestEntry = byName.get("video-manifest.json");
@@ -175,13 +183,13 @@ export async function readArchiveMetadata(
   } finally {
     await reader.close();
   }
-}
+};
 
-export async function importArchive(
+export const importArchive = async (
   file: File,
   summary: ArchiveSummary,
-  onProgress: (p: ImportArchiveProgress) => void,
-): Promise<ImportArchiveResult> {
+  onProgress: (progress: ImportArchiveProgress) => void,
+): Promise<ImportArchiveResult> => {
   const result: ImportArchiveResult = {
     imported: 0,
     skipped: 0,
@@ -190,7 +198,9 @@ export async function importArchive(
   };
 
   const slotsByPhotoId = new Map<string, SlotRecord>();
-  for (const slot of summary.slots) slotsByPhotoId.set(slot.photoId, slot);
+  for (const slot of summary.slots) {
+    slotsByPhotoId.set(slot.photoId, slot);
+  }
 
   const total = summary.photos.length;
   onProgress({ current: 0, total, phase: "write" });
@@ -199,7 +209,9 @@ export async function importArchive(
   try {
     const entries = await reader.getEntries();
     const entryByName = new Map<string, Entry>();
-    for (const entry of entries) entryByName.set(entry.filename, entry);
+    for (const entry of entries) {
+      entryByName.set(entry.filename, entry);
+    }
 
     for (const meta of summary.photos) {
       const slot = slotsByPhotoId.get(meta.id);
@@ -215,7 +227,9 @@ export async function importArchive(
 
       try {
         const thumbnailEntry = entryByName.get(meta.thumbnail);
-        if (!thumbnailEntry) throw new Error("サムネイルが欠けています");
+        if (!thumbnailEntry) {
+          throw new Error("サムネイルが欠けています");
+        }
         // サムネイルやプレビューは、元写真の mimeType にかかわらず常に WebP であるため、
         // 例えば "video/mp4" を付与すると <img> の描画が破綻する
         const thumbnail = await readBlobEntry(thumbnailEntry, "image/webp");
@@ -223,8 +237,9 @@ export async function importArchive(
         let preview: Blob | undefined;
         if (meta.preview) {
           const previewEntry = entryByName.get(meta.preview);
-          if (previewEntry)
+          if (previewEntry) {
             preview = await readBlobEntry(previewEntry, "image/webp");
+          }
         }
 
         const hasDetectedFace = meta.hasDetectedFace ?? false;
@@ -283,13 +298,13 @@ export async function importArchive(
     phase: "write",
   });
   return result;
-}
+};
 
-export async function importVideoArchive(
+export const importVideoArchive = async (
   file: File,
   summary: VideoArchiveSummary,
-  onProgress: (p: ImportArchiveProgress) => void,
-): Promise<ImportArchiveResult> {
+  onProgress: (progress: ImportArchiveProgress) => void,
+): Promise<ImportArchiveResult> => {
   const result: ImportArchiveResult = {
     imported: 0,
     skipped: 0,
@@ -304,7 +319,9 @@ export async function importVideoArchive(
   try {
     const entries = await reader.getEntries();
     const entryByName = new Map<string, Entry>();
-    for (const entry of entries) entryByName.set(entry.filename, entry);
+    for (const entry of entries) {
+      entryByName.set(entry.filename, entry);
+    }
 
     for (const entry of summary.manifest.videos) {
       try {
@@ -332,15 +349,17 @@ export async function importVideoArchive(
     phase: "write",
   });
   return result;
-}
+};
 
-async function writeVideo(
+const writeVideo = async (
   entry: VideoArchiveEntry,
   entryByName: Map<string, Entry>,
   result: ImportArchiveResult,
-): Promise<void> {
+): Promise<void> => {
   const videoEntry = entryByName.get(entry.path);
-  if (!videoEntry) throw new Error("動画ファイルが欠けています");
+  if (!videoEntry) {
+    throw new Error("動画ファイルが欠けています");
+  }
   const videoType = entry.mimeType ?? "video/mp4";
   const video = await readBlobEntry(videoEntry, videoType);
 
@@ -366,13 +385,17 @@ async function writeVideo(
   const slot = entry.slot;
 
   const thumbnailEntry = entryByName.get(entry.photo.thumbnail);
-  if (!thumbnailEntry) throw new Error("サムネイルが欠けています");
+  if (!thumbnailEntry) {
+    throw new Error("サムネイルが欠けています");
+  }
   const thumbnail = await readBlobEntry(thumbnailEntry, "image/webp");
 
   let preview: Blob | undefined;
   if (entry.photo.preview) {
     const previewEntry = entryByName.get(entry.photo.preview);
-    if (previewEntry) preview = await readBlobEntry(previewEntry, "image/webp");
+    if (previewEntry) {
+      preview = await readBlobEntry(previewEntry, "image/webp");
+    }
   }
 
   const hasDetectedFace = meta.hasDetectedFace ?? false;
@@ -398,4 +421,4 @@ async function writeVideo(
     await db.slots.put(slot);
   });
   result.imported++;
-}
+};

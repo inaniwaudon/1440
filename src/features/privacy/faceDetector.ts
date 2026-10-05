@@ -2,7 +2,7 @@ import type { FaceDetector } from "@mediapipe/tasks-vision";
 
 let detectorPromise: Promise<FaceDetector> | null = null;
 
-export function getFaceDetector() {
+export const getFaceDetector = () => {
   if (!detectorPromise) {
     detectorPromise = import("@mediapipe/tasks-vision").then(
       async ({ FaceDetector, FilesetResolver }) => {
@@ -25,9 +25,9 @@ export function getFaceDetector() {
   }
 
   return detectorPromise;
-}
+};
 
-async function detectFaceInBlob(blob: Blob): Promise<boolean> {
+const detectFaceInBlob = async (blob: Blob): Promise<boolean> => {
   const bitmap = await createImageBitmap(blob);
   try {
     const detector = await getFaceDetector();
@@ -35,13 +35,13 @@ async function detectFaceInBlob(blob: Blob): Promise<boolean> {
   } finally {
     bitmap.close();
   }
-}
+};
 
-export async function shouldBlurForFaces(blob: Blob): Promise<boolean> {
+export const shouldBlurForFaces = async (blob: Blob): Promise<boolean> => {
   try {
     return await detectFaceInBlob(blob);
   } catch {
     // 一度きりのチェックが失敗した場合、誤って顔を露出させないようにする
     return true;
   }
-}
+};

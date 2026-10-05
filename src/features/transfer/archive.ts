@@ -34,11 +34,21 @@ export type VideoArchiveManifest = {
   videos: VideoArchiveEntry[];
 };
 
-export function videoExtension(mime?: string): string {
-  if (!mime) return "bin";
-  if (mime.includes("mp4")) return "mp4";
-  if (mime.includes("quicktime")) return "mov";
-  if (mime.includes("webm")) return "webm";
-  if (mime.includes("ogg")) return "ogv";
+export const videoExtension = (mime?: string): string => {
+  if (!mime) {
+    return "bin";
+  }
+  if (mime.includes("mp4")) {
+    return "mp4";
+  }
+  if (mime.includes("quicktime")) {
+    return "mov";
+  }
+  if (mime.includes("webm")) {
+    return "webm";
+  }
+  if (mime.includes("ogg")) {
+    return "ogv";
+  }
   return "bin";
-}
+};

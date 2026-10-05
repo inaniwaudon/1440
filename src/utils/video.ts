@@ -5,14 +5,16 @@ const BITRATE = 4_000_000;
 const DEFAULT_FPS = 30;
 const MAX_DURATION_SEC = 2;
 
-function isWebCodecsSupported(): boolean {
+const isWebCodecsSupported = (): boolean => {
   return (
     typeof VideoEncoder !== "undefined" && typeof VideoFrame !== "undefined"
   );
-}
+};
 
-export async function compressVideo(file: File): Promise<Blob> {
-  if (!isWebCodecsSupported()) return file;
+export const compressVideo = async (file: File): Promise<Blob> => {
+  if (!isWebCodecsSupported()) {
+    return file;
+  }
 
   const url = URL.createObjectURL(file);
   const video = document.createElement("video");
@@ -199,4 +201,4 @@ export async function compressVideo(file: File): Promise<Blob> {
     video.load();
     URL.revokeObjectURL(url);
   }
-}
+};

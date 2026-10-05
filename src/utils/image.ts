@@ -1,8 +1,8 @@
-async function resizeToBlob(
+const resizeToBlob = async (
   file: File,
   maxSide: number,
   quality: number,
-): Promise<Blob> {
+): Promise<Blob> => {
   let bitmap: ImageBitmap;
   try {
     // imageOrientation:'from-image' を指定すると EXIF の回転情報が自動適用される。
@@ -54,17 +54,17 @@ async function resizeToBlob(
       quality,
     );
   });
-}
+};
 
-export async function createThumbnail(file: File): Promise<Blob> {
+export const createThumbnail = async (file: File): Promise<Blob> => {
   return resizeToBlob(file, 320, 0.78);
-}
+};
 
-export async function createPreview(file: File): Promise<Blob> {
+export const createPreview = async (file: File): Promise<Blob> => {
   return resizeToBlob(file, 1400, 0.85);
-}
+};
 
-export async function createVideoThumbnail(file: File): Promise<Blob> {
+export const createVideoThumbnail = async (file: File): Promise<Blob> => {
   const video = document.createElement("video");
   const url = URL.createObjectURL(file);
   video.preload = "auto";
@@ -112,4 +112,4 @@ export async function createVideoThumbnail(file: File): Promise<Blob> {
     video.load();
     URL.revokeObjectURL(url);
   }
-}
+};

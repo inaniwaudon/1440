@@ -25,9 +25,9 @@ type WorkerCtx = {
 
 const ctx = self as unknown as WorkerCtx;
 
-function post(msg: ExportWorkerOutMsg) {
+const post = (msg: ExportWorkerOutMsg) => {
   ctx.postMessage(msg);
-}
+};
 
 type SyncAccessHandle = {
   write: (
@@ -40,7 +40,9 @@ type SyncAccessHandle = {
 };
 
 ctx.onmessage = async (event: MessageEvent<ExportWorkerInMsg>) => {
-  if (event.data.type !== "start") return;
+  if (event.data.type !== "start") {
+    return;
+  }
   const msg = event.data;
   const { filename } = msg;
   try {
@@ -57,25 +59,37 @@ ctx.onmessage = async (event: MessageEvent<ExportWorkerInMsg>) => {
 
       let stream: AsyncGenerator<ZipEntry>;
       if (msg.kind === "main") {
-        if (msg.photoIds.length === 0)
+        if (msg.photoIds.length === 0) {
           throw new Error("エクスポートするデータがありません");
-        stream = generateEntries(msg.photoIds, msg.slots, (p) => {
-          post({ type: "progress", current: p.current, total: p.total });
+        }
+        stream = generateEntries(msg.photoIds, msg.slots, (progress) => {
+          post({
+            type: "progress",
+            current: progress.current,
+            total: progress.total,
+          });
         });
       } else {
-        stream = generateVideoEntries(msg.videoPhotoIds, (p) => {
-          post({ type: "progress", current: p.current, total: p.total });
+        stream = generateVideoEntries(msg.videoPhotoIds, (progress) => {
+          post({
+            type: "progress",
+            current: progress.current,
+            total: progress.total,
+          });
         });
       }
 
       const response = downloadZip(stream);
-      if (!response.body)
+      if (!response.body) {
         throw new Error("ZIP ストリームを作成できませんでした");
+      }
       const reader = response.body.getReader();
       let offset = 0;
       for (;;) {
         const { value, done } = await reader.read();
-        if (done) break;
+        if (done) {
+          break;
+        }
         if (value && value.byteLength > 0) {
           access.write(value, { at: offset });
           offset += value.byteLength;

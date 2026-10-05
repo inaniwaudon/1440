@@ -3,9 +3,11 @@ import { useEffect } from "react";
 let lockCount = 0;
 let previousOverflow = "";
 
-export function useBodyScrollLock(locked: boolean) {
+export const useBodyScrollLock = (locked: boolean) => {
   useEffect(() => {
-    if (!locked) return;
+    if (!locked) {
+      return;
+    }
 
     if (lockCount === 0) {
       previousOverflow = document.body.style.overflow;
@@ -20,4 +22,4 @@ export function useBodyScrollLock(locked: boolean) {
       }
     };
   }, [locked]);
-}
+};
