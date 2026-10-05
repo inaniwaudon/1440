@@ -90,7 +90,10 @@ export function Timeline({
           `[data-minute="${anchorMinute}"]`,
         );
         if (nextAnchor)
-          grid.scrollTop += nextAnchor.getBoundingClientRect().top - anchorTop;
+          window.scrollBy(
+            0,
+            nextAnchor.getBoundingClientRect().top - anchorTop,
+          );
       }
 
       if (window.matchMedia("(prefers-reduced-motion: reduce)").matches) return;
@@ -205,8 +208,8 @@ export function Timeline({
       }
       setActiveHour(found);
     };
-    el.addEventListener("scroll", onScroll, { passive: true });
-    return () => el.removeEventListener("scroll", onScroll);
+    window.addEventListener("scroll", onScroll, { passive: true });
+    return () => window.removeEventListener("scroll", onScroll);
   }, []);
 
   const scrollToHour = (h: number) => {

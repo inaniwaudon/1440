@@ -1,22 +1,15 @@
 .container {
-  height: 100dvh;
   display: flex;
   flex-direction: column;
-  overflow: hidden;
 }
 
 .body {
-  flex: 1;
-  min-height: 0;
   display: flex;
 }
 
-/* ── Scrollable area ── */
+/* ── Scroll host is the window; inner wrapper only lays out ── */
 .gridScroll {
   flex: 1;
-  overflow-y: auto;
-  overscroll-behavior: contain;
-  touch-action: pan-y;
   padding-bottom: env(safe-area-inset-bottom);
   background: var(--bg-body);
 }
