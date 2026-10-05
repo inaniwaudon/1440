@@ -4,8 +4,8 @@ import { createRoot } from "react-dom/client";
 import "./index.css";
 import App from "./App.tsx";
 
-// Auto-reload the PWA as soon as a new service worker activates so iOS doesn't
-// keep running stale JS from the home-screen cache after a redeploy.
+// 新しい Service Worker が有効化され次第 PWA を自動リロードし、
+// 再デプロイ後に iOS がホーム画面キャッシュの古い JS を実行し続けないようにする
 registerSW({
   immediate: true,
   onRegisteredSW: (_url, registration) => {

@@ -41,7 +41,7 @@ export async function shouldBlurForFaces(blob: Blob): Promise<boolean> {
   try {
     return await detectFaceInBlob(blob);
   } catch {
-    // A failed one-time check must not expose a face by accident.
+    // 一度きりのチェックが失敗した場合、誤って顔を露出させないようにする
     return true;
   }
 }

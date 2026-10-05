@@ -216,9 +216,8 @@ export async function importArchive(
       try {
         const thumbnailEntry = entryByName.get(meta.thumbnail);
         if (!thumbnailEntry) throw new Error("サムネイルが欠けています");
-        // Thumbnails/previews are always WebP regardless of the original
-        // photo's mimeType; tagging them with e.g. "video/mp4" would break
-        // <img> rendering.
+        // サムネイルやプレビューは、元写真の mimeType にかかわらず常に WebP であるため、
+        // 例えば "video/mp4" を付与すると <img> の描画が破綻する
         const thumbnail = await readBlobEntry(thumbnailEntry, "image/webp");
 
         let preview: Blob | undefined;
@@ -230,9 +229,8 @@ export async function importArchive(
 
         const hasDetectedFace = meta.hasDetectedFace ?? false;
         await db.transaction("rw", db.photos, db.slots, async () => {
-          // Preserve any existing video on the same photo id so a later video
-          // archive import can still attach, and so a re-import of only the
-          // main archive doesn't discard the video.
+          // 同一 photo id に既存の動画がある場合はそれを残して後からの動画アーカイブ取り込みでも紐付けられるようにする。
+          // メインアーカイブのみを再取り込みした際に動画を失わないようにする。
           const existing = await db.photos.get(meta.id);
           const record: PhotoRecord = {
             id: meta.id,
@@ -349,8 +347,8 @@ async function writeVideo(
   const existing = await db.photos.get(entry.photoId);
 
   if (!entry.photo || !entry.slot) {
-    // Legacy video archives can only be attached to an already restored
-    // main record because they did not carry standalone photo metadata.
+    // 旧形式の動画アーカイブは単独の写真メタデータを持たないため、
+    // 既に復元済みのメインレコードにしか紐付けられない
     if (existing) {
       await db.photos.put({
         ...existing,

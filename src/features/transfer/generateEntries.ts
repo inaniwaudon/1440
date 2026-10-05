@@ -21,21 +21,20 @@ export async function* generateEntries(
   const now = new Date();
   const metas: ArchivePhotoMeta[] = [];
 
-  // Emit a version marker up front so consumers can bail out early on
-  // unsupported archives before scanning the whole file.
+  // 冒頭にバージョンマーカーを出力し、未対応のアーカイブに対して
+  // ファイル全体を走査する前に消費側が早期に中断できるようにする
   yield {
     name: "version.json",
     lastModified: now,
     input: JSON.stringify({ version: ARCHIVE_VERSION, kind: "main" }),
   };
 
-  // Single pass: read each photo exactly once, yield its blobs, release the
-  // record before advancing. Keeping the first-pass meta build out of the way
-  // avoids Safari holding onto Blob references materialized by IndexedDB gets.
+  // シングルパスで各写真をちょうど 1 回だけ読み込み、Blob を yield し、次に進む前にレコードを解放する。
+  // 初回パスでメタ情報の構築を分離して行わないことで、Safari が IndexedDB の get 時に生成された
+  // Blob 参照を保持し続けるのを回避する。
   //
-  // Videos are intentionally omitted from the main archive and shipped in a
-  // separate video archive to keep the per-ZIP memory footprint bounded on
-  // iOS Safari PWA.
+  // 動画は意図的にメインアーカイブから除外し、別途動画アーカイブとして出力することで、
+  // iOS Safari の PWA における ZIP 1 つあたりのメモリ使用量を抑える。
   for (let i = 0; i < photoIds.length; i++) {
     const id = photoIds[i];
     onProgress({ current: i, total: photoIds.length });
@@ -73,8 +72,7 @@ export async function* generateEntries(
       yield { name: previewPath, lastModified: now, input: photo.previewBlob };
     }
 
-    // Drop references so Safari IndexedDB-materialized bytes can be collected
-    // before the next get().
+    // 参照を破棄し、次の get() の前に Safari が IndexedDB から取得したバイト列を回収可能にする
     photo = undefined;
   }
 

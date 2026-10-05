@@ -37,8 +37,8 @@ export function suggestedArchiveName(): string {
   return `1440-${timestamp()}.zip`;
 }
 
-// Keep every archive reasonably easy to save/share on mobile. The uncompressed
-// Blob sizes provide a conservative estimate of the resulting ZIP size.
+// モバイル端末での保存・共有を容易にするため、各アーカイブのサイズを一定以下に保つ。
+// 非圧縮時の Blob サイズを基準にすることで、ZIP サイズの保守的な見積もりとなる。
 export const ARCHIVE_SIZE_LIMIT = 250 * 1024 * 1024;
 
 function chunkArchiveName(
@@ -79,7 +79,7 @@ async function cleanupOpfsExports(keep?: Set<string>): Promise<void> {
       }
     }
   } catch {
-    // ignore
+    // 無視
   }
 }
 
@@ -176,7 +176,7 @@ export async function exportArchive(
       .filter((s): s is NonNullable<typeof s> => !!s),
   );
 
-  // Desktop with File System Access API: pick each destination and stream.
+  // File System Access API に対応するデスクトップ環境では、各保存先を選択してストリーム書き込みする
   const picker = (
     window as unknown as {
       showSaveFilePicker?: (opts: {
@@ -300,8 +300,8 @@ export async function exportArchive(
             }`,
           );
         }
-        // Give the browser a tick to settle before spinning up the next
-        // Worker; iOS Safari sometimes needs an event-loop turn to flush OPFS.
+        // 次の Worker を起動する前にブラウザに一息入れさせる。
+        // iOS Safari は OPFS をフラッシュするためにイベントループを 1 ターン要することがある。
         await new Promise((r) => setTimeout(r, 50));
       }
       for (let i = 0; i < videoChunks.length; i++) {

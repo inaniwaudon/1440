@@ -20,9 +20,8 @@ export async function* generateVideoEntries(
     input: JSON.stringify({ version: ARCHIVE_VERSION, kind: "video" }),
   };
 
-  // Process one video at a time. OPFS SyncAccessHandle flushes to disk per
-  // write, so even a 1 GB video streams through without ever living fully in
-  // RAM — as long as we only hold one Blob at a time here.
+  // 動画を 1 件ずつ処理する。OPFS SyncAccessHandle は書き込みごとにディスクへフラッシュするため、
+  // ここで同時に保持する Blob を 1 つに限る限り、1 GB の動画でも全体を RAM に載せずにストリーム処理できる。
   for (let i = 0; i < photoIds.length; i++) {
     const id = photoIds[i];
     onProgress({ current: i, total: photoIds.length });

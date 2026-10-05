@@ -5,8 +5,8 @@ async function resizeToBlob(
 ): Promise<Blob> {
   let bitmap: ImageBitmap;
   try {
-    // imageOrientation:'from-image' applies EXIF rotation automatically.
-    // Not supported in all environments — fall back without it.
+    // imageOrientation:'from-image' を指定すると EXIF の回転情報が自動適用される。
+    // 全環境で対応している訳ではないため、未対応の場合は指定なしでフォールバックする。
     bitmap = await createImageBitmap(file, {
       imageOrientation: "from-image",
     });
@@ -38,7 +38,7 @@ async function resizeToBlob(
           resolve(blob);
           return;
         }
-        // WebP not supported — fall back to JPEG
+        // WebP 未対応の場合は JPEG にフォールバック
         canvas.toBlob(
           (jpegBlob) =>
             jpegBlob

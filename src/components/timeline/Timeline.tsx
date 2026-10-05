@@ -195,7 +195,7 @@ export function Timeline({
       ).sort((a, b) => a - b)
     : Array.from({ length: 24 }, (_, hour) => hour);
 
-  // Which hour block is at the top of the scroll viewport
+  // スクロールビューポートの上端にある時間ブロックを特定する
   useEffect(() => {
     const onScroll = () => {
       let found = 0;
@@ -238,8 +238,8 @@ export function Timeline({
     event.preventDefault();
 
     const scale = touchDistance(event.touches) / pinch.distance;
-    // Logarithmic scaling feels even in both directions. A little hysteresis
-    // keeps the grid from flickering around a column boundary.
+    // 対数的なスケーリングにすることで、拡大・縮小のどちらでも感触を均一に保てる。
+    // わずかなヒステリシスを加えることで、列の境界付近でグリッドがちらつくのを防ぐ。
     const continuousColumns = pinch.columns / scale ** 0.9;
     const hysteresis = continuousColumns > gridColumns ? 0.62 : 0.38;
     const nextColumns = Math.max(

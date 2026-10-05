@@ -18,7 +18,7 @@ const isIosSafari = () => {
 
 const isStandalone = () =>
   window.matchMedia("(display-mode: standalone)").matches ||
-  // iOS Safari
+  // iOS Safari 向けの判定
   (window.navigator as unknown as { standalone?: boolean }).standalone === true;
 
 export function InstallPrompt() {

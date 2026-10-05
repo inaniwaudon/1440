@@ -103,7 +103,7 @@ async function savePhoto(
   };
 
   await db.transaction("rw", db.photos, db.slots, async () => {
-    // A minute has exactly one photo. Re-importing replaces the existing one.
+    // 1 分には写真をちょうど 1 枚持たせる。再取り込み時は既存のものを置き換える。
     await db.photos.where("minuteOfDay").equals(meta.minuteOfDay).delete();
     await db.photos.add(record);
     await db.slots.put({ minuteOfDay: meta.minuteOfDay, photoId: id });
@@ -163,7 +163,7 @@ export async function importBulkPhotos(
       });
     }
 
-    // Yield to event loop every 5 files to keep UI responsive
+    // UI の応答性を保つため、5 ファイルごとにイベントループへ処理を譲る
     if ((i + 1) % 5 === 0) {
       await new Promise(requestAnimationFrame);
     }

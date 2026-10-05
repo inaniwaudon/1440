@@ -1,4 +1,5 @@
-export type MinuteOfDay = number; // 0..1439
+// 0–1439
+export type MinuteOfDay = number;
 
 export type PhotoRecord = {
   id: string;

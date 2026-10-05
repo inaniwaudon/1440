@@ -15,7 +15,7 @@ export async function parsePhotoMetadata(file: File): Promise<PhotoMetadata> {
       pick: ["DateTimeOriginal", "CreateDate"],
     });
   } catch {
-    // EXIF parse failure is non-fatal
+    // EXIF の解析失敗は致命的ではないため無視
   }
 
   let capturedAt: Date;

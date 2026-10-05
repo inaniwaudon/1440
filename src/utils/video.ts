@@ -68,7 +68,7 @@ export async function compressVideo(file: File): Promise<Blob> {
             };
           }
 
-          // Safari omits chunk.duration; mp4-muxer requires it.
+          // Safari は chunk.duration を省略するが、mp4-muxer では必須のため補完する
           const duration =
             typeof chunk.duration === "number" && chunk.duration > 0
               ? chunk.duration

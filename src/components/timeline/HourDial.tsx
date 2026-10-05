@@ -6,15 +6,18 @@ type Props = {
   onScrub: (hour: number) => void;
 };
 
-const DIAL_SIZE = 420; // px
-const ARC_HALF_DEG = 60; // ±60° around the "9 o'clock" (left) direction
-// 24 hours fan out across the 2*ARC_HALF_DEG arc. Edges inclusive: h=0 at -ARC_HALF_DEG, h=23 at +ARC_HALF_DEG.
+// px 単位
+const DIAL_SIZE = 420;
+// 「9 時」（左）方向を中心とした ±60°
+const ARC_HALF_DEG = 60;
+// 24 時間を 2*ARC_HALF_DEG の弧上に扇形に配置する。
+// 両端を含み、h=0 は -ARC_HALF_DEG、h=23 は +ARC_HALF_DEG。
 const DEG_PER_HOUR = (2 * ARC_HALF_DEG) / 23;
 
-// Convert an offset from the left/9 o'clock axis (negative = above, positive = below)
-// into a CSS/math angle measured from the +x axis (y-down), where 180° = left.
-// y-down convention: angles 180°→270° span lower-left (positive sin → below),
-// while 90°→180° span upper-left. So negative offset (above) → mathAngle > 180.
+// 左（9 時）軸からのオフセット（負 = 上、正 = 下）を、+x 軸基準（y 下向き）で測った
+// CSS 的・数学的な角度へ変換する。180° は左方向を示す。
+// y 下向きの座標系では、180°→270° が左下（sin が正 → 下）、
+// 90°→180° が左上に対応するため、負のオフセット（上）は mathAngle > 180 となる。
 function offsetToMathAngle(offsetDeg: number): number {
   return 180 - offsetDeg;
 }
@@ -24,7 +27,7 @@ export function HourDial({ activeHour, onScrub }: Props) {
   const [displayHour, setDisplayHour] = useState(activeHour);
   const dialRef = useRef<HTMLDivElement>(null);
 
-  // Keep displayHour in sync with external activeHour when idle
+  // 操作中でない間は、外部から渡された activeHour に displayHour を同期させる
   if (!open && displayHour !== activeHour) {
     setDisplayHour(activeHour);
   }
@@ -37,14 +40,14 @@ export function HourDial({ activeHour, onScrub }: Props) {
     const cy = rect.top + rect.height / 2;
     const dx = clientX - cx;
     const dy = clientY - cy;
-    // Math angle from +x axis (y-down), 180° = left
+    // +x 軸基準（y 下向き）での数学的角度。180° が左方向
     const mathAngle = (Math.atan2(dy, dx) * 180) / Math.PI;
-    // Offset from the left axis. Negative = above, positive = below.
+    // 左軸からのオフセット。負 = 上、正 = 下。
     let offset = 180 - mathAngle;
     while (offset > 180) offset -= 360;
     while (offset < -180) offset += 360;
     const clamped = Math.max(-ARC_HALF_DEG, Math.min(ARC_HALF_DEG, offset));
-    // offset -60° (upper-left) → hour 0; +60° (lower-left) → hour 23
+    // オフセット -60°（左上）が 0 時、+60°（左下）が 23 時に対応する
     const hour = Math.round((clamped + ARC_HALF_DEG) / DEG_PER_HOUR);
     return Math.max(0, Math.min(23, hour));
   };
@@ -53,8 +56,9 @@ export function HourDial({ activeHour, onScrub }: Props) {
     e.currentTarget.setPointerCapture(e.pointerId);
     setOpen(true);
     setDisplayHour(activeHour);
-    // Note: don't scrub on down — the dot sits off-axis and would snap the hour
-    // to whatever happens to be at the dot's angle. Wait for actual movement.
+    // 注意：
+    // ポインタダウン時にスクラブしてはならない。ドットが軸からずれた位置にあるため、
+    // そのままだとドットの角度に応じて時刻がスナップしてしまう。実際の移動が発生するまで待つ
   };
 
   const handlePointerMove = (e: React.PointerEvent) => {
@@ -70,7 +74,7 @@ export function HourDial({ activeHour, onScrub }: Props) {
     try {
       e.currentTarget.releasePointerCapture(e.pointerId);
     } catch {
-      // ignore
+      // 無視
     }
     setOpen(false);
   };
@@ -112,7 +116,8 @@ export function HourDial({ activeHour, onScrub }: Props) {
         >
           <div className={styles.dial} ref={dialRef}>
             {Array.from({ length: 24 }, (_, h) => {
-              const offset = -ARC_HALF_DEG + h * DEG_PER_HOUR; // -60 .. +60
+              // -60 〜 +60
+              const offset = -ARC_HALF_DEG + h * DEG_PER_HOUR;
               const mathAngle = offsetToMathAngle(offset);
               const rad = (mathAngle * Math.PI) / 180;
               const x = Math.cos(rad) * labelRadius;

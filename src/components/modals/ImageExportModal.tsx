@@ -15,7 +15,10 @@ async function shareImage(url: string) {
   const response = await fetch(url);
   const blob = await response.blob();
   const mime = blob.type || "image/png";
-  const ext = mime.split("/")[1]?.split(";")[0] === "jpeg" ? "jpg" : (mime.split("/")[1]?.split(";")[0] ?? "png");
+  const ext =
+    mime.split("/")[1]?.split(";")[0] === "jpeg"
+      ? "jpg"
+      : (mime.split("/")[1]?.split(";")[0] ?? "png");
   const fileName = `1440-export.${ext}`;
   const file = new File([blob], fileName, { type: mime });
 
@@ -44,7 +47,12 @@ async function shareImage(url: string) {
 
 export function ImageExportModal({ url, onClose }: Props) {
   useBodyScrollLock(url !== null);
-  const pressRef = useRef<{ time: number; x: number; y: number; moved: boolean } | null>(null);
+  const pressRef = useRef<{
+    time: number;
+    x: number;
+    y: number;
+    moved: boolean;
+  } | null>(null);
 
   useEffect(() => {
     if (!url) return;
@@ -103,7 +111,11 @@ export function ImageExportModal({ url, onClose }: Props) {
           onPointerUp={() => {
             const press = pressRef.current;
             pressRef.current = null;
-            if (press && !press.moved && Date.now() - press.time >= LONG_PRESS_MS) {
+            if (
+              press &&
+              !press.moved &&
+              Date.now() - press.time >= LONG_PRESS_MS
+            ) {
               void shareImage(url);
             }
           }}

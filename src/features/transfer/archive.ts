@@ -23,7 +23,7 @@ export type VideoArchiveEntry = {
   photoId: string;
   path: string;
   mimeType?: string;
-  // Added in archive v2 so every video ZIP can be restored on its own.
+  // archive v2 で追加。全ての動画 ZIP が単独で復元可能になる。
   photo?: ArchivePhotoMeta;
   slot?: SlotRecord;
 };

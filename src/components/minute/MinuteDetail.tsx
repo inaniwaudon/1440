@@ -103,8 +103,8 @@ function PhotoPreview({
   const mediaKey = `${photo.id}:${isVideo ? "video" : "image"}`;
 
   useEffect(() => {
-    // Metadata updates can rematerialize the same IndexedDB Blob as a new
-    // object. Keep its URL stable unless the actual media identity changes.
+    // メタデータの更新により、同じ IndexedDB の Blob が別オブジェクトとして再生成されることがある。
+    // 実際のメディアの同一性が変わらない限り、URL を安定して保つ。
     if (!mediaKey) return;
     const u = URL.createObjectURL(mediaBlobRef.current);
     setUrl(u);
@@ -388,7 +388,7 @@ export function MinuteDetail({
                 try {
                   event.currentTarget.setPointerCapture(event.pointerId);
                 } catch {
-                  // ignore
+                  // 無視
                 }
               }
 

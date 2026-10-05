@@ -57,7 +57,7 @@ export function FabMenu({ onCamera, onImport, onHelp, onOption }: Props) {
       return candidateDistance < bestDistance ? candidate : best;
     });
 
-    // The menu only occupies the upper-left side of the FAB.
+    // メニューは FAB の左上側のみに展開する
     if (x > centerX + MIN_DIST && y > centerY + MIN_DIST) return null;
     return closest.item;
   }
@@ -99,8 +99,8 @@ export function FabMenu({ onCamera, onImport, onHelp, onOption }: Props) {
     function onPointerUp(e: PointerEvent) {
       if (!openRef.current) return;
 
-      // pointermove is not guaranteed to fire at the final position.
-      // Re-evaluate from pointerup so quick slide-and-release gestures work.
+      // pointermove が最終位置で発火する保証はない。
+      // 素早くスライドして離すジェスチャに対応するため、pointerup の位置で再評価する。
       selectItem(getItem(e.clientX, e.clientY));
 
       const selected = activeRef.current;
@@ -127,8 +127,9 @@ export function FabMenu({ onCamera, onImport, onHelp, onOption }: Props) {
     el.addEventListener("pointermove", onPointerMove);
     el.addEventListener("pointerup", onPointerUp);
     el.addEventListener("pointercancel", onPointerCancel);
-    // Fallback: if pointer capture is lost (e.g. during transforms on PC),
-    // listen on window so a release outside the FAB is still handled.
+    // フォールバック：
+    // PC での transform 中などでポインタキャプチャが失われた場合に備え、
+    // window でもリスナを登録し、FAB の外で離した場合も処理できるようにする
     window.addEventListener("pointermove", onPointerMove);
     window.addEventListener("pointerup", onPointerUp);
     window.addEventListener("pointercancel", onPointerCancel);

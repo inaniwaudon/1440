@@ -57,8 +57,7 @@ export function ImportProgressOverlay({ progress, result, onClose }: Props) {
             {result.succeeded} 枚を取り込み
             {(result.skipped > 0 || result.failed > 0) && (
               <>
-                <br />
-                （
+                <br />（
                 {[
                   result.skipped > 0 && `スキップ ${result.skipped} 枚`,
                   result.failed > 0 && `エラー ${result.failed} 枚`,

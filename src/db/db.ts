@@ -24,7 +24,7 @@ class AppDB extends Dexie {
         }>;
         const photos = (await tx.table("photos").toArray()) as PhotoRecord[];
         const existingPhotoIds = new Set(photos.map((p) => p.id));
-        // Drop slots that reference a missing photo to avoid dangling pointers.
+        // 存在しない写真を参照しているスロットを削除し、無効な参照が残らないようにする
         const migrated = slots.flatMap(({ minuteOfDay, bestPhotoId }) =>
           bestPhotoId && existingPhotoIds.has(bestPhotoId)
             ? [{ minuteOfDay, photoId: bestPhotoId }]
@@ -68,7 +68,7 @@ class AppDB extends Dexie {
               bitmap.close();
             }
           } catch {
-            // Blob unreadable — leave unset; UI already handles the optional case.
+            // Blob が読めない場合は値を設定せずに残す。UI 側で未設定ケースを既に処理している。
           }
         }
         if (needsBackfill.length > 0) {

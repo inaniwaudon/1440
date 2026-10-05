@@ -136,7 +136,7 @@ export default function App() {
     try {
       localStorage.setItem(OPTIONS_STORAGE_KEY, JSON.stringify(options));
     } catch {
-      // Keep options usable for this session when storage is unavailable.
+      // ストレージが利用不可の場合でも、当該セッション中はオプションを使用できるようにする
     }
   }, [options]);
 
@@ -328,7 +328,7 @@ export default function App() {
         errors: [] as Array<{ id: string; error: string }>,
       };
 
-      // Main archives first so video archives can attach to existing records.
+      // 動画アーカイブが既存レコードに紐付けできるように、メインアーカイブを先に処理する
       const sorted = [
         ...entries.filter((e) => e.summary.kind === "main"),
         ...entries.filter((e) => e.summary.kind === "video"),
