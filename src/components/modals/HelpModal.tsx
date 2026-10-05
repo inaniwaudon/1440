@@ -1,5 +1,11 @@
 import { useLiveQuery } from "dexie-react-hooks";
-import { MdArrowForward, MdHelpOutline } from "react-icons/md";
+import {
+  MdArrowForward,
+  MdHelpOutline,
+  MdPhotoCamera,
+  MdPlayArrow,
+  MdSettings,
+} from "react-icons/md";
 import { db } from "../../db/db";
 import styles from "./HelpModal.module.css";
 import { Modal, modalStyles } from "./Modal";
@@ -63,11 +69,17 @@ export function HelpModal({ open, onClose }: Props) {
           </p>
           <ul>
             <li>
-              <strong>写真</strong>
+              <strong>
+                <MdPhotoCamera aria-hidden="true" />
+                写真
+              </strong>
               ：写真を撮影するか、端末内の写真を選択します（複数選択可）。撮影時刻の枠が埋まっている場合には、写真を更新するかどうかの確認が表示されます。
             </li>
             <li>
-              <strong>オプション</strong>
+              <strong>
+                <MdSettings aria-hidden="true" />
+                オプション
+              </strong>
               ：記録済みの時刻だけを表示したり、画像一覧を書き出したり、データをインポート／エクスポートしたりできます。
             </li>
           </ul>
@@ -76,10 +88,12 @@ export function HelpModal({ open, onClose }: Props) {
         <section>
           <h3>写真を見る</h3>
           <p>
-            サムネイルをタップすると写真を拡大表示します。拡大表示中に左右へスワイプすると、前後の写真へ移動できます。
+            画面右端の時計を長押ししたまま上下へドラッグすると、表示する時間帯を移動できます。
           </p>
           <p>
-            画面右端の時計を長押ししたまま上下へドラッグすると、表示する時間帯を移動できます。
+            サムネイルをタップすると写真を拡大表示します。拡大表示中に左右へスワイプすると、前後の写真へ移動できます。
+            <MdPlayArrow aria-hidden="true" style={{ marginBottom: "-1px" }} />{" "}
+            ボタンを押すと、これ以降の写真をスライドショーとして再生します。
           </p>
         </section>
 

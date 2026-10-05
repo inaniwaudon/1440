@@ -67,7 +67,7 @@
   display: flex;
   align-items: center;
   justify-content: center;
-  gap: 7px;
+  gap: 8px;
   font: inherit;
   font-size: 15px;
   font-weight: 700;
@@ -79,6 +79,12 @@
 
 .actionButton:hover {
   filter: brightness(1.2);
+}
+
+.actionButtonIcon {
+  width: 20px;
+  height: 20px;
+  color: var(--white);
 }
 
 .fabOpen {

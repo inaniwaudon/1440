@@ -37,6 +37,13 @@
   margin-top: 6px;
 }
 
+.guide strong {
+  display: inline-flex;
+  gap: 6px;
+  align-items: center;
+  vertical-align: middle;
+}
+
 .guide a {
   color: inherit;
   text-underline-offset: 4px;

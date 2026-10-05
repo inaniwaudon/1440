@@ -207,7 +207,10 @@ export function FabMenu({ onCamera, onImport, onHelp, onOption }: Props) {
               className={styles.actionButton}
               onClick={openCamera}
             >
-              <MdPhotoCamera aria-hidden="true" />
+              <MdPhotoCamera
+                aria-hidden="true"
+                className={styles.actionButtonIcon}
+              />
               写真を撮影
             </button>
             <button
@@ -215,7 +218,10 @@ export function FabMenu({ onCamera, onImport, onHelp, onOption }: Props) {
               className={styles.actionButton}
               onClick={openPhotoPicker}
             >
-              <MdFolderOpen aria-hidden="true" />
+              <MdFolderOpen
+                aria-hidden="true"
+                className={styles.actionButtonIcon}
+              />
               写真を選択
             </button>
           </div>
