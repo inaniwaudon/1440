@@ -201,6 +201,7 @@ export const compressVideo = async (file: File): Promise<Blob> => {
       target: new ArrayBufferTarget(),
       video: { codec: "avc", width, height, rotation },
       fastStart: "in-memory",
+      firstTimestampBehavior: "offset",
     });
 
     let encoderError: unknown;
