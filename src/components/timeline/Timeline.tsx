@@ -197,14 +197,11 @@ export function Timeline({
 
   // Which hour block is at the top of the scroll viewport
   useEffect(() => {
-    const el = gridRef.current;
-    if (!el) return;
     const onScroll = () => {
-      const top = el.getBoundingClientRect().top;
       let found = 0;
       for (let h = 0; h < 24; h++) {
         const b = blockRefs.current[h];
-        if (b && b.getBoundingClientRect().top <= top + 4) found = h;
+        if (b && b.getBoundingClientRect().top <= 4) found = h;
       }
       setActiveHour(found);
     };

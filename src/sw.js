@@ -14,6 +14,16 @@ const precachedUrls = manifest.map(
 );
 const precachedKeys = new Set(precachedUrls.map((url) => url.href));
 
+async function cleanResponse(response) {
+  if (!response.redirected) return response;
+  const body = await response.blob();
+  return new Response(body, {
+    status: response.status,
+    statusText: response.statusText,
+    headers: response.headers,
+  });
+}
+
 self.addEventListener("install", (event) => {
   event.waitUntil(
     caches.open(CACHE_NAME).then((cache) =>
@@ -23,7 +33,7 @@ self.addEventListener("install", (event) => {
           if (!response.ok) {
             throw new Error(`Failed to precache ${url}`);
           }
-          await cache.put(url, response);
+          await cache.put(url, await cleanResponse(response));
         }),
       ),
     ),
@@ -65,9 +75,10 @@ async function cacheFirst(request) {
   const response = await fetch(request);
   if (response.ok) {
     const cache = await caches.open(CACHE_NAME);
-    cache.put(request, response.clone()).catch(() => undefined);
+    const cloned = await cleanResponse(response.clone());
+    cache.put(request, cloned).catch(() => undefined);
   }
-  return response;
+  return response.redirected ? await cleanResponse(response) : response;
 }
 
 async function networkFirst(request, { fallback } = {}) {
@@ -75,9 +86,10 @@ async function networkFirst(request, { fallback } = {}) {
     const response = await fetch(request);
     if (response.ok && precachedKeys.has(new URL(request.url).href)) {
       const cache = await caches.open(CACHE_NAME);
-      cache.put(request, response.clone()).catch(() => undefined);
+      const cloned = await cleanResponse(response.clone());
+      cache.put(request, cloned).catch(() => undefined);
     }
-    return response;
+    return response.redirected ? await cleanResponse(response) : response;
   } catch (err) {
     const cached = await caches.match(request);
     if (cached) return cached;
