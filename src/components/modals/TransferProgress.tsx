@@ -1,15 +1,8 @@
-import {
-  MdCheckCircle,
-  MdDownload,
-  MdShare,
-  MdSwapHoriz,
-} from "react-icons/md";
+import { MdCheckCircle, MdShare, MdSwapHoriz } from "react-icons/md";
 import type { ExportedFile } from "../../features/transfer/exportArchive";
 import type { ImportArchiveResult } from "../../features/transfer/importArchive";
 import styles from "./ImportProgress.module.css";
 import { Modal, modalStyles } from "./Modal";
-
-export type ExportDownloadRef = { url: string; name: string };
 
 export type TransferPhase =
   | {
@@ -29,10 +22,7 @@ export type TransferPhase =
     }
   | {
       kind: "export-done";
-      files: Array<{
-        file: ExportedFile;
-        download?: ExportDownloadRef;
-      }>;
+      files: Array<{ file: ExportedFile }>;
     }
   | { kind: "import-done"; result: ImportArchiveResult };
 
@@ -110,51 +100,30 @@ export function TransferProgressOverlay({ phase, onClose }: Props) {
 
       {phase.kind === "export-done" && (
         <>
-          {phase.files.map(({ file, download }) => {
-            const canShare = file.shareFile
-              ? !!navigator.canShare?.({ files: [file.shareFile] })
-              : false;
+          {phase.files.map(({ file }) => {
+            const shareFile =
+              file.shareFile ??
+              new File([file.blob], file.name, { type: "application/zip" });
             const label = file.kind === "video" ? "動画" : "写真";
             return (
               <div key={file.name} style={{ marginTop: 12 }}>
                 <p style={{ margin: "0 4px 6px", fontSize: 12, opacity: 0.8 }}>
                   {label}: {file.name}
                 </p>
-                {canShare && file.shareFile && (
-                  <button
-                    type="button"
-                    className={modalStyles.primaryButton}
-                    style={{
-                      display: "inline-flex",
-                      alignItems: "center",
-                      justifyContent: "center",
-                      gap: 8,
-                    }}
-                    // biome-ignore lint/style/noNonNullAssertion: checked
-                    onClick={() => sharePhaseFile(file.shareFile!)}
-                  >
-                    <MdShare aria-hidden="true" />
-                    共有・保存
-                  </button>
-                )}
-                {download && (
-                  <a
-                    className={modalStyles.primaryButton}
-                    href={download.url}
-                    download={download.name}
-                    style={{
-                      display: "inline-flex",
-                      alignItems: "center",
-                      justifyContent: "center",
-                      gap: 8,
-                      textDecoration: "none",
-                      marginTop: 8,
-                    }}
-                  >
-                    <MdDownload aria-hidden="true" />
-                    ダウンロード
-                  </a>
-                )}
+                <button
+                  type="button"
+                  className={modalStyles.primaryButton}
+                  style={{
+                    display: "inline-flex",
+                    alignItems: "center",
+                    justifyContent: "center",
+                    gap: 8,
+                  }}
+                  onClick={() => sharePhaseFile(shareFile)}
+                >
+                  <MdShare aria-hidden="true" />
+                  共有・保存
+                </button>
               </div>
             );
           })}

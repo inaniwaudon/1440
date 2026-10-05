@@ -103,7 +103,6 @@ export default function App() {
   const [storagePersistence, setStoragePersistence] =
     useState<StoragePersistence>("checking");
   const [storageUsage, setStorageUsage] = useState<string | null>(null);
-  const exportedDownloadUrlsRef = useRef<string[]>([]);
   const [conflict, setConflict] = useState<{
     details: ImportConflict;
     resolve: (replace: boolean) => void;
@@ -119,9 +118,6 @@ export default function App() {
       if (exportedDownloadUrlRef.current) {
         URL.revokeObjectURL(exportedDownloadUrlRef.current);
       }
-      for (const url of exportedDownloadUrlsRef.current)
-        URL.revokeObjectURL(url);
-      exportedDownloadUrlsRef.current = [];
     },
     [],
   );
@@ -279,15 +275,7 @@ export default function App() {
       if (destination.kind === "saved") {
         setTransferPhase({ kind: "export-done", files: [] });
       } else {
-        for (const url of exportedDownloadUrlsRef.current) {
-          URL.revokeObjectURL(url);
-        }
-        exportedDownloadUrlsRef.current = [];
-        const files = destination.files.map((file) => {
-          const url = URL.createObjectURL(file.blob);
-          exportedDownloadUrlsRef.current.push(url);
-          return { file, download: { url, name: file.name } };
-        });
+        const files = destination.files.map((file) => ({ file }));
         setTransferPhase({ kind: "export-done", files });
       }
     } catch (err) {
@@ -400,8 +388,6 @@ export default function App() {
       URL.revokeObjectURL(exportedDownloadUrlRef.current);
       exportedDownloadUrlRef.current = null;
     }
-    for (const url of exportedDownloadUrlsRef.current) URL.revokeObjectURL(url);
-    exportedDownloadUrlsRef.current = [];
     cleanupExportedArchive().catch(() => {});
   };
 
