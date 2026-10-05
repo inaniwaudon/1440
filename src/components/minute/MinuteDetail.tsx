@@ -1,5 +1,5 @@
 import { useLiveQuery } from "dexie-react-hooks";
-import type { CSSProperties } from "react";
+import type { CSSProperties, DragEvent, MouseEvent, PointerEvent } from "react";
 import { useEffect, useRef, useState } from "react";
 import { flushSync } from "react-dom";
 import {
@@ -330,15 +330,188 @@ export function MinuteDetail({
     await db.photos.update(photo.id, { blurOverride: !currentlyBlurred });
   };
 
+  const handleOverlayClick = (event: MouseEvent<HTMLDivElement>) => {
+    if (event.target === overlayRef.current) handleClose();
+  };
+
+  const handlePreviewPointerDown = (event: PointerEvent<HTMLDivElement>) => {
+    if (!event.isPrimary) return;
+    const pending = pendingNavigateRef.current;
+    if (pending !== null) {
+      pendingNavigateRef.current = null;
+      flushSync(() => onNavigate(pending));
+    }
+    trackRef.current?.getAnimations().forEach((animation) => {
+      animation.cancel();
+    });
+    if (trackRef.current) trackRef.current.style.transform = "";
+    swipeRef.current = {
+      pointerId: event.pointerId,
+      startX: event.clientX,
+      startY: event.clientY,
+      currentX: event.clientX,
+      isHorizontal: false,
+    };
+    pressStartRef.current = { time: Date.now(), moved: false };
+  };
+
+  const handlePreviewPointerMove = (event: PointerEvent<HTMLDivElement>) => {
+    const swipe = swipeRef.current;
+    if (!swipe || swipe.pointerId !== event.pointerId) return;
+
+    swipe.currentX = event.clientX;
+    const deltaX = event.clientX - swipe.startX;
+    const deltaY = event.clientY - swipe.startY;
+    if (
+      pressStartRef.current &&
+      !pressStartRef.current.moved &&
+      Math.hypot(deltaX, deltaY) > LONG_PRESS_MOVE_TOLERANCE
+    ) {
+      pressStartRef.current.moved = true;
+    }
+    if (!swipe.isHorizontal) {
+      if (Math.abs(deltaX) < 8) return;
+      if (Math.abs(deltaX) <= Math.abs(deltaY)) return;
+      swipe.isHorizontal = true;
+      try {
+        event.currentTarget.setPointerCapture(event.pointerId);
+      } catch {
+        // 無視
+      }
+    }
+
+    const canNavigate =
+      deltaX < 0 ? nextMinute !== undefined : previousMinute !== undefined;
+    const displayedDelta = canNavigate ? deltaX : deltaX * 0.22;
+    if (trackRef.current) {
+      trackRef.current.style.transform = `translate3d(calc(-100% + ${displayedDelta}px), 0, 0)`;
+    }
+    suppressClickUntilRef.current = Date.now() + 350;
+  };
+
+  const handlePreviewPointerUp = (event: PointerEvent<HTMLDivElement>) => {
+    const press = pressStartRef.current;
+    pressStartRef.current = null;
+    const swipe = swipeRef.current;
+    swipeRef.current = null;
+    if (
+      press &&
+      !press.moved &&
+      Date.now() - press.time >= LONG_PRESS_MS &&
+      photo
+    ) {
+      suppressClickUntilRef.current = Date.now() + 500;
+      void sharePhoto(photo);
+      return;
+    }
+    if (!swipe || swipe.pointerId !== event.pointerId) return;
+
+    const deltaX = swipe.currentX - swipe.startX;
+    const deltaY = event.clientY - swipe.startY;
+    const preview = event.currentTarget;
+    const track = trackRef.current;
+    if (!track) return;
+    const threshold = Math.max(SWIPE_MIN_DISTANCE, preview.clientWidth * 0.12);
+    const destination = deltaX < 0 ? nextMinute : previousMinute;
+    const shouldReturn =
+      !swipe.isHorizontal ||
+      Math.abs(deltaX) < threshold ||
+      Math.abs(deltaX) < Math.abs(deltaY) * SWIPE_DIRECTION_RATIO;
+
+    if (shouldReturn || destination === undefined) {
+      const animation = track.animate(
+        [
+          {
+            transform: track.style.transform || "translate3d(-100%, 0, 0)",
+          },
+          { transform: "translate3d(-100%, 0, 0)" },
+        ],
+        { duration: 280, easing: RETURN_EASING },
+      );
+      track.style.transform = "";
+      animation.finished.catch(() => undefined);
+      return;
+    }
+
+    suppressClickUntilRef.current = Date.now() + 350;
+    const direction = deltaX < 0 ? -1 : 1;
+    const reducedMotion = window.matchMedia(
+      "(prefers-reduced-motion: reduce)",
+    ).matches;
+    if (reducedMotion) {
+      track.style.transform = "";
+      onNavigate(destination);
+      return;
+    }
+
+    const exitAnimation = track.animate(
+      [
+        {
+          transform:
+            track.style.transform ||
+            `translate3d(calc(-100% + ${deltaX}px), 0, 0)`,
+        },
+        {
+          transform:
+            direction < 0 ? "translate3d(-200%, 0, 0)" : "translate3d(0, 0, 0)",
+        },
+      ],
+      { duration: 260, easing: SLIDE_EASING },
+    );
+    track.style.transform = "";
+    pendingNavigateRef.current = destination;
+    const commit = () => {
+      if (pendingNavigateRef.current !== destination) return;
+      pendingNavigateRef.current = null;
+      flushSync(() => onNavigate(destination));
+      track.style.transform = "";
+    };
+    exitAnimation.addEventListener("finish", commit);
+    exitAnimation.addEventListener("cancel", commit);
+  };
+
+  const handlePreviewPointerCancel = () => {
+    pressStartRef.current = null;
+    swipeRef.current = null;
+    trackRef.current?.style.removeProperty("transform");
+  };
+
+  const handlePreviewDragStart = (event: DragEvent<HTMLDivElement>) => {
+    event.preventDefault();
+  };
+
+  const handlePreviewClick = (event: MouseEvent<HTMLDivElement>) => {
+    if (Date.now() < suppressClickUntilRef.current) return;
+    const image = trackRef.current?.children[1]?.querySelector("img");
+    if (!image) {
+      handleClose();
+      return;
+    }
+
+    const frame = image.getBoundingClientRect();
+    const imageRatio = image.naturalWidth / image.naturalHeight;
+    const frameRatio = frame.width / frame.height;
+    const width =
+      imageRatio > frameRatio ? frame.width : frame.height * imageRatio;
+    const height =
+      imageRatio > frameRatio ? frame.width / imageRatio : frame.height;
+    const left = frame.left + (frame.width - width) / 2;
+    const top = frame.top + (frame.height - height) / 2;
+    const isOnImage =
+      event.clientX >= left &&
+      event.clientX <= left + width &&
+      event.clientY >= top &&
+      event.clientY <= top + height;
+    if (!isOnImage) handleClose();
+  };
+
   return (
     // biome-ignore lint/a11y/noStaticElementInteractions: overlay click dismisses modal
     // biome-ignore lint/a11y/useKeyWithClickEvents: Escape key handled elsewhere
     <div
       className={styles.overlay}
       ref={overlayRef}
-      onClick={(e) => {
-        if (e.target === overlayRef.current) handleClose();
-      }}
+      onClick={handleOverlayClick}
     >
       <div className={styles.sheet}>
         <div className={styles.content}>
@@ -347,181 +520,12 @@ export function MinuteDetail({
           <div
             className={styles.previewWrap}
             style={{ viewTransitionName: `minute-photo-${minuteOfDay}` }}
-            onPointerDown={(event) => {
-              if (!event.isPrimary) return;
-              const pending = pendingNavigateRef.current;
-              if (pending !== null) {
-                pendingNavigateRef.current = null;
-                flushSync(() => onNavigate(pending));
-              }
-              trackRef.current?.getAnimations().forEach((animation) => {
-                animation.cancel();
-              });
-              if (trackRef.current) trackRef.current.style.transform = "";
-              swipeRef.current = {
-                pointerId: event.pointerId,
-                startX: event.clientX,
-                startY: event.clientY,
-                currentX: event.clientX,
-                isHorizontal: false,
-              };
-              pressStartRef.current = { time: Date.now(), moved: false };
-            }}
-            onPointerMove={(event) => {
-              const swipe = swipeRef.current;
-              if (!swipe || swipe.pointerId !== event.pointerId) return;
-
-              swipe.currentX = event.clientX;
-              const deltaX = event.clientX - swipe.startX;
-              const deltaY = event.clientY - swipe.startY;
-              if (
-                pressStartRef.current &&
-                !pressStartRef.current.moved &&
-                Math.hypot(deltaX, deltaY) > LONG_PRESS_MOVE_TOLERANCE
-              ) {
-                pressStartRef.current.moved = true;
-              }
-              if (!swipe.isHorizontal) {
-                if (Math.abs(deltaX) < 8) return;
-                if (Math.abs(deltaX) <= Math.abs(deltaY)) return;
-                swipe.isHorizontal = true;
-                try {
-                  event.currentTarget.setPointerCapture(event.pointerId);
-                } catch {
-                  // 無視
-                }
-              }
-
-              const canNavigate =
-                deltaX < 0
-                  ? nextMinute !== undefined
-                  : previousMinute !== undefined;
-              const displayedDelta = canNavigate ? deltaX : deltaX * 0.22;
-              if (trackRef.current) {
-                trackRef.current.style.transform = `translate3d(calc(-100% + ${displayedDelta}px), 0, 0)`;
-              }
-              suppressClickUntilRef.current = Date.now() + 350;
-            }}
-            onPointerUp={(event) => {
-              const press = pressStartRef.current;
-              pressStartRef.current = null;
-              const swipe = swipeRef.current;
-              swipeRef.current = null;
-              if (
-                press &&
-                !press.moved &&
-                Date.now() - press.time >= LONG_PRESS_MS &&
-                photo
-              ) {
-                suppressClickUntilRef.current = Date.now() + 500;
-                void sharePhoto(photo);
-                return;
-              }
-              if (!swipe || swipe.pointerId !== event.pointerId) return;
-
-              const deltaX = swipe.currentX - swipe.startX;
-              const deltaY = event.clientY - swipe.startY;
-              const preview = event.currentTarget;
-              const track = trackRef.current;
-              if (!track) return;
-              const threshold = Math.max(
-                SWIPE_MIN_DISTANCE,
-                preview.clientWidth * 0.12,
-              );
-              const destination = deltaX < 0 ? nextMinute : previousMinute;
-              const shouldReturn =
-                !swipe.isHorizontal ||
-                Math.abs(deltaX) < threshold ||
-                Math.abs(deltaX) < Math.abs(deltaY) * SWIPE_DIRECTION_RATIO;
-
-              if (shouldReturn || destination === undefined) {
-                const animation = track.animate(
-                  [
-                    {
-                      transform:
-                        track.style.transform || "translate3d(-100%, 0, 0)",
-                    },
-                    { transform: "translate3d(-100%, 0, 0)" },
-                  ],
-                  { duration: 280, easing: RETURN_EASING },
-                );
-                track.style.transform = "";
-                animation.finished.catch(() => undefined);
-                return;
-              }
-
-              suppressClickUntilRef.current = Date.now() + 350;
-              const direction = deltaX < 0 ? -1 : 1;
-              const reducedMotion = window.matchMedia(
-                "(prefers-reduced-motion: reduce)",
-              ).matches;
-              if (reducedMotion) {
-                track.style.transform = "";
-                onNavigate(destination);
-                return;
-              }
-
-              const exitAnimation = track.animate(
-                [
-                  {
-                    transform:
-                      track.style.transform ||
-                      `translate3d(calc(-100% + ${deltaX}px), 0, 0)`,
-                  },
-                  {
-                    transform:
-                      direction < 0
-                        ? "translate3d(-200%, 0, 0)"
-                        : "translate3d(0, 0, 0)",
-                  },
-                ],
-                { duration: 260, easing: SLIDE_EASING },
-              );
-              track.style.transform = "";
-              pendingNavigateRef.current = destination;
-              const commit = () => {
-                if (pendingNavigateRef.current !== destination) return;
-                pendingNavigateRef.current = null;
-                flushSync(() => onNavigate(destination));
-                track.style.transform = "";
-              };
-              exitAnimation.addEventListener("finish", commit);
-              exitAnimation.addEventListener("cancel", commit);
-            }}
-            onPointerCancel={() => {
-              pressStartRef.current = null;
-              swipeRef.current = null;
-              trackRef.current?.style.removeProperty("transform");
-            }}
-            onDragStart={(event) => event.preventDefault()}
-            onClick={(e) => {
-              if (Date.now() < suppressClickUntilRef.current) return;
-              const image = trackRef.current?.children[1]?.querySelector("img");
-              if (!image) {
-                handleClose();
-                return;
-              }
-
-              const frame = image.getBoundingClientRect();
-              const imageRatio = image.naturalWidth / image.naturalHeight;
-              const frameRatio = frame.width / frame.height;
-              const width =
-                imageRatio > frameRatio
-                  ? frame.width
-                  : frame.height * imageRatio;
-              const height =
-                imageRatio > frameRatio
-                  ? frame.width / imageRatio
-                  : frame.height;
-              const left = frame.left + (frame.width - width) / 2;
-              const top = frame.top + (frame.height - height) / 2;
-              const isOnImage =
-                e.clientX >= left &&
-                e.clientX <= left + width &&
-                e.clientY >= top &&
-                e.clientY <= top + height;
-              if (!isOnImage) handleClose();
-            }}
+            onPointerDown={handlePreviewPointerDown}
+            onPointerMove={handlePreviewPointerMove}
+            onPointerUp={handlePreviewPointerUp}
+            onPointerCancel={handlePreviewPointerCancel}
+            onDragStart={handlePreviewDragStart}
+            onClick={handlePreviewClick}
           >
             <div ref={trackRef} className={styles.slideTrack}>
               {[previousPhoto, photo, nextPhoto].map((entry, index) => (
@@ -570,24 +574,26 @@ export function MinuteDetail({
                 : isLast
                   ? "replay"
                   : "play";
+              const handlePlayClick = () => {
+                if (mode === "pause") {
+                  setIsPlaying(false);
+                  return;
+                }
+                if (mode === "replay") {
+                  const first = occupiedMinutes[0];
+                  if (first === undefined) return;
+                  onNavigate(first);
+                  setIsPlaying(true);
+                  return;
+                }
+                setIsPlaying(true);
+              };
+
               return (
                 <button
                   type="button"
                   className={`${styles.playBtn} ${isPlaying ? styles.playBtnActive : ""}`}
-                  onClick={() => {
-                    if (mode === "pause") {
-                      setIsPlaying(false);
-                      return;
-                    }
-                    if (mode === "replay") {
-                      const first = occupiedMinutes[0];
-                      if (first === undefined) return;
-                      onNavigate(first);
-                      setIsPlaying(true);
-                      return;
-                    }
-                    setIsPlaying(true);
-                  }}
+                  onClick={handlePlayClick}
                   aria-label={
                     mode === "pause"
                       ? "再生を停止"

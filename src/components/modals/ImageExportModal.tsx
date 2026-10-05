@@ -1,3 +1,4 @@
+import type { MouseEvent, PointerEvent } from "react";
 import { useEffect, useRef } from "react";
 import { MdClose } from "react-icons/md";
 import { useBodyScrollLock } from "../../hooks/useBodyScrollLock";
@@ -65,15 +66,47 @@ export function ImageExportModal({ url, onClose }: Props) {
 
   if (!url) return null;
 
+  const handleOverlayClick = (event: MouseEvent<HTMLDivElement>) => {
+    if (event.target === event.currentTarget) onClose();
+  };
+
+  const handleImagePointerDown = (event: PointerEvent<HTMLImageElement>) => {
+    if (!event.isPrimary) return;
+    pressRef.current = {
+      time: Date.now(),
+      x: event.clientX,
+      y: event.clientY,
+      moved: false,
+    };
+  };
+
+  const handleImagePointerMove = (event: PointerEvent<HTMLImageElement>) => {
+    const press = pressRef.current;
+    if (!press || press.moved) return;
+    if (
+      Math.hypot(event.clientX - press.x, event.clientY - press.y) >
+      LONG_PRESS_MOVE_TOLERANCE
+    ) {
+      press.moved = true;
+    }
+  };
+
+  const handleImagePointerUp = () => {
+    const press = pressRef.current;
+    pressRef.current = null;
+    if (press && !press.moved && Date.now() - press.time >= LONG_PRESS_MS) {
+      void shareImage(url);
+    }
+  };
+
+  const handleImagePointerCancel = () => {
+    pressRef.current = null;
+  };
+
   return (
     // biome-ignore lint/a11y/noStaticElementInteractions: overlay click dismisses modal
     // biome-ignore lint/a11y/useKeyWithClickEvents: Escape handled by keydown listener
-    <div
-      className={styles.overlay}
-      onClick={(event) => {
-        if (event.target === event.currentTarget) onClose();
-      }}
-    >
+    <div className={styles.overlay} onClick={handleOverlayClick}>
       <div className={styles.closeRow}>
         <button
           type="button"
@@ -89,39 +122,10 @@ export function ImageExportModal({ url, onClose }: Props) {
           className={styles.image}
           src={url}
           alt="エクスポートした画像"
-          onPointerDown={(event) => {
-            if (!event.isPrimary) return;
-            pressRef.current = {
-              time: Date.now(),
-              x: event.clientX,
-              y: event.clientY,
-              moved: false,
-            };
-          }}
-          onPointerMove={(event) => {
-            const press = pressRef.current;
-            if (!press || press.moved) return;
-            if (
-              Math.hypot(event.clientX - press.x, event.clientY - press.y) >
-              LONG_PRESS_MOVE_TOLERANCE
-            ) {
-              press.moved = true;
-            }
-          }}
-          onPointerUp={() => {
-            const press = pressRef.current;
-            pressRef.current = null;
-            if (
-              press &&
-              !press.moved &&
-              Date.now() - press.time >= LONG_PRESS_MS
-            ) {
-              void shareImage(url);
-            }
-          }}
-          onPointerCancel={() => {
-            pressRef.current = null;
-          }}
+          onPointerDown={handleImagePointerDown}
+          onPointerMove={handleImagePointerMove}
+          onPointerUp={handleImagePointerUp}
+          onPointerCancel={handleImagePointerCancel}
         />
       </div>
       <p className={styles.hint}>画像を長押しして保存</p>
