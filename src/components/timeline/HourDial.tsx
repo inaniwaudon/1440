@@ -1,3 +1,4 @@
+import type { PointerEvent } from "react";
 import { Fragment, useRef, useState } from "react";
 import styles from "./HourDial.module.css";
 
@@ -18,11 +19,11 @@ const DEG_PER_HOUR = (2 * ARC_HALF_DEG) / 23;
 // CSS 的・数学的な角度へ変換する。180° は左方向を示す。
 // y 下向きの座標系では、180°→270° が左下（sin が正 → 下）、
 // 90°→180° が左上に対応するため、負のオフセット（上）は mathAngle > 180 となる。
-function offsetToMathAngle(offsetDeg: number): number {
+const offsetToMathAngle = (offsetDeg: number): number => {
   return 180 - offsetDeg;
-}
+};
 
-export function HourDial({ activeHour, onScrub }: Props) {
+export const HourDial = ({ activeHour, onScrub }: Props) => {
   const [open, setOpen] = useState(false);
   const [displayHour, setDisplayHour] = useState(activeHour);
   const dialRef = useRef<HTMLDivElement>(null);
@@ -33,27 +34,33 @@ export function HourDial({ activeHour, onScrub }: Props) {
   }
 
   const hourFromPointer = (clientX: number, clientY: number): number => {
-    const el = dialRef.current;
-    if (!el) return displayHour;
-    const rect = el.getBoundingClientRect();
-    const cx = rect.left + rect.width / 2;
-    const cy = rect.top + rect.height / 2;
-    const dx = clientX - cx;
-    const dy = clientY - cy;
+    const dial = dialRef.current;
+    if (!dial) {
+      return displayHour;
+    }
+    const rect = dial.getBoundingClientRect();
+    const centerX = rect.left + rect.width / 2;
+    const centerY = rect.top + rect.height / 2;
+    const deltaX = clientX - centerX;
+    const deltaY = clientY - centerY;
     // +x 軸基準（y 下向き）での数学的角度。180° が左方向
-    const mathAngle = (Math.atan2(dy, dx) * 180) / Math.PI;
+    const mathAngle = (Math.atan2(deltaY, deltaX) * 180) / Math.PI;
     // 左軸からのオフセット。負 = 上、正 = 下。
     let offset = 180 - mathAngle;
-    while (offset > 180) offset -= 360;
-    while (offset < -180) offset += 360;
+    while (offset > 180) {
+      offset -= 360;
+    }
+    while (offset < -180) {
+      offset += 360;
+    }
     const clamped = Math.max(-ARC_HALF_DEG, Math.min(ARC_HALF_DEG, offset));
     // オフセット -60°（左上）が 0 時、+60°（左下）が 23 時に対応する
     const hour = Math.round((clamped + ARC_HALF_DEG) / DEG_PER_HOUR);
     return Math.max(0, Math.min(23, hour));
   };
 
-  const handlePointerDown = (e: React.PointerEvent) => {
-    e.currentTarget.setPointerCapture(e.pointerId);
+  const handlePointerDown = (event: PointerEvent) => {
+    event.currentTarget.setPointerCapture(event.pointerId);
     setOpen(true);
     setDisplayHour(activeHour);
     // 注意：
@@ -61,18 +68,20 @@ export function HourDial({ activeHour, onScrub }: Props) {
     // そのままだとドットの角度に応じて時刻がスナップしてしまう。実際の移動が発生するまで待つ
   };
 
-  const handlePointerMove = (e: React.PointerEvent) => {
-    if (!open) return;
-    const hour = hourFromPointer(e.clientX, e.clientY);
+  const handlePointerMove = (event: PointerEvent) => {
+    if (!open) {
+      return;
+    }
+    const hour = hourFromPointer(event.clientX, event.clientY);
     if (hour !== displayHour) {
       setDisplayHour(hour);
       onScrub(hour);
     }
   };
 
-  const handlePointerUp = (e: React.PointerEvent) => {
+  const handlePointerUp = (event: PointerEvent) => {
     try {
-      e.currentTarget.releasePointerCapture(e.pointerId);
+      event.currentTarget.releasePointerCapture(event.pointerId);
     } catch {
       // 無視
     }
@@ -159,4 +168,4 @@ export function HourDial({ activeHour, onScrub }: Props) {
       )}
     </div>
   );
-}
+};

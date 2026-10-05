@@ -10,7 +10,11 @@ type Props = {
   onSelect: (minuteOfDay: number) => void;
 };
 
-export function MinuteCell({ minuteOfDay, nowMinuteOfDay, onSelect }: Props) {
+export const MinuteCell = ({
+  minuteOfDay,
+  nowMinuteOfDay,
+  onSelect,
+}: Props) => {
   const { minute } = fromMinuteOfDay(minuteOfDay);
   const isNow = minuteOfDay === nowMinuteOfDay;
 
@@ -38,8 +42,8 @@ export function MinuteCell({ minuteOfDay, nowMinuteOfDay, onSelect }: Props) {
       type="button"
       className={`${styles.cell} ${filled ? styles.filled : ""} ${isNow ? styles.now : ""}`}
       data-minute={minuteOfDay}
-      onPointerDown={(e) => {
-        e.stopPropagation();
+      onPointerDown={(event) => {
+        event.stopPropagation();
         onSelect(minuteOfDay);
       }}
       style={thumbUrl ? { backgroundImage: `url(${thumbUrl})` } : undefined}
@@ -50,4 +54,4 @@ export function MinuteCell({ minuteOfDay, nowMinuteOfDay, onSelect }: Props) {
       </span>
     </button>
   );
-}
+};

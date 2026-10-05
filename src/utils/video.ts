@@ -31,7 +31,9 @@ export const compressVideo = async (file: File): Promise<Blob> => {
 
     const srcW = video.videoWidth;
     const srcH = video.videoHeight;
-    if (!srcW || !srcH) return file;
+    if (!srcW || !srcH) {
+      return file;
+    }
 
     const scale = Math.min(1, MAX_SIDE / Math.max(srcW, srcH));
     const width = Math.max(2, Math.round((srcW * scale) / 2) * 2);
@@ -59,8 +61,9 @@ export const compressVideo = async (file: File): Promise<Blob> => {
           let patchedMeta: EncodedVideoChunkMetadata | undefined;
           if (dc) {
             const patchedDc: VideoDecoderConfig = { ...dc };
-            if (!patchedDc.colorSpace)
+            if (!patchedDc.colorSpace) {
               patchedDc.colorSpace = DEFAULT_COLOR_SPACE;
+            }
             lastGoodDecoderConfig = patchedDc;
             patchedMeta = { ...meta, decoderConfig: patchedDc };
           } else if (lastGoodDecoderConfig) {
@@ -86,12 +89,12 @@ export const compressVideo = async (file: File): Promise<Blob> => {
             duration,
             patchedMeta,
           );
-        } catch (e) {
-          encoderError = e;
+        } catch (err) {
+          encoderError = err;
         }
       },
-      error: (e) => {
-        encoderError = e;
+      error: (err) => {
+        encoderError = err;
       },
     });
     encoder.configure({
@@ -131,7 +134,9 @@ export const compressVideo = async (file: File): Promise<Blob> => {
     await new Promise<void>((resolve) => {
       let done = false;
       const finish = () => {
-        if (done) return;
+        if (done) {
+          return;
+        }
         done = true;
         clearTimeout(safety);
         resolve();
@@ -160,8 +165,12 @@ export const compressVideo = async (file: File): Promise<Blob> => {
       }
 
       const onFrame = (_now: number, meta: { mediaTime: number }) => {
-        if (done) return;
-        if (startMediaTime === null) startMediaTime = meta.mediaTime;
+        if (done) {
+          return;
+        }
+        if (startMediaTime === null) {
+          startMediaTime = meta.mediaTime;
+        }
         const mediaElapsed = meta.mediaTime - startMediaTime;
         const wallElapsed = (performance.now() - wallStart) / 1000;
         if (mediaElapsed >= captureUntil || wallElapsed >= captureUntil) {
@@ -182,17 +191,23 @@ export const compressVideo = async (file: File): Promise<Blob> => {
 
     video.pause();
 
-    if (frameCount === 0) return file;
+    if (frameCount === 0) {
+      return file;
+    }
 
     await encoder.flush();
     encoder.close();
-    if (encoderError) throw encoderError;
+    if (encoderError) {
+      throw encoderError;
+    }
 
     muxer.finalize();
     const { buffer } = muxer.target as ArrayBufferTarget;
     const compressed = new Blob([buffer], { type: "video/mp4" });
 
-    if (compressed.size >= file.size) return file;
+    if (compressed.size >= file.size) {
+      return file;
+    }
     return compressed;
   } catch {
     return file;

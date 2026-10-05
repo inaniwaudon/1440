@@ -12,7 +12,7 @@ type Props = {
   onNaturalSize?: (width: number, height: number) => void;
 };
 
-export function FaceBlurImage({
+export const FaceBlurImage = ({
   src,
   alt,
   className,
@@ -20,7 +20,7 @@ export function FaceBlurImage({
   enabled,
   photo,
   onNaturalSize,
-}: Props) {
+}: Props) => {
   const shouldBlur = photo.blurOverride ?? photo.hasDetectedFace === true;
   return (
     <img
@@ -33,4 +33,4 @@ export function FaceBlurImage({
       }}
     />
   );
-}
+};

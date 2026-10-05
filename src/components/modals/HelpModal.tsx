@@ -15,7 +15,7 @@ type Props = {
   onClose: () => void;
 };
 
-export function HelpModal({ open, onClose }: Props) {
+export const HelpModal = ({ open, onClose }: Props) => {
   const photoCount = useLiveQuery(
     () => db.slots.filter((slot) => !!slot.photoId).count(),
     [],
@@ -124,4 +124,4 @@ export function HelpModal({ open, onClose }: Props) {
       </div>
     </Modal>
   );
-}
+};

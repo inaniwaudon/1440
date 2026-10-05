@@ -8,7 +8,9 @@ export type PhotoMetadata = {
   minuteOfDay: number;
 };
 
-export async function parsePhotoMetadata(file: File): Promise<PhotoMetadata> {
+export const parsePhotoMetadata = async (
+  file: File,
+): Promise<PhotoMetadata> => {
   let exif: Record<string, unknown> | null = null;
   try {
     exif = await exifr.parse(file, {
@@ -37,4 +39,4 @@ export async function parsePhotoMetadata(file: File): Promise<PhotoMetadata> {
     capturedAtSource,
     minuteOfDay: getMinuteOfDayFromDate(capturedAt),
   };
-}
+};

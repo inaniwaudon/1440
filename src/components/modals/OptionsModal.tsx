@@ -22,7 +22,7 @@ type Props = {
   onRequestStoragePersistence: () => void;
 };
 
-export function OptionsModal({
+export const OptionsModal = ({
   open,
   onClose,
   showOnlyWithImages,
@@ -40,7 +40,7 @@ export function OptionsModal({
   storagePersistence,
   storageUsage,
   onRequestStoragePersistence,
-}: Props) {
+}: Props) => {
   return (
     <Modal
       open={open}
@@ -132,4 +132,4 @@ export function OptionsModal({
       </button>
     </Modal>
   );
-}
+};

@@ -41,7 +41,7 @@ type ConflictResolver = (
   conflict: ImportConflict,
 ) => boolean | Promise<boolean>;
 
-async function savePhoto(
+const savePhoto = async (
   file: File,
   meta: {
     capturedAt: string | null;
@@ -49,7 +49,7 @@ async function savePhoto(
     minuteOfDay: number;
   },
   resolveConflict?: ConflictResolver,
-): Promise<boolean> {
+): Promise<boolean> => {
   const existingSlot = await db.slots.get(meta.minuteOfDay);
   const isVideo = file.type.startsWith("video/");
   const [thumbnailBlob, previewBlob, videoBlob] = isVideo
@@ -82,8 +82,8 @@ async function savePhoto(
 
   const id =
     crypto.randomUUID?.() ??
-    Array.from(crypto.getRandomValues(new Uint8Array(16)), (b) =>
-      b.toString(16).padStart(2, "0"),
+    Array.from(crypto.getRandomValues(new Uint8Array(16)), (byte) =>
+      byte.toString(16).padStart(2, "0"),
     ).join("");
   const hasDetectedFace = await shouldBlurForFaces(thumbnailBlob);
   const record: PhotoRecord = {
@@ -109,12 +109,12 @@ async function savePhoto(
     await db.slots.put({ minuteOfDay: meta.minuteOfDay, photoId: id });
   });
   return true;
-}
+};
 
-export async function importCameraPhoto(
+export const importCameraPhoto = async (
   file: File,
   resolveConflict?: ConflictResolver,
-): Promise<boolean> {
+): Promise<boolean> => {
   const now = new Date();
   return savePhoto(
     file,
@@ -125,21 +125,21 @@ export async function importCameraPhoto(
     },
     resolveConflict,
   );
-}
+};
 
-export async function importLibraryPhoto(
+export const importLibraryPhoto = async (
   file: File,
   resolveConflict?: ConflictResolver,
-): Promise<boolean> {
+): Promise<boolean> => {
   const meta = await parsePhotoMetadata(file);
   return savePhoto(file, meta, resolveConflict);
-}
+};
 
-export async function importBulkPhotos(
+export const importBulkPhotos = async (
   files: File[],
-  onProgress: (p: ImportProgress) => void,
+  onProgress: (progress: ImportProgress) => void,
   resolveConflict?: ConflictResolver,
-): Promise<ImportResult> {
+): Promise<ImportResult> => {
   const result: ImportResult = {
     succeeded: 0,
     skipped: 0,
@@ -153,8 +153,11 @@ export async function importBulkPhotos(
 
     try {
       const imported = await importLibraryPhoto(file, resolveConflict);
-      if (imported) result.succeeded++;
-      else result.skipped++;
+      if (imported) {
+        result.succeeded++;
+      } else {
+        result.skipped++;
+      }
     } catch (err) {
       result.failed++;
       result.errors.push({
@@ -171,4 +174,4 @@ export async function importBulkPhotos(
 
   onProgress({ total: files.length, current: files.length, currentFile: "" });
   return result;
-}
+};

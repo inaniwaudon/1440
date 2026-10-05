@@ -30,7 +30,7 @@ const RETURN_EASING = "cubic-bezier(0.34, 1.3, 0.64, 1)";
 const LONG_PRESS_MS = 500;
 const LONG_PRESS_MOVE_TOLERANCE = 8;
 
-function getMediaBlob(photo: PhotoRecord): { blob: Blob; isVideo: boolean } {
+const getMediaBlob = (photo: PhotoRecord): { blob: Blob; isVideo: boolean } => {
   if (photo.mimeType?.startsWith("video/") && photo.videoBlob) {
     return { blob: photo.videoBlob, isVideo: true };
   }
@@ -38,18 +38,26 @@ function getMediaBlob(photo: PhotoRecord): { blob: Blob; isVideo: boolean } {
     blob: photo.previewBlob ?? photo.thumbnailBlob,
     isVideo: false,
   };
-}
+};
 
-function extensionFor(mimeType: string | undefined): string {
-  if (!mimeType) return "jpg";
+const extensionFor = (mimeType: string | undefined): string => {
+  if (!mimeType) {
+    return "jpg";
+  }
   const subtype = mimeType.split("/")[1]?.split(";")[0];
-  if (!subtype) return "jpg";
-  if (subtype === "jpeg") return "jpg";
-  if (subtype === "quicktime") return "mov";
+  if (!subtype) {
+    return "jpg";
+  }
+  if (subtype === "jpeg") {
+    return "jpg";
+  }
+  if (subtype === "quicktime") {
+    return "mov";
+  }
   return subtype;
-}
+};
 
-async function sharePhoto(photo: PhotoRecord) {
+const sharePhoto = async (photo: PhotoRecord) => {
   const { blob } = getMediaBlob(photo);
   const mime = blob.type || photo.mimeType || "image/jpeg";
   const ext = extensionFor(mime);
@@ -70,7 +78,9 @@ async function sharePhoto(photo: PhotoRecord) {
       await navigator.share({ files: [file] });
       return;
     } catch (error) {
-      if ((error as DOMException)?.name === "AbortError") return;
+      if ((error as DOMException)?.name === "AbortError") {
+        return;
+      }
     }
   }
 
@@ -82,9 +92,9 @@ async function sharePhoto(photo: PhotoRecord) {
   link.click();
   link.remove();
   setTimeout(() => URL.revokeObjectURL(url), 1000);
-}
+};
 
-function PhotoPreview({
+const PhotoPreview = ({
   photo,
   active,
   blurImages,
@@ -92,7 +102,7 @@ function PhotoPreview({
   photo: PhotoRecord;
   active: boolean;
   blurImages: boolean;
-}) {
+}) => {
   const [url, setUrl] = useState<string | null>(null);
   const [aspectRatio, setAspectRatio] = useState<number | null>(null);
   const videoRef = useRef<HTMLVideoElement>(null);
@@ -105,26 +115,34 @@ function PhotoPreview({
   useEffect(() => {
     // メタデータの更新により、同じ IndexedDB の Blob が別オブジェクトとして再生成されることがある。
     // 実際のメディアの同一性が変わらない限り、URL を安定して保つ。
-    if (!mediaKey) return;
-    const u = URL.createObjectURL(mediaBlobRef.current);
-    setUrl(u);
+    if (!mediaKey) {
+      return;
+    }
+    const objectUrl = URL.createObjectURL(mediaBlobRef.current);
+    setUrl(objectUrl);
     setAspectRatio(null);
-    return () => URL.revokeObjectURL(u);
+    return () => URL.revokeObjectURL(objectUrl);
   }, [mediaKey]);
 
   useEffect(() => {
     const video = videoRef.current;
-    if (!isVideo || !video) return;
+    if (!isVideo || !video) {
+      return;
+    }
     if (active) {
-      const p = video.play();
-      if (p && typeof p.catch === "function") p.catch(() => undefined);
+      const promise = video.play();
+      if (promise && typeof promise.catch === "function") {
+        promise.catch(() => undefined);
+      }
     } else {
       video.pause();
       video.currentTime = 0;
     }
   }, [active, isVideo]);
 
-  if (!url) return null;
+  if (!url) {
+    return null;
+  }
   const capturedDate = formatCapturedDate(photo.capturedAt);
   const frameStyle = aspectRatio
     ? ({
@@ -145,10 +163,10 @@ function PhotoPreview({
           playsInline
           preload="auto"
           className={`${styles.previewImg} ${blurImages && shouldBlur ? styles.blurred : ""}`}
-          onLoadedMetadata={(e) => {
-            const v = e.currentTarget;
-            if (v.videoWidth && v.videoHeight) {
-              setAspectRatio(v.videoWidth / v.videoHeight);
+          onLoadedMetadata={(event) => {
+            const target = event.currentTarget;
+            if (target.videoWidth && target.videoHeight) {
+              setAspectRatio(target.videoWidth / target.videoHeight);
             }
           }}
         />
@@ -160,8 +178,10 @@ function PhotoPreview({
           fallbackBlurClassName={styles.blurred}
           enabled={blurImages}
           photo={photo}
-          onNaturalSize={(w, h) => {
-            if (w && h) setAspectRatio(w / h);
+          onNaturalSize={(width, height) => {
+            if (width && height) {
+              setAspectRatio(width / height);
+            }
           }}
         />
       )}
@@ -175,14 +195,14 @@ function PhotoPreview({
       )}
     </div>
   );
-}
+};
 
-export function MinuteDetail({
+export const MinuteDetail = ({
   minuteOfDay,
   onClose,
   onNavigate,
   blurImages,
-}: Props) {
+}: Props) => {
   const overlayRef = useRef<HTMLDivElement>(null);
   const trackRef = useRef<HTMLDivElement>(null);
   const swipeRef = useRef<{
@@ -246,7 +266,9 @@ export function MinuteDetail({
   useBodyScrollLock(isOpen);
 
   useEffect(() => {
-    if (!isOpen) return;
+    if (!isOpen) {
+      return;
+    }
     const overlay = overlayRef.current;
     const blockWheel = (event: WheelEvent) => event.preventDefault();
     overlay?.addEventListener("wheel", blockWheel, { passive: false });
@@ -263,7 +285,9 @@ export function MinuteDetail({
   onNavigateRef.current = onNavigate;
 
   useEffect(() => {
-    if (!isPlaying) return;
+    if (!isPlaying) {
+      return;
+    }
     const timer = window.setInterval(() => {
       const list = occupiedRef.current;
       const idx = list.indexOf(activeMinuteRef.current);
@@ -281,11 +305,15 @@ export function MinuteDetail({
   }, [isPlaying]);
 
   useEffect(() => {
-    if (!isOpen && isPlaying) setIsPlaying(false);
+    if (!isOpen && isPlaying) {
+      setIsPlaying(false);
+    }
   }, [isOpen, isPlaying]);
 
   useEffect(() => {
-    if (!isOpen) return;
+    if (!isOpen) {
+      return;
+    }
     const handleKey = (event: KeyboardEvent) => {
       if (event.key === "Escape") {
         event.preventDefault();
@@ -302,7 +330,9 @@ export function MinuteDetail({
     return () => window.removeEventListener("keydown", handleKey);
   }, [isOpen, previousMinute, nextMinute, onClose, onNavigate]);
 
-  if (minuteOfDay === null) return null;
+  if (minuteOfDay === null) {
+    return null;
+  }
 
   const handleClose = () => {
     pendingNavigateRef.current = null;
@@ -310,7 +340,9 @@ export function MinuteDetail({
   };
 
   const handleDeletePhoto = async () => {
-    if (!photo) return;
+    if (!photo) {
+      return;
+    }
     if (!window.confirm("この写真を削除しますか？")) {
       return;
     }
@@ -324,18 +356,24 @@ export function MinuteDetail({
   };
 
   const handleBlurToggle = async () => {
-    if (!photo) return;
+    if (!photo) {
+      return;
+    }
     const currentlyBlurred =
       photo.blurOverride ?? photo.hasDetectedFace === true;
     await db.photos.update(photo.id, { blurOverride: !currentlyBlurred });
   };
 
   const handleOverlayClick = (event: MouseEvent<HTMLDivElement>) => {
-    if (event.target === overlayRef.current) handleClose();
+    if (event.target === overlayRef.current) {
+      handleClose();
+    }
   };
 
   const handlePreviewPointerDown = (event: PointerEvent<HTMLDivElement>) => {
-    if (!event.isPrimary) return;
+    if (!event.isPrimary) {
+      return;
+    }
     const pending = pendingNavigateRef.current;
     if (pending !== null) {
       pendingNavigateRef.current = null;
@@ -344,7 +382,9 @@ export function MinuteDetail({
     trackRef.current?.getAnimations().forEach((animation) => {
       animation.cancel();
     });
-    if (trackRef.current) trackRef.current.style.transform = "";
+    if (trackRef.current) {
+      trackRef.current.style.transform = "";
+    }
     swipeRef.current = {
       pointerId: event.pointerId,
       startX: event.clientX,
@@ -357,7 +397,9 @@ export function MinuteDetail({
 
   const handlePreviewPointerMove = (event: PointerEvent<HTMLDivElement>) => {
     const swipe = swipeRef.current;
-    if (!swipe || swipe.pointerId !== event.pointerId) return;
+    if (!swipe || swipe.pointerId !== event.pointerId) {
+      return;
+    }
 
     swipe.currentX = event.clientX;
     const deltaX = event.clientX - swipe.startX;
@@ -370,8 +412,12 @@ export function MinuteDetail({
       pressStartRef.current.moved = true;
     }
     if (!swipe.isHorizontal) {
-      if (Math.abs(deltaX) < 8) return;
-      if (Math.abs(deltaX) <= Math.abs(deltaY)) return;
+      if (Math.abs(deltaX) < 8) {
+        return;
+      }
+      if (Math.abs(deltaX) <= Math.abs(deltaY)) {
+        return;
+      }
       swipe.isHorizontal = true;
       try {
         event.currentTarget.setPointerCapture(event.pointerId);
@@ -404,13 +450,17 @@ export function MinuteDetail({
       void sharePhoto(photo);
       return;
     }
-    if (!swipe || swipe.pointerId !== event.pointerId) return;
+    if (!swipe || swipe.pointerId !== event.pointerId) {
+      return;
+    }
 
     const deltaX = swipe.currentX - swipe.startX;
     const deltaY = event.clientY - swipe.startY;
     const preview = event.currentTarget;
     const track = trackRef.current;
-    if (!track) return;
+    if (!track) {
+      return;
+    }
     const threshold = Math.max(SWIPE_MIN_DISTANCE, preview.clientWidth * 0.12);
     const destination = deltaX < 0 ? nextMinute : previousMinute;
     const shouldReturn =
@@ -461,7 +511,9 @@ export function MinuteDetail({
     track.style.transform = "";
     pendingNavigateRef.current = destination;
     const commit = () => {
-      if (pendingNavigateRef.current !== destination) return;
+      if (pendingNavigateRef.current !== destination) {
+        return;
+      }
       pendingNavigateRef.current = null;
       flushSync(() => onNavigate(destination));
       track.style.transform = "";
@@ -481,7 +533,9 @@ export function MinuteDetail({
   };
 
   const handlePreviewClick = (event: MouseEvent<HTMLDivElement>) => {
-    if (Date.now() < suppressClickUntilRef.current) return;
+    if (Date.now() < suppressClickUntilRef.current) {
+      return;
+    }
     const image = trackRef.current?.children[1]?.querySelector("img");
     if (!image) {
       handleClose();
@@ -502,7 +556,9 @@ export function MinuteDetail({
       event.clientX <= left + width &&
       event.clientY >= top &&
       event.clientY <= top + height;
-    if (!isOnImage) handleClose();
+    if (!isOnImage) {
+      handleClose();
+    }
   };
 
   return (
@@ -581,7 +637,9 @@ export function MinuteDetail({
                 }
                 if (mode === "replay") {
                   const first = occupiedMinutes[0];
-                  if (first === undefined) return;
+                  if (first === undefined) {
+                    return;
+                  }
                   onNavigate(first);
                   setIsPlaying(true);
                   return;
@@ -627,4 +685,4 @@ export function MinuteDetail({
       </div>
     </div>
   );
-}
+};

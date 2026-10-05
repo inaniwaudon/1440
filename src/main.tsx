@@ -9,10 +9,14 @@ import App from "./App.tsx";
 registerSW({
   immediate: true,
   onRegisteredSW: (_url, registration) => {
-    if (!registration) return;
+    if (!registration) {
+      return;
+    }
     registration.addEventListener("updatefound", () => {
       const installing = registration.installing;
-      if (!installing) return;
+      if (!installing) {
+        return;
+      }
       installing.addEventListener("statechange", () => {
         if (installing.state === "activated") {
           location.reload();

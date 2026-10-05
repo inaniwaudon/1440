@@ -10,23 +10,25 @@ type Props = {
   onResolve: (replace: boolean) => void;
 };
 
-function BlobPreview({ blob, alt }: { blob: Blob; alt: string }) {
+const BlobPreview = ({ blob, alt }: { blob: Blob; alt: string }) => {
   const imageRef = useRef<HTMLImageElement>(null);
 
   useEffect(() => {
     const nextUrl = URL.createObjectURL(blob);
-    if (imageRef.current) imageRef.current.src = nextUrl;
+    if (imageRef.current) {
+      imageRef.current.src = nextUrl;
+    }
     return () => URL.revokeObjectURL(nextUrl);
   }, [blob]);
 
   return <img ref={imageRef} className={styles.image} alt={alt} />;
-}
+};
 
-function displayName(name?: string) {
+const displayName = (name?: string) => {
   return name || "名前のないメディア";
-}
+};
 
-export function ImportConflictOverlay({ conflict, onResolve }: Props) {
+export const ImportConflictOverlay = ({ conflict, onResolve }: Props) => {
   const open = !!conflict;
 
   return (
@@ -90,4 +92,4 @@ export function ImportConflictOverlay({ conflict, onResolve }: Props) {
       )}
     </Modal>
   );
-}
+};

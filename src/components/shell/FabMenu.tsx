@@ -1,3 +1,4 @@
+import type { ChangeEvent } from "react";
 import { useEffect, useRef, useState } from "react";
 import {
   MdFolderOpen,
@@ -17,7 +18,7 @@ type Props = {
 
 const MIN_DIST = 20;
 
-export function FabMenu({ onCamera, onImport, onHelp, onOption }: Props) {
+export const FabMenu = ({ onCamera, onImport, onHelp, onOption }: Props) => {
   const [open, setOpen] = useState(false);
   const [active, setActive] = useState<Item | null>(null);
   const [showPhotoActions, setShowPhotoActions] = useState(false);
@@ -29,14 +30,18 @@ export function FabMenu({ onCamera, onImport, onHelp, onOption }: Props) {
   const hadActiveRef = useRef(false);
   const originRef = useRef({ x: 0, y: 0 });
 
-  function getItem(x: number, y: number): Item | null {
-    const dx = x - originRef.current.x;
-    const dy = y - originRef.current.y;
-    const distance = Math.hypot(dx, dy);
-    if (distance < MIN_DIST) return null;
+  const getItem = (x: number, y: number): Item | null => {
+    const deltaX = x - originRef.current.x;
+    const deltaY = y - originRef.current.y;
+    const distance = Math.hypot(deltaX, deltaY);
+    if (distance < MIN_DIST) {
+      return null;
+    }
 
     const fab = gestureRef.current?.getBoundingClientRect();
-    if (!fab) return null;
+    if (!fab) {
+      return null;
+    }
 
     const centerX = fab.left + fab.width / 2;
     const centerY = fab.top + fab.height / 2;
@@ -58,15 +63,19 @@ export function FabMenu({ onCamera, onImport, onHelp, onOption }: Props) {
     });
 
     // メニューは FAB の左上側のみに展開する
-    if (x > centerX + MIN_DIST && y > centerY + MIN_DIST) return null;
+    if (x > centerX + MIN_DIST && y > centerY + MIN_DIST) {
+      return null;
+    }
     return closest.item;
-  }
+  };
 
-  function selectItem(item: Item | null) {
+  const selectItem = (item: Item | null) => {
     activeRef.current = item;
-    if (item !== null) hadActiveRef.current = true;
+    if (item !== null) {
+      hadActiveRef.current = true;
+    }
     setActive(item);
-  }
+  };
 
   const close = () => {
     openRef.current = false;
@@ -82,26 +91,30 @@ export function FabMenu({ onCamera, onImport, onHelp, onOption }: Props) {
     // biome-ignore lint/style/noNonNullAssertion: gestureRef is attached by this component
     const el = gestureRef.current!;
 
-    function onPointerDown(e: PointerEvent) {
-      originRef.current = { x: e.clientX, y: e.clientY };
+    const onPointerDown = (event: PointerEvent) => {
+      originRef.current = { x: event.clientX, y: event.clientY };
       hadActiveRef.current = false;
       selectItem(null);
       openRef.current = true;
       setOpen(true);
-      el.setPointerCapture(e.pointerId);
-    }
+      el.setPointerCapture(event.pointerId);
+    };
 
-    function onPointerMove(e: PointerEvent) {
-      if (!openRef.current) return;
-      selectItem(getItem(e.clientX, e.clientY));
-    }
+    const onPointerMove = (event: PointerEvent) => {
+      if (!openRef.current) {
+        return;
+      }
+      selectItem(getItem(event.clientX, event.clientY));
+    };
 
-    function onPointerUp(e: PointerEvent) {
-      if (!openRef.current) return;
+    const onPointerUp = (event: PointerEvent) => {
+      if (!openRef.current) {
+        return;
+      }
 
       // pointermove が最終位置で発火する保証はない。
       // 素早くスライドして離すジェスチャに対応するため、pointerup の位置で再評価する。
-      selectItem(getItem(e.clientX, e.clientY));
+      selectItem(getItem(event.clientX, event.clientY));
 
       const selected = activeRef.current;
       const hadActive = hadActiveRef.current;
@@ -114,14 +127,18 @@ export function FabMenu({ onCamera, onImport, onHelp, onOption }: Props) {
         setShowPhotoActions(true);
       } else {
         setShowPhotoActions(false);
-        if (selected === "help") onHelp?.();
-        if (selected === "option") onOption?.();
+        if (selected === "help") {
+          onHelp?.();
+        }
+        if (selected === "option") {
+          onOption?.();
+        }
       }
-    }
+    };
 
-    function onPointerCancel() {
+    const onPointerCancel = () => {
       close();
-    }
+    };
 
     el.addEventListener("pointerdown", onPointerDown);
     el.addEventListener("pointermove", onPointerMove);
@@ -144,16 +161,20 @@ export function FabMenu({ onCamera, onImport, onHelp, onOption }: Props) {
     };
   }, [onHelp, onOption]);
 
-  const handleCameraChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const files = Array.from(e.target.files ?? []);
-    e.target.value = "";
-    if (files[0]) onCamera(files[0]);
+  const handleCameraChange = (event: ChangeEvent<HTMLInputElement>) => {
+    const files = Array.from(event.target.files ?? []);
+    event.target.value = "";
+    if (files[0]) {
+      onCamera(files[0]);
+    }
   };
 
-  const handleImportChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const files = Array.from(e.target.files ?? []);
-    e.target.value = "";
-    if (files.length > 0) onImport(files);
+  const handleImportChange = (event: ChangeEvent<HTMLInputElement>) => {
+    const files = Array.from(event.target.files ?? []);
+    event.target.value = "";
+    if (files.length > 0) {
+      onImport(files);
+    }
   };
 
   const openCamera = () => {
@@ -257,4 +278,4 @@ export function FabMenu({ onCamera, onImport, onHelp, onOption }: Props) {
       </div>
     </>
   );
-}
+};

@@ -1,3 +1,4 @@
+import type { ChangeEvent } from "react";
 import { useEffect, useRef, useState } from "react";
 import { flushSync } from "react-dom";
 import { MinuteDetail } from "./components/minute/MinuteDetail";
@@ -51,23 +52,29 @@ type StoragePersistence =
   | "temporary"
   | "persistent";
 
-function formatBytes(bytes: number): string {
-  if (bytes < 1024 * 1024) return `${Math.ceil(bytes / 1024)} KB`;
+const formatBytes = (bytes: number): string => {
+  if (bytes < 1024 * 1024) {
+    return `${Math.ceil(bytes / 1024)} KB`;
+  }
   return `${(bytes / (1024 * 1024)).toFixed(1)} MB`;
-}
+};
 
 const defaultOptions: StoredOptions = {
   showOnlyWithImages: false,
   blurImages: false,
 };
 
-function loadOptions(): StoredOptions {
+const loadOptions = (): StoredOptions => {
   try {
     const stored = localStorage.getItem(OPTIONS_STORAGE_KEY);
-    if (!stored) return defaultOptions;
+    if (!stored) {
+      return defaultOptions;
+    }
 
     const parsed: unknown = JSON.parse(stored);
-    if (typeof parsed !== "object" || parsed === null) return defaultOptions;
+    if (typeof parsed !== "object" || parsed === null) {
+      return defaultOptions;
+    }
 
     const options = parsed as Partial<StoredOptions>;
     return {
@@ -83,9 +90,9 @@ function loadOptions(): StoredOptions {
   } catch {
     return defaultOptions;
   }
-}
+};
 
-export default function App() {
+const App = () => {
   const [selectedMinute, setSelectedMinute] = useState<number | null>(null);
   const [importState, setImportState] = useState<ImportState>({
     status: "idle",
@@ -125,7 +132,9 @@ export default function App() {
   useEffect(() => {
     let cancelled = false;
     db.photos.count().then((count) => {
-      if (!cancelled && count === 0) setHelpOpen(true);
+      if (!cancelled && count === 0) {
+        setHelpOpen(true);
+      }
     });
     return () => {
       cancelled = true;
@@ -141,7 +150,9 @@ export default function App() {
   }, [options]);
 
   useEffect(() => {
-    if (!optionsOpen) return;
+    if (!optionsOpen) {
+      return;
+    }
     const storage = navigator.storage;
     if (!storage?.persisted || !storage.persist) {
       setStoragePersistence("unsupported");
@@ -151,7 +162,9 @@ export default function App() {
     let cancelled = false;
     void Promise.all([storage.persisted(), storage.estimate?.()]).then(
       ([persistent, estimate]) => {
-        if (cancelled) return;
+        if (cancelled) {
+          return;
+        }
         setStoragePersistence(persistent ? "persistent" : "temporary");
         setStorageUsage(
           typeof estimate?.usage === "number"
@@ -236,7 +249,9 @@ export default function App() {
   };
 
   const handleBulkImport = async (files: File[]) => {
-    if (files.length === 0) return;
+    if (files.length === 0) {
+      return;
+    }
     setImportState({
       status: "importing",
       progress: { total: files.length, current: 0, currentFile: "" },
@@ -262,14 +277,14 @@ export default function App() {
       total: 0,
     });
     try {
-      const destination = await exportArchive((p) => {
+      const destination = await exportArchive((progress) => {
         setTransferPhase({
           kind: "exporting",
-          step: p.step,
-          totalSteps: p.totalSteps,
-          label: p.label,
-          current: p.current,
-          total: p.total,
+          step: progress.step,
+          totalSteps: progress.totalSteps,
+          label: progress.label,
+          current: progress.current,
+          total: progress.total,
         });
       });
       if (destination.kind === "saved") {
@@ -292,13 +307,13 @@ export default function App() {
     importFileInputRef.current?.click();
   };
 
-  const handleImportFile = async (
-    event: React.ChangeEvent<HTMLInputElement>,
-  ) => {
+  const handleImportFile = async (event: ChangeEvent<HTMLInputElement>) => {
     const fileList = event.target.files;
     const files = fileList ? Array.from(fileList) : [];
     event.target.value = "";
-    if (files.length === 0) return;
+    if (files.length === 0) {
+      return;
+    }
     setExportError(null);
     setTransferPhase({
       kind: "importing",
@@ -330,8 +345,8 @@ export default function App() {
 
       // 動画アーカイブが既存レコードに紐付けできるように、メインアーカイブを先に処理する
       const sorted = [
-        ...entries.filter((e) => e.summary.kind === "main"),
-        ...entries.filter((e) => e.summary.kind === "video"),
+        ...entries.filter((entry) => entry.summary.kind === "main"),
+        ...entries.filter((entry) => entry.summary.kind === "video"),
       ];
 
       for (let i = 0; i < sorted.length; i++) {
@@ -352,22 +367,22 @@ export default function App() {
         });
         const result =
           summary.kind === "main"
-            ? await importArchive(file, summary, (p) => {
+            ? await importArchive(file, summary, (progress) => {
                 setTransferPhase({
                   kind: "importing",
                   label,
-                  current: p.current,
-                  total: p.total,
-                  phase: p.phase,
+                  current: progress.current,
+                  total: progress.total,
+                  phase: progress.phase,
                 });
               })
-            : await importVideoArchive(file, summary, (p) => {
+            : await importVideoArchive(file, summary, (progress) => {
                 setTransferPhase({
                   kind: "importing",
                   label,
-                  current: p.current,
-                  total: p.total,
-                  phase: p.phase,
+                  current: progress.current,
+                  total: progress.total,
+                  phase: progress.phase,
                 });
               });
         combined.imported += result.imported;
@@ -400,7 +415,9 @@ export default function App() {
       });
       const url = URL.createObjectURL(result.blob);
       setExportedImageUrl((previous) => {
-        if (previous) URL.revokeObjectURL(previous);
+        if (previous) {
+          URL.revokeObjectURL(previous);
+        }
         return url;
       });
     } catch (error) {
@@ -414,7 +431,9 @@ export default function App() {
     const confirmed = window.confirm(
       "すべての写真と動画を削除します。この操作は取り消せません。",
     );
-    if (!confirmed) return;
+    if (!confirmed) {
+      return;
+    }
 
     setDeleteBusy(true);
     setExportError(null);
@@ -514,7 +533,9 @@ export default function App() {
         url={exportedImageUrl}
         onClose={() => {
           setExportedImageUrl((previous) => {
-            if (previous) URL.revokeObjectURL(previous);
+            if (previous) {
+              URL.revokeObjectURL(previous);
+            }
             return null;
           });
         }}
@@ -523,4 +544,6 @@ export default function App() {
       <InstallPrompt />
     </>
   );
-}
+};
+
+export default App;

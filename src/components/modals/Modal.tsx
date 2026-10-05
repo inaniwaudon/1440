@@ -1,3 +1,4 @@
+import type { MouseEvent } from "react";
 import { type ReactNode, useEffect } from "react";
 import { useBodyScrollLock } from "../../hooks/useBodyScrollLock";
 import styles from "./Modal.module.css";
@@ -14,7 +15,7 @@ type Props = {
   children: ReactNode;
 };
 
-export function Modal({
+export const Modal = ({
   open,
   onClose,
   title,
@@ -24,30 +25,39 @@ export function Modal({
   dismissOnEscape = true,
   labelledBy = "modal-title",
   children,
-}: Props) {
+}: Props) => {
   useBodyScrollLock(open);
 
   useEffect(() => {
-    if (!open || !dismissOnEscape || !onClose) return;
+    if (!open || !dismissOnEscape || !onClose) {
+      return;
+    }
     const handleKeyDown = (event: KeyboardEvent) => {
-      if (event.key === "Escape") onClose();
+      if (event.key === "Escape") {
+        onClose();
+      }
     };
     window.addEventListener("keydown", handleKeyDown);
     return () => window.removeEventListener("keydown", handleKeyDown);
   }, [open, dismissOnEscape, onClose]);
 
-  if (!open) return null;
+  if (!open) {
+    return null;
+  }
+
+  const handleOverlayClick = (event: MouseEvent<HTMLDivElement>) => {
+    if (!dismissOnOverlayClick || !onClose) {
+      return;
+    }
+    if (event.target === event.currentTarget) {
+      onClose();
+    }
+  };
 
   return (
     // biome-ignore lint/a11y/noStaticElementInteractions: overlay click dismisses modal
     // biome-ignore lint/a11y/useKeyWithClickEvents: Escape handled by keydown listener
-    <div
-      className={styles.overlay}
-      onClick={(event) => {
-        if (!dismissOnOverlayClick || !onClose) return;
-        if (event.target === event.currentTarget) onClose();
-      }}
-    >
+    <div className={styles.overlay} onClick={handleOverlayClick}>
       <section
         className={`${styles.modal} ${wide ? styles.wide : ""}`.trim()}
         role="dialog"
@@ -64,6 +74,6 @@ export function Modal({
       </section>
     </div>
   );
-}
+};
 
 export { styles as modalStyles };

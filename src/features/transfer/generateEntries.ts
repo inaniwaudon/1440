@@ -13,10 +13,11 @@ export type ZipEntry = {
   input: Blob | string;
 };
 
+// ジェネレータ関数はアロー関数で表現できないため function 宣言を使用する
 export async function* generateEntries(
   photoIds: string[],
   slots: SlotRecord[],
-  onProgress: (p: ExportProgress) => void,
+  onProgress: (progress: ExportProgress) => void,
 ): AsyncGenerator<ZipEntry> {
   const now = new Date();
   const metas: ArchivePhotoMeta[] = [];
@@ -39,7 +40,9 @@ export async function* generateEntries(
     const id = photoIds[i];
     onProgress({ current: i, total: photoIds.length });
     let photo = await db.photos.get(id);
-    if (!photo) continue;
+    if (!photo) {
+      continue;
+    }
 
     const thumbnailPath = `photos/${id}/thumbnail.bin`;
     const previewPath = photo.previewBlob

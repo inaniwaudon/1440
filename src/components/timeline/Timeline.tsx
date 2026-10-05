@@ -17,7 +17,7 @@ import { HourDial } from "./HourDial";
 import styles from "./Timeline.module.css";
 
 type Props = {
-  onSelectMinute: (m: number, cell: HTMLElement) => void;
+  onSelectMinute: (minuteOfDay: number, cell: HTMLElement) => void;
   showOnlyWithImages: boolean;
   blurImages: boolean;
 };
@@ -26,26 +26,26 @@ const INITIAL_GRID_COLUMNS = 5;
 const MIN_GRID_COLUMNS = 2;
 const MAX_GRID_COLUMNS = 12;
 
-function touchDistance(touches: ReactTouchList) {
+const touchDistance = (touches: ReactTouchList) => {
   const [first, second] = [touches[0], touches[1]];
   return Math.hypot(
     second.clientX - first.clientX,
     second.clientY - first.clientY,
   );
-}
+};
 
-function touchCenter(touches: ReactTouchList) {
+const touchCenter = (touches: ReactTouchList) => {
   return {
     x: (touches[0].clientX + touches[1].clientX) / 2,
     y: (touches[0].clientY + touches[1].clientY) / 2,
   };
-}
+};
 
-export function Timeline({
+export const Timeline = ({
   onSelectMinute,
   showOnlyWithImages,
   blurImages,
-}: Props) {
+}: Props) => {
   const [nowMod, setNowMod] = useState(() =>
     getMinuteOfDayFromDate(new Date()),
   );
@@ -59,8 +59,9 @@ export function Timeline({
 
   useEffect(
     () => () => {
-      if (wheelRef.current.timer !== null)
+      if (wheelRef.current.timer !== null) {
         window.clearTimeout(wheelRef.current.timer);
+      }
     },
     [],
   );
@@ -68,7 +69,9 @@ export function Timeline({
   const changeColumns = useCallback(
     (nextColumns: number, focusX: number, focusY: number) => {
       const grid = gridRef.current;
-      if (!grid || nextColumns === gridColumns) return;
+      if (!grid || nextColumns === gridColumns) {
+        return;
+      }
 
       const anchor = document
         .elementFromPoint(focusX, focusY)
@@ -89,34 +92,40 @@ export function Timeline({
         const nextAnchor = grid.querySelector<HTMLElement>(
           `[data-minute="${anchorMinute}"]`,
         );
-        if (nextAnchor)
+        if (nextAnchor) {
           window.scrollBy(
             0,
             nextAnchor.getBoundingClientRect().top - anchorTop,
           );
+        }
       }
 
-      if (window.matchMedia("(prefers-reduced-motion: reduce)").matches) return;
+      if (window.matchMedia("(prefers-reduced-motion: reduce)").matches) {
+        return;
+      }
       grid.querySelectorAll<HTMLElement>("[data-minute]").forEach((cell) => {
         const before = oldRects.get(cell.dataset.minute ?? "");
-        if (!before) return;
+        if (!before) {
+          return;
+        }
         const after = cell.getBoundingClientRect();
-        const dx = before.left - after.left;
-        const dy = before.top - after.top;
+        const deltaX = before.left - after.left;
+        const deltaY = before.top - after.top;
         const scale = before.width / after.width;
         if (
-          Math.abs(dx) < 0.5 &&
-          Math.abs(dy) < 0.5 &&
+          Math.abs(deltaX) < 0.5 &&
+          Math.abs(deltaY) < 0.5 &&
           Math.abs(scale - 1) < 0.01
-        )
+        ) {
           return;
+        }
         cell.getAnimations().forEach((animation) => {
           animation.cancel();
         });
         cell.animate(
           [
             {
-              transform: `translate(${dx}px, ${dy}px) scale(${scale})`,
+              transform: `translate(${deltaX}px, ${deltaY}px) scale(${scale})`,
               transformOrigin: "top left",
             },
             {
@@ -141,12 +150,14 @@ export function Timeline({
 
   const thumbnails = useLiveQuery(
     async () => {
-      const slots = await db.slots.filter((s) => !!s.photoId).toArray();
-      const photos = await db.photos.bulkGet(slots.map((s) => s.photoId));
+      const slots = await db.slots.filter((slot) => !!slot.photoId).toArray();
+      const photos = await db.photos.bulkGet(slots.map((slot) => slot.photoId));
       const map = new Map<number, PhotoRecord>();
       slots.forEach((slot, i) => {
         const photo = photos[i];
-        if (photo) map.set(slot.minuteOfDay, photo);
+        if (photo) {
+          map.set(slot.minuteOfDay, photo);
+        }
       });
       return map;
     },
@@ -181,8 +192,8 @@ export function Timeline({
   }, [thumbnails]);
   useEffect(
     () => () => {
-      blobUrlCache.current.forEach((u) => {
-        URL.revokeObjectURL(u);
+      blobUrlCache.current.forEach((url) => {
+        URL.revokeObjectURL(url);
       });
       blobUrlCache.current.clear();
     },
@@ -199,9 +210,11 @@ export function Timeline({
   useEffect(() => {
     const onScroll = () => {
       let found = 0;
-      for (let h = 0; h < 24; h++) {
-        const b = blockRefs.current[h];
-        if (b && b.getBoundingClientRect().top <= 4) found = h;
+      for (let hour = 0; hour < 24; hour++) {
+        const block = blockRefs.current[hour];
+        if (block && block.getBoundingClientRect().top <= 4) {
+          found = hour;
+        }
       }
       setActiveHour(found);
     };
@@ -209,11 +222,15 @@ export function Timeline({
     return () => window.removeEventListener("scroll", onScroll);
   }, []);
 
-  const scrollToHour = (h: number) => {
-    const exact = blockRefs.current[h];
+  const scrollToHour = (targetHour: number) => {
+    const exact = blockRefs.current[targetHour];
     const nearestHour = visibleHours.reduce<number | null>((nearest, hour) => {
-      if (nearest === null) return hour;
-      return Math.abs(hour - h) < Math.abs(nearest - h) ? hour : nearest;
+      if (nearest === null) {
+        return hour;
+      }
+      return Math.abs(hour - targetHour) < Math.abs(nearest - targetHour)
+        ? hour
+        : nearest;
     }, null);
     (
       exact ?? (nearestHour === null ? null : blockRefs.current[nearestHour])
@@ -224,7 +241,9 @@ export function Timeline({
   };
 
   const handleTouchStart = (event: TouchEvent<HTMLDivElement>) => {
-    if (event.touches.length !== 2) return;
+    if (event.touches.length !== 2) {
+      return;
+    }
     event.preventDefault();
     pinchRef.current = {
       distance: touchDistance(event.touches),
@@ -234,7 +253,9 @@ export function Timeline({
 
   const handleTouchMove = (event: TouchEvent<HTMLDivElement>) => {
     const pinch = pinchRef.current;
-    if (!pinch || event.touches.length !== 2) return;
+    if (!pinch || event.touches.length !== 2) {
+      return;
+    }
     event.preventDefault();
 
     const scale = touchDistance(event.touches) / pinch.distance;
@@ -251,29 +272,40 @@ export function Timeline({
   };
 
   const handleTouchEnd = (event: TouchEvent<HTMLDivElement>) => {
-    if (!pinchRef.current || event.touches.length >= 2) return;
+    if (!pinchRef.current || event.touches.length >= 2) {
+      return;
+    }
     pinchRef.current = null;
     suppressClickUntilRef.current = Date.now() + 350;
   };
 
   useEffect(() => {
     const grid = gridRef.current;
-    if (!grid) return;
+    if (!grid) {
+      return;
+    }
     const onWheel = (event: WheelEvent) => {
-      if (!event.ctrlKey) return;
+      if (!event.ctrlKey) {
+        return;
+      }
       event.preventDefault();
       wheelRef.current.delta += event.deltaY;
-      if (Math.abs(wheelRef.current.delta) < 18) return;
+      if (Math.abs(wheelRef.current.delta) < 18) {
+        return;
+      }
       const direction = wheelRef.current.delta > 0 ? 1 : -1;
       wheelRef.current.delta = 0;
       const nextColumns = Math.max(
         MIN_GRID_COLUMNS,
         Math.min(MAX_GRID_COLUMNS, gridColumns + direction),
       );
-      if (nextColumns === gridColumns) return;
+      if (nextColumns === gridColumns) {
+        return;
+      }
       changeColumns(nextColumns, event.clientX, event.clientY);
-      if (wheelRef.current.timer !== null)
+      if (wheelRef.current.timer !== null) {
         window.clearTimeout(wheelRef.current.timer);
+      }
       wheelRef.current.timer = window.setTimeout(() => {
         wheelRef.current.timer = null;
         wheelRef.current.delta = 0;
@@ -307,13 +339,15 @@ export function Timeline({
             // biome-ignore lint/a11y/useKeyWithClickEvents: minute cells themselves are focusable buttons
             <div
               key={hour}
-              ref={(el) => {
-                blockRefs.current[hour] = el;
+              ref={(element) => {
+                blockRefs.current[hour] = element;
               }}
               className={styles.hourBlock}
-              onClick={(e) => {
-                if (Date.now() < suppressClickUntilRef.current) return;
-                const cell = (e.target as HTMLElement).closest(
+              onClick={(event) => {
+                if (Date.now() < suppressClickUntilRef.current) {
+                  return;
+                }
+                const cell = (event.target as HTMLElement).closest(
                   "[data-minute]",
                 ) as HTMLElement | null;
                 if (
@@ -328,17 +362,18 @@ export function Timeline({
                 {String(hour).padStart(2, "0")}
               </span>
               <div className={styles.minuteGrid} style={gridStyle}>
-                {Array.from({ length: 60 }, (_, m) => m)
+                {Array.from({ length: 60 }, (_, index) => index)
                   .filter(
-                    (m) =>
-                      !showOnlyWithImages || thumbs.has(toMinuteOfDay(hour, m)),
+                    (minute) =>
+                      !showOnlyWithImages ||
+                      thumbs.has(toMinuteOfDay(hour, minute)),
                   )
-                  .map((m) => {
-                    const mod = toMinuteOfDay(hour, m);
+                  .map((minute) => {
+                    const mod = toMinuteOfDay(hour, minute);
                     const thumb = thumbs.get(mod);
                     return (
                       <div
-                        key={m}
+                        key={minute}
                         data-minute={mod}
                         data-has-photo={thumb ? "true" : "false"}
                         className={[
@@ -360,7 +395,7 @@ export function Timeline({
                           />
                         )}
                         <span className={styles.cellLabel}>
-                          {String(m).padStart(2, "0")}
+                          {String(minute).padStart(2, "0")}
                         </span>
                       </div>
                     );
@@ -374,4 +409,4 @@ export function Timeline({
       <HourDial activeHour={activeHour} onScrub={scrollToHour} />
     </div>
   );
-}
+};

@@ -4,7 +4,7 @@ import { formatMinuteOfDay } from "../../utils/time";
 const CELL_SIZE = 240;
 const DECODE_CONCURRENCY = 6;
 
-function canvasToBlob(canvas: HTMLCanvasElement) {
+const canvasToBlob = (canvas: HTMLCanvasElement) => {
   return new Promise<Blob>((resolve, reject) => {
     canvas.toBlob(
       (blob) =>
@@ -13,20 +13,21 @@ function canvasToBlob(canvas: HTMLCanvasElement) {
       0.9,
     );
   });
-}
+};
 
-export async function exportContactSheet(
+export const exportContactSheet = async (
   onProgress: (current: number, total: number) => void,
-): Promise<{ blob: Blob; count: number }> {
+): Promise<{ blob: Blob; count: number }> => {
   const slots = await db.slots.orderBy("minuteOfDay").toArray();
-  const photos = await db.photos.bulkGet(slots.map((s) => s.photoId));
+  const photos = await db.photos.bulkGet(slots.map((slot) => slot.photoId));
   const entries = slots.flatMap((slot, i) => {
     const photo = photos[i];
     return photo ? [{ slot, photo }] : [];
   });
 
-  if (entries.length === 0)
+  if (entries.length === 0) {
     throw new Error("書き出せる写真または動画がありません");
+  }
 
   const columns = Math.min(
     entries.length,
@@ -37,7 +38,9 @@ export async function exportContactSheet(
   canvas.width = columns * CELL_SIZE;
   canvas.height = rows * CELL_SIZE;
   const ctx = canvas.getContext("2d");
-  if (!ctx) throw new Error("画像用キャンバスを作成できませんでした");
+  if (!ctx) {
+    throw new Error("画像用キャンバスを作成できませんでした");
+  }
   ctx.fillStyle = "#0d0d0d";
   ctx.fillRect(0, 0, canvas.width, canvas.height);
   ctx.fillStyle = "#fff";
@@ -50,7 +53,9 @@ export async function exportContactSheet(
   const decodeWorker = async () => {
     while (true) {
       const i = nextDecodeIndex++;
-      if (i >= entries.length) return;
+      if (i >= entries.length) {
+        return;
+      }
       const { photo } = entries[i];
       try {
         bitmaps[i] = await createImageBitmap(
@@ -68,17 +73,19 @@ export async function exportContactSheet(
 
   const waiters: Array<Promise<void> | undefined> = [];
   const waitFor = (i: number): Promise<void> => {
-    if (bitmaps[i] !== undefined) return Promise.resolve();
-    let w = waiters[i];
-    if (!w) {
-      w = (async () => {
+    if (bitmaps[i] !== undefined) {
+      return Promise.resolve();
+    }
+    let waiter = waiters[i];
+    if (!waiter) {
+      waiter = (async () => {
         while (bitmaps[i] === undefined) {
-          await new Promise((r) => setTimeout(r, 4));
+          await new Promise((resolve) => setTimeout(resolve, 4));
         }
       })();
-      waiters[i] = w;
+      waiters[i] = waiter;
     }
-    return w;
+    return waiter;
   };
 
   for (let index = 0; index < entries.length; index++) {
@@ -119,4 +126,4 @@ export async function exportContactSheet(
   await Promise.all(decoders);
   onProgress(entries.length, entries.length);
   return { blob: await canvasToBlob(canvas), count: entries.length };
-}
+};

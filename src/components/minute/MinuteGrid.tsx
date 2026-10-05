@@ -8,7 +8,7 @@ type Props = {
   onSelectMinute: (minuteOfDay: number) => void;
 };
 
-export function MinuteGrid({ hour, nowMinuteOfDay, onSelectMinute }: Props) {
+export const MinuteGrid = ({ hour, nowMinuteOfDay, onSelectMinute }: Props) => {
   return (
     <div className={styles.grid}>
       {Array.from({ length: 60 }, (_, i) => (
@@ -22,4 +22,4 @@ export function MinuteGrid({ hour, nowMinuteOfDay, onSelectMinute }: Props) {
       ))}
     </div>
   );
-}
+};

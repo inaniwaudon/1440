@@ -12,7 +12,7 @@ type Props = {
 const LONG_PRESS_MS = 500;
 const LONG_PRESS_MOVE_TOLERANCE = 8;
 
-async function shareImage(url: string) {
+const shareImage = async (url: string) => {
   const response = await fetch(url);
   const blob = await response.blob();
   const mime = blob.type || "image/png";
@@ -34,7 +34,9 @@ async function shareImage(url: string) {
       await navigator.share({ files: [file] });
       return;
     } catch (error) {
-      if ((error as DOMException)?.name === "AbortError") return;
+      if ((error as DOMException)?.name === "AbortError") {
+        return;
+      }
     }
   }
 
@@ -44,9 +46,9 @@ async function shareImage(url: string) {
   document.body.appendChild(link);
   link.click();
   link.remove();
-}
+};
 
-export function ImageExportModal({ url, onClose }: Props) {
+export const ImageExportModal = ({ url, onClose }: Props) => {
   useBodyScrollLock(url !== null);
   const pressRef = useRef<{
     time: number;
@@ -56,22 +58,32 @@ export function ImageExportModal({ url, onClose }: Props) {
   } | null>(null);
 
   useEffect(() => {
-    if (!url) return;
+    if (!url) {
+      return;
+    }
     const handleKeyDown = (event: KeyboardEvent) => {
-      if (event.key === "Escape") onClose();
+      if (event.key === "Escape") {
+        onClose();
+      }
     };
     window.addEventListener("keydown", handleKeyDown);
     return () => window.removeEventListener("keydown", handleKeyDown);
   }, [url, onClose]);
 
-  if (!url) return null;
+  if (!url) {
+    return null;
+  }
 
   const handleOverlayClick = (event: MouseEvent<HTMLDivElement>) => {
-    if (event.target === event.currentTarget) onClose();
+    if (event.target === event.currentTarget) {
+      onClose();
+    }
   };
 
   const handleImagePointerDown = (event: PointerEvent<HTMLImageElement>) => {
-    if (!event.isPrimary) return;
+    if (!event.isPrimary) {
+      return;
+    }
     pressRef.current = {
       time: Date.now(),
       x: event.clientX,
@@ -82,7 +94,9 @@ export function ImageExportModal({ url, onClose }: Props) {
 
   const handleImagePointerMove = (event: PointerEvent<HTMLImageElement>) => {
     const press = pressRef.current;
-    if (!press || press.moved) return;
+    if (!press || press.moved) {
+      return;
+    }
     if (
       Math.hypot(event.clientX - press.x, event.clientY - press.y) >
       LONG_PRESS_MOVE_TOLERANCE
@@ -131,4 +145,4 @@ export function ImageExportModal({ url, onClose }: Props) {
       <p className={styles.hint}>画像を長押しして保存</p>
     </div>
   );
-}
+};

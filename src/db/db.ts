@@ -23,7 +23,7 @@ class AppDB extends Dexie {
           bestPhotoId?: string;
         }>;
         const photos = (await tx.table("photos").toArray()) as PhotoRecord[];
-        const existingPhotoIds = new Set(photos.map((p) => p.id));
+        const existingPhotoIds = new Set(photos.map((photo) => photo.id));
         // 存在しない写真を参照しているスロットを削除し、無効な参照が残らないようにする
         const migrated = slots.flatMap(({ minuteOfDay, bestPhotoId }) =>
           bestPhotoId && existingPhotoIds.has(bestPhotoId)

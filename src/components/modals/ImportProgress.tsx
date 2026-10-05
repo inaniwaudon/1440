@@ -12,8 +12,10 @@ type Props = {
   onClose: () => void;
 };
 
-export function ImportProgressOverlay({ progress, result, onClose }: Props) {
-  if (!progress && !result) return null;
+export const ImportProgressOverlay = ({ progress, result, onClose }: Props) => {
+  if (!progress && !result) {
+    return null;
+  }
 
   const isDone = !!result;
   const pct =
@@ -70,10 +72,10 @@ export function ImportProgressOverlay({ progress, result, onClose }: Props) {
           </p>
           {result.errors.length > 0 && (
             <ul className={styles.errorList}>
-              {result.errors.map((e) => (
-                <li key={`${e.file}:${e.error}`}>
-                  <span className={styles.errorFile}>{e.file}</span>
-                  <span className={styles.errorMessage}>{e.error}</span>
+              {result.errors.map((error) => (
+                <li key={`${error.file}:${error.error}`}>
+                  <span className={styles.errorFile}>{error.file}</span>
+                  <span className={styles.errorMessage}>{error.error}</span>
                 </li>
               ))}
             </ul>
@@ -90,4 +92,4 @@ export function ImportProgressOverlay({ progress, result, onClose }: Props) {
       )}
     </Modal>
   );
-}
+};

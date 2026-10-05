@@ -31,18 +31,18 @@ type Props = {
   onClose: () => void;
 };
 
-function downloadFile(file: File) {
+const downloadFile = (file: File) => {
   const url = URL.createObjectURL(file);
-  const a = document.createElement("a");
-  a.href = url;
-  a.download = file.name;
-  document.body.appendChild(a);
-  a.click();
-  a.remove();
+  const anchor = document.createElement("a");
+  anchor.href = url;
+  anchor.download = file.name;
+  document.body.appendChild(anchor);
+  anchor.click();
+  anchor.remove();
   setTimeout(() => URL.revokeObjectURL(url), 10000);
-}
+};
 
-async function sharePhaseFile(file: File) {
+const sharePhaseFile = async (file: File) => {
   const canShare =
     typeof navigator.share === "function" &&
     (navigator.canShare?.({ files: [file] }) ?? true);
@@ -53,14 +53,18 @@ async function sharePhaseFile(file: File) {
   try {
     await navigator.share({ files: [file], title: file.name });
   } catch (err) {
-    if (err instanceof DOMException && err.name === "AbortError") return;
+    if (err instanceof DOMException && err.name === "AbortError") {
+      return;
+    }
     // PWA standalone 等で share が失敗するケースのフォールバック
     downloadFile(file);
   }
-}
+};
 
-export function TransferProgressOverlay({ phase, onClose }: Props) {
-  if (!phase) return null;
+export const TransferProgressOverlay = ({ phase, onClose }: Props) => {
+  if (!phase) {
+    return null;
+  }
 
   const isDone = phase.kind === "export-done" || phase.kind === "import-done";
   const title = (() => {
@@ -188,4 +192,4 @@ export function TransferProgressOverlay({ phase, onClose }: Props) {
       )}
     </Modal>
   );
-}
+};
