@@ -305,6 +305,7 @@ export function MinuteDetail({
   if (minuteOfDay === null) return null;
 
   const handleClose = () => {
+    pendingNavigateRef.current = null;
     onClose();
   };
 
@@ -318,6 +319,7 @@ export function MinuteDetail({
       await db.photos.delete(photo.id);
       await db.slots.delete(minuteOfDay);
     });
+    pendingNavigateRef.current = null;
     onClose();
   };
 
