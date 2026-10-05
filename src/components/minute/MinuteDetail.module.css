@@ -144,7 +144,7 @@
 }
 
 .previewImg.blurred {
-  filter: blur(2vw);
+  filter: blur(3vw);
   transform: scale(1.08);
 }
 

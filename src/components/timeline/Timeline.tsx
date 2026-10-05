@@ -300,7 +300,7 @@ export function Timeline({
           onTouchCancel={handleTouchEnd}
         >
           {visibleHours.length === 0 && showOnlyWithImages && (
-            <p className={styles.empty}>画像が追加されている時刻はありません</p>
+            <p className={styles.empty}>画像が記録されている時刻はありません</p>
           )}
           {visibleHours.map((hour) => (
             // biome-ignore lint/a11y/noStaticElementInteractions: delegated click opens photo

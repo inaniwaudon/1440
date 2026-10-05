@@ -50,7 +50,7 @@ export function OptionsModal({
       labelledBy="options-title"
     >
       <label className={styles.optionRow}>
-        <span>写真・動画が追加された時刻だけを表示</span>
+        <span>写真・動画が記録された時刻だけを表示</span>
         <input
           className={styles.switchInput}
           type="checkbox"
