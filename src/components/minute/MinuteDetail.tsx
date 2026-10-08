@@ -1,3 +1,4 @@
+import clsx from "clsx";
 import { useLiveQuery } from "dexie-react-hooks";
 import type { CSSProperties, DragEvent, MouseEvent, PointerEvent } from "react";
 import { useEffect, useRef, useState } from "react";
@@ -12,8 +13,14 @@ import {
 import { db } from "../../db/db";
 import type { PhotoRecord } from "../../db/types";
 import { useBodyScrollLock } from "../../hooks/useBodyScrollLock";
-import { formatCapturedDate, formatMinuteOfDay } from "../../utils/time";
+import {
+  formatCapturedDate,
+  NUMBER_POSITION_STORAGE_KEY,
+  type NumberPosition,
+  readStoredNumberPosition,
+} from "../../utils/time";
 import { FaceBlurImage } from "../media/FaceBlurImage";
+import { TimeLabel } from "../time/TimeLabel";
 import styles from "./MinuteDetail.module.css";
 
 type Props = {
@@ -217,6 +224,17 @@ export const MinuteDetail = ({
   const pressStartRef = useRef<{ time: number; moved: boolean } | null>(null);
   const [isPlaying, setIsPlaying] = useState(false);
   const playTimerRef = useRef<number | null>(null);
+  const [numberPosition, setNumberPosition] = useState<NumberPosition>(
+    readStoredNumberPosition,
+  );
+
+  useEffect(() => {
+    try {
+      window.localStorage.setItem(NUMBER_POSITION_STORAGE_KEY, numberPosition);
+    } catch {
+      // 無視
+    }
+  }, [numberPosition]);
 
   const occupiedMinutes = useLiveQuery<number[], number[]>(
     async () => {
@@ -558,7 +576,9 @@ export const MinuteDetail = ({
       event.clientY <= top + height;
     if (!isOnImage) {
       handleClose();
+      return;
     }
+    setNumberPosition((prev) => (prev === "middle" ? "corner" : "middle"));
   };
 
   return (
@@ -598,19 +618,30 @@ export const MinuteDetail = ({
                   ) : index === 1 ? (
                     <p className={styles.missingPhoto}>Loading media…</p>
                   ) : null}
-                  {entry && (
-                    <span className={styles.photoTime}>
-                      {formatMinuteOfDay(entry.minuteOfDay)}
-                    </span>
+                  {entry && numberPosition === "middle" && (
+                    <TimeLabel
+                      minuteOfDay={entry.minuteOfDay}
+                      className={styles.photoTimeMiddle}
+                    />
                   )}
                 </div>
               ))}
             </div>
           </div>
+          {hasPhoto && numberPosition === "corner" && (
+            <TimeLabel
+              minuteOfDay={photo.minuteOfDay}
+              className={styles.photoTimeCorner}
+            />
+          )}
           {hasPhoto && blurImages && (
             <button
               type="button"
-              className={`${styles.blurBtn} ${(photo.blurOverride ?? photo.hasDetectedFace === true) ? styles.blurBtnActive : ""}`}
+              className={clsx(
+                styles.blurBtn,
+                (photo.blurOverride ?? photo.hasDetectedFace === true) &&
+                  styles.blurBtnActive,
+              )}
               onClick={handleBlurToggle}
               aria-label="ぼかしを切り替える"
               aria-pressed={

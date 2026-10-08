@@ -1,6 +1,7 @@
 import type { ChangeEvent } from "react";
 import { useEffect, useRef, useState } from "react";
 import { flushSync } from "react-dom";
+import { LandscapeSlideshow } from "./components/landscape/LandscapeSlideshow";
 import { MinuteDetail } from "./components/minute/MinuteDetail";
 import { HelpModal } from "./components/modals/HelpModal";
 import { ImageExportModal } from "./components/modals/ImageExportModal";
@@ -452,11 +453,27 @@ const App = () => {
     }
   };
 
+  // タイムライン画面（モーダル等が開いていない状態）でのみ、横向きスライドショーを起動する
+  const isTimelineScreen =
+    selectedMinute === null &&
+    !optionsOpen &&
+    !helpOpen &&
+    conflict === null &&
+    transferPhase === null &&
+    importState.status === "idle" &&
+    imageExportProgress === null &&
+    exportedImageUrl === null;
+
   return (
     <>
       <Timeline
         onSelectMinute={selectMinute}
         showOnlyWithImages={options.showOnlyWithImages}
+        blurImages={options.blurImages}
+      />
+
+      <LandscapeSlideshow
+        enabled={isTimelineScreen}
         blurImages={options.blurImages}
       />
 

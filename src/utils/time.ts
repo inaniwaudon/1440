@@ -37,3 +37,16 @@ export const formatCapturedDate = (
   const day = String(date.getDate()).padStart(2, "0");
   return `${year}/${month}/${day}`;
 };
+
+export type NumberPosition = "middle" | "corner";
+
+export const NUMBER_POSITION_STORAGE_KEY = "minute-detail-number-position";
+
+export const readStoredNumberPosition = (): NumberPosition => {
+  try {
+    const value = window.localStorage.getItem(NUMBER_POSITION_STORAGE_KEY);
+    return value === "corner" ? "corner" : "middle";
+  } catch {
+    return "middle";
+  }
+};

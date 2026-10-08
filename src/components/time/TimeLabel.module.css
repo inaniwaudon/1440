@@ -1,0 +1,14 @@
+.time {
+  color: var(--white);
+  opacity: 0.6;
+  font-size: 40px;
+  font-weight: 800;
+  line-height: 1;
+  font-variant-numeric: tabular-nums;
+  pointer-events: none;
+}
+
+.colon {
+  display: inline-block;
+  transform: translateY(-0.08em);
+}

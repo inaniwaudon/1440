@@ -34,9 +34,16 @@ export const parsePhotoMetadata = async (
     capturedAtSource = "lastModified";
   }
 
+  // lastModified はタイムゾーン情報を持たないため、UTC の時刻を
+  // そのままスロットとして扱う。EXIF 由来の場合はローカル時刻として解釈する
+  const minuteOfDay =
+    capturedAtSource === "lastModified"
+      ? capturedAt.getUTCHours() * 60 + capturedAt.getUTCMinutes()
+      : getMinuteOfDayFromDate(capturedAt);
+
   return {
     capturedAt: capturedAt.toISOString(),
     capturedAtSource,
-    minuteOfDay: getMinuteOfDayFromDate(capturedAt),
+    minuteOfDay,
   };
 };
