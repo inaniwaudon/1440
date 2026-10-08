@@ -157,23 +157,42 @@ const App = () => {
     const storage = navigator.storage;
     if (!storage?.persisted || !storage.persist) {
       setStoragePersistence("unsupported");
-      return;
     }
 
     let cancelled = false;
-    void Promise.all([storage.persisted(), storage.estimate?.()]).then(
-      ([persistent, estimate]) => {
+    if (storage?.persisted) {
+      void storage.persisted().then((persistent) => {
         if (cancelled) {
           return;
         }
         setStoragePersistence(persistent ? "persistent" : "temporary");
+      });
+    }
+
+    void (async () => {
+      try {
+        const photos = await db.photos.toArray();
+        if (cancelled) {
+          return;
+        }
+        let photoBytes = 0;
+        let videoBytes = 0;
+        for (const photo of photos) {
+          photoBytes +=
+            (photo.thumbnailBlob?.size ?? 0) + (photo.previewBlob?.size ?? 0);
+          videoBytes += photo.videoBlob?.size ?? 0;
+        }
+        const total = photoBytes + videoBytes;
         setStorageUsage(
-          typeof estimate?.usage === "number"
-            ? formatBytes(estimate.usage)
-            : null,
+          `${formatBytes(total)}（写真 ${formatBytes(photoBytes)}、動画 ${formatBytes(videoBytes)}）`,
         );
-      },
-    );
+      } catch {
+        if (!cancelled) {
+          setStorageUsage(null);
+        }
+      }
+    })();
+
     return () => {
       cancelled = true;
     };

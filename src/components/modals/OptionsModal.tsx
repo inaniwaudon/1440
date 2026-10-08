@@ -65,12 +65,18 @@ export const OptionsModal = ({
           <span className={styles.storageTitle}>データの自動削除を防ぐ</span>
           <span className={styles.storageDetail}>
             {storagePersistence === "persistent"
-              ? `保護中${storageUsage ? ` · 使用量 ${storageUsage}` : ""}`
+              ? "保護中"
               : storagePersistence === "temporary"
-                ? `未保護${storageUsage ? ` · 使用量 ${storageUsage}` : ""}`
+                ? "未保護"
                 : storagePersistence === "checking"
                   ? "確認中…"
                   : "このブラウザでは利用できません"}
+            {storagePersistence !== "checking" && storageUsage && (
+              <>
+                <br />
+                使用量 {storageUsage}
+              </>
+            )}
           </span>
         </div>
         <input
