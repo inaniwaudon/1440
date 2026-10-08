@@ -169,7 +169,10 @@ const PhotoPreview = ({
           muted
           playsInline
           preload="auto"
-          className={`${styles.previewImg} ${blurImages && shouldBlur ? styles.blurred : ""}`}
+          className={clsx(
+            styles.previewImg,
+            blurImages && shouldBlur && styles.blurred,
+          )}
           onLoadedMetadata={(event) => {
             const target = event.currentTarget;
             if (target.videoWidth && target.videoHeight) {
@@ -681,7 +684,10 @@ export const MinuteDetail = ({
               return (
                 <button
                   type="button"
-                  className={`${styles.playBtn} ${isPlaying ? styles.playBtnActive : ""}`}
+                  className={clsx(
+                    styles.playBtn,
+                    isPlaying && styles.playBtnActive,
+                  )}
                   onClick={handlePlayClick}
                   aria-label={
                     mode === "pause"

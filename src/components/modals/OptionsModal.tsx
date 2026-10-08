@@ -1,3 +1,4 @@
+import clsx from "clsx";
 import { MdSettings } from "react-icons/md";
 import { Modal, modalStyles } from "./Modal";
 import styles from "./OptionsModal.module.css";
@@ -97,7 +98,7 @@ export const OptionsModal = ({
       </label>
       <button
         type="button"
-        className={`${modalStyles.secondaryButton} ${styles.actionButton}`}
+        className={clsx(modalStyles.secondaryButton, styles.actionButton)}
         disabled={imageExportProgress !== null}
         onClick={onExportImage}
       >
@@ -108,7 +109,7 @@ export const OptionsModal = ({
       {exportError && <p className={styles.error}>{exportError}</p>}
       <button
         type="button"
-        className={`${modalStyles.secondaryButton} ${styles.actionButton}`}
+        className={clsx(modalStyles.secondaryButton, styles.actionButton)}
         disabled={transferBusy}
         onClick={onExportData}
       >
@@ -116,7 +117,7 @@ export const OptionsModal = ({
       </button>
       <button
         type="button"
-        className={`${modalStyles.secondaryButton} ${styles.actionButton}`}
+        className={clsx(modalStyles.secondaryButton, styles.actionButton)}
         disabled={transferBusy}
         onClick={onImportData}
       >
@@ -124,7 +125,11 @@ export const OptionsModal = ({
       </button>
       <button
         type="button"
-        className={`${modalStyles.primaryButton} ${styles.actionButton} ${styles.dangerButton}`}
+        className={clsx(
+          modalStyles.primaryButton,
+          styles.actionButton,
+          styles.dangerButton,
+        )}
         disabled={transferBusy || deleteBusy}
         onClick={onDeleteAllData}
       >

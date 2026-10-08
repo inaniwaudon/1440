@@ -1,3 +1,4 @@
+import clsx from "clsx";
 import { useLiveQuery } from "dexie-react-hooks";
 import { useEffect, useState } from "react";
 import { db } from "../../db/db";
@@ -40,7 +41,11 @@ export const MinuteCell = ({
   return (
     <button
       type="button"
-      className={`${styles.cell} ${filled ? styles.filled : ""} ${isNow ? styles.now : ""}`}
+      className={clsx(
+        styles.cell,
+        filled && styles.filled,
+        isNow && styles.now,
+      )}
       data-minute={minuteOfDay}
       onPointerDown={(event) => {
         event.stopPropagation();

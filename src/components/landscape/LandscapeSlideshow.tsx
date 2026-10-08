@@ -154,7 +154,7 @@ export const LandscapeSlideshow = ({ enabled, blurImages }: Props) => {
         <video
           key={photo.id}
           src={url}
-          className={`${styles.media} ${shouldBlur ? styles.blurred : ""}`}
+          className={clsx(styles.media, shouldBlur && styles.blurred)}
           autoPlay
           loop
           muted

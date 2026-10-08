@@ -1,3 +1,4 @@
+import clsx from "clsx";
 import type { PointerEvent } from "react";
 import { Fragment, useRef, useState } from "react";
 import styles from "./HourDial.module.css";
@@ -145,17 +146,18 @@ export const HourDial = ({ activeHour, onScrub }: Props) => {
                     />
                   )}
                   <div
-                    className={`${styles.tick} ${isSelected ? styles.tickActive : ""}`}
+                    className={clsx(
+                      styles.tick,
+                      isSelected && styles.tickActive,
+                    )}
                     style={{ transform: `translate(${x}px, ${y}px)` }}
                   >
                     <span
-                      className={[
+                      className={clsx(
                         styles.tickInner,
-                        isMajor ? styles.tickMajor : "",
-                        isSelected ? styles.tickSelected : "",
-                      ]
-                        .filter(Boolean)
-                        .join(" ")}
+                        isMajor && styles.tickMajor,
+                        isSelected && styles.tickSelected,
+                      )}
                     >
                       {String(h).padStart(2, "0")}
                     </span>

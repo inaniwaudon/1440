@@ -1,3 +1,4 @@
+import clsx from "clsx";
 import type { PhotoRecord } from "../../db/types";
 
 type FaceDetectionPhoto = Pick<PhotoRecord, "hasDetectedFace" | "blurOverride">;
@@ -26,7 +27,10 @@ export const FaceBlurImage = ({
     <img
       src={src}
       alt={alt}
-      className={`${className} ${enabled && shouldBlur ? fallbackBlurClassName : ""}`}
+      className={clsx(
+        className,
+        enabled && shouldBlur && fallbackBlurClassName,
+      )}
       onLoad={(event) => {
         const image = event.currentTarget;
         onNaturalSize?.(image.naturalWidth, image.naturalHeight);

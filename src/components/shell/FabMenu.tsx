@@ -1,3 +1,4 @@
+import clsx from "clsx";
 import type { ChangeEvent } from "react";
 import { useEffect, useRef, useState } from "react";
 import {
@@ -199,21 +200,33 @@ export const FabMenu = ({ onCamera, onImport, onHelp, onOption }: Props) => {
         {open && (
           <>
             <div
-              className={`${styles.item} ${styles.itemLeft} ${active === "option" ? styles.itemActive : ""}`}
+              className={clsx(
+                styles.item,
+                styles.itemLeft,
+                active === "option" && styles.itemActive,
+              )}
               role="img"
               aria-label="Option"
             >
               <MdSettings className={styles.itemIcon} aria-hidden="true" />
             </div>
             <div
-              className={`${styles.item} ${styles.itemDiagonal} ${active === "help" ? styles.itemActive : ""}`}
+              className={clsx(
+                styles.item,
+                styles.itemDiagonal,
+                active === "help" && styles.itemActive,
+              )}
               role="img"
               aria-label="Help"
             >
               <MdQuestionMark className={styles.itemIcon} aria-hidden="true" />
             </div>
             <div
-              className={`${styles.item} ${styles.itemTop} ${active === "photo" ? styles.itemActive : ""}`}
+              className={clsx(
+                styles.item,
+                styles.itemTop,
+                active === "photo" && styles.itemActive,
+              )}
               role="img"
               aria-label="Photo"
             >
@@ -251,11 +264,9 @@ export const FabMenu = ({ onCamera, onImport, onHelp, onOption }: Props) => {
 
         <div
           ref={gestureRef}
-          className={`${styles.fab} ${open ? styles.fabOpen : ""}`}
+          className={clsx(styles.fab, open && styles.fabOpen)}
         >
-          <span
-            className={`${styles.fabIcon} ${open ? styles.fabIconOpen : ""}`}
-          >
+          <span className={clsx(styles.fabIcon, open && styles.fabIconOpen)}>
             ＋
           </span>
         </div>

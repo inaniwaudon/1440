@@ -1,3 +1,4 @@
+import clsx from "clsx";
 import { useLiveQuery } from "dexie-react-hooks";
 import {
   MdArrowForward,
@@ -116,7 +117,7 @@ export const HelpModal = ({ open, onClose }: Props) => {
 
         <button
           type="button"
-          className={`${modalStyles.secondaryButton} ${styles.closeButton}`}
+          className={clsx(modalStyles.secondaryButton, styles.closeButton)}
           onClick={onClose}
         >
           閉じる

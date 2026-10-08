@@ -1,3 +1,4 @@
+import clsx from "clsx";
 import { useEffect, useRef } from "react";
 import { MdCompareArrows } from "react-icons/md";
 import type { ImportConflict } from "../../features/import/importPhotos";
@@ -70,7 +71,7 @@ export const ImportConflictOverlay = ({ conflict, onResolve }: Props) => {
             </button>
           </article>
           <article className={styles.option}>
-            <div className={`${styles.badge} ${styles.newBadge}`}>新規</div>
+            <div className={clsx(styles.badge, styles.newBadge)}>新規</div>
             <div className={styles.preview}>
               <BlobPreview
                 blob={conflict.incoming.thumbnailBlob}

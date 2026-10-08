@@ -1,3 +1,4 @@
+import clsx from "clsx";
 import type { MouseEvent } from "react";
 import { type ReactNode, useEffect } from "react";
 import { useBodyScrollLock } from "../../hooks/useBodyScrollLock";
@@ -59,7 +60,7 @@ export const Modal = ({
     // biome-ignore lint/a11y/useKeyWithClickEvents: Escape handled by keydown listener
     <div className={styles.overlay} onClick={handleOverlayClick}>
       <section
-        className={`${styles.modal} ${wide ? styles.wide : ""}`.trim()}
+        className={clsx(styles.modal, wide && styles.wide)}
         role="dialog"
         aria-modal="true"
         aria-labelledby={labelledBy}
