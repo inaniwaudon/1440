@@ -50,7 +50,10 @@ export const LandscapeSlideshow = ({ enabled, blurImages }: Props) => {
   );
 
   useEffect(() => {
-    const mql = window.matchMedia("(orientation: landscape)");
+    // PC では常時横長となるため、タッチデバイス（pointer: coarse）に限定する
+    const mql = window.matchMedia(
+      "(orientation: landscape) and (pointer: coarse)",
+    );
     const update = () => {
       setIsLandscape(mql.matches);
     };
