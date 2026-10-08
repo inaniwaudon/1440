@@ -28,6 +28,28 @@ export const HourDial = ({ activeHour, onScrub }: Props) => {
   const [open, setOpen] = useState(false);
   const [displayHour, setDisplayHour] = useState(activeHour);
   const dialRef = useRef<HTMLDivElement>(null);
+  // イベントハンドラ内で scrollIntoView を同期的に呼ぶと、
+  // iOS WebKit は直後の pointermove の clientY に scrollY 相当のオフセットを
+  // 乗せた異常値を発行することがある（ビューポート範囲外の値が届く）。
+  // そこで onScrub は requestAnimationFrame に逃がし、ハンドラ内から同期スクロールを排除する。
+  // 保留分は pointerup で確実に流す。
+  const pendingScrollRef = useRef<number | null>(null);
+  const scrollRafRef = useRef<number | null>(null);
+
+  const scheduleScroll = (hour: number) => {
+    pendingScrollRef.current = hour;
+    if (scrollRafRef.current !== null) {
+      return;
+    }
+    scrollRafRef.current = requestAnimationFrame(() => {
+      scrollRafRef.current = null;
+      const target = pendingScrollRef.current;
+      pendingScrollRef.current = null;
+      if (target !== null) {
+        onScrub(target);
+      }
+    });
+  };
 
   // 操作中でない間は、外部から渡された activeHour に displayHour を同期させる
   if (!open && displayHour !== activeHour) {
@@ -73,10 +95,21 @@ export const HourDial = ({ activeHour, onScrub }: Props) => {
     if (!open) {
       return;
     }
+    // iOS WebKit の既知の不具合：scrollIntoView 直後の pointermove は
+    // clientY/clientX にスクロール分が混入した異常値（画面外）を返すことがある。
+    // 画面の外に指があるはずはないので、範囲外の座標は捨てる。
+    if (
+      event.clientY < 0 ||
+      event.clientY > window.innerHeight ||
+      event.clientX < 0 ||
+      event.clientX > window.innerWidth
+    ) {
+      return;
+    }
     const hour = hourFromPointer(event.clientX, event.clientY);
     if (hour !== displayHour) {
       setDisplayHour(hour);
-      onScrub(hour);
+      scheduleScroll(hour);
     }
   };
 
@@ -87,6 +120,16 @@ export const HourDial = ({ activeHour, onScrub }: Props) => {
       // 無視
     }
     setOpen(false);
+    // 保留中のスクロールを確実に当ててから終わる
+    if (scrollRafRef.current !== null) {
+      cancelAnimationFrame(scrollRafRef.current);
+      scrollRafRef.current = null;
+    }
+    const finalHour = pendingScrollRef.current;
+    pendingScrollRef.current = null;
+    if (finalHour !== null) {
+      onScrub(finalHour);
+    }
   };
 
   const radius = DIAL_SIZE / 2;
